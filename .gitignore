@@ -1,25 +1,48 @@
-
+# --- Unreal Engine (project root) ---
 Binaries/
-Build/
 DerivedDataCache/
 Intermediate/
 Saved/
 
-*.sln
-*.suo
-*.xcodeproj
-*.xcworkspace
-*.VC.db
-*.VC.VC.opendb
+# (선택) 빌드 산출물/스테이징 무시
+#Saved/StagedBuilds/
+#Saved/Cooked/
 
-*.log
-*.tmp
-
-.DS_Store
-
+# --- IDE / 편집기 ---
+.vs/
 .vscode/
 .idea/
 
-# Visual Studio cache
-.vs/
+# Visual Studio
+*.sln
+*.suo
+*.user
+*.userosscache
+*.VC.db
+*.VC.opendb
+
+# Xcode / Apple
+*.xcodeproj/
+*.xcworkspace/
+*.xcuserstate
+*.xccheckout
+*.xcuserdata/
+
+# Rider/IntelliJ 잔여물
+*.iml
+
+# OS 잡파일
+.DS_Store
+Thumbs.db
+
+# Hot Reload / 임시
+EncTempFolder/
+*.tmp
+*.log
+*.obj
+*.pdb
 *.ipch
+
+# Plugin/Module 하위도 위 패턴으로 자동 제외 (Binaries, Intermediate 등)
+# Plugins/*/Binaries/
+# Plugins/*/Intermediate/
