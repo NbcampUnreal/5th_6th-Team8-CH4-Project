@@ -7,8 +7,12 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/GameplayStatics.h"
 
-// Sets default values
+
+#include "EnhancedInputSubsystems.h"
+#include "EnhancedInputComponent.h"
+
 ARCPlayerCharacter::ARCPlayerCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -28,7 +32,7 @@ ARCPlayerCharacter::ARCPlayerCharacter()
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
 	CameraBoom->SetUsingAbsoluteRotation(true); // Don't want arm to rotate when character does
-	CameraBoom->TargetArmLength = 800.f;
+	CameraBoom->TargetArmLength = 1500.f;
 	CameraBoom->SetRelativeRotation(FRotator(-60.f, 0.f, 0.f));
 	CameraBoom->bDoCollisionTest = false; // Don't want to pull camera in when it collides with level
 
@@ -37,24 +41,61 @@ ARCPlayerCharacter::ARCPlayerCharacter()
 	TopDownCameraComponent->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 }
 
-// Called when the game starts or when spawned
 void ARCPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	if (IsLocallyControlled() == true)
+	{
+		APlayerController* PC = Cast<APlayerController>(GetController());
+		checkf(IsValid(PC) == true, TEXT("PlayerController is invalid."));
+
+		UEnhancedInputLocalPlayerSubsystem* EILPS = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer());
+		checkf(IsValid(EILPS) == true, TEXT("EnhancedInputLocalPlayerSubsystem is invalid."));
+
+		EILPS->AddMappingContext(IMC_Default, 0);
+	}
 }
 
-// Called every frame
-void ARCPlayerCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
-
-// Called to bind functionality to input
 void ARCPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	UEnhancedInputComponent* EIC = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
+
+	EIC->BindAction(IA_Move, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleMoveInput);
+	//EIC->BindAction(IA_Aim, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleAimInput);
+
+	EIC->BindAction(IA_InteractF, ETriggerEvent::Started, this, &ARCPlayerCharacter::HandleInteractFInput);
 }
 
+void ARCPlayerCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	APlayerController* PlayerController = Cast<APlayerController>(GetController());
+	if (IsValid(PlayerController))
+	{
+		FHitResult HitResult;
+		PlayerController->GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, false, HitResult);
+
+		if (HitResult.bBlockingHit) {
+			FRotator NewRot = (HitResult.ImpactPoint - GetActorLocation()).Rotation();
+			
+			SetActorRotation(FRotator(0, NewRot.Yaw, 0));
+		}
+	}
+}
+
+void ARCPlayerCharacter::HandleMoveInput(const FInputActionValue& InValue)
+{
+	const FVector2D InMovementVector = InValue.Get<FVector2D>();
+	const FVector MoveDirection = FVector(InMovementVector.X, InMovementVector.Y, 0);
+
+	AddMovementInput(MoveDirection.GetSafeNormal(), 1);
+}
+
+void ARCPlayerCharacter::HandleInteractFInput(const FInputActionValue& InValue)
+{
+
+}

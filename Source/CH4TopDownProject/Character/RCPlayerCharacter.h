@@ -3,7 +3,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
 #include "GameFramework/Character.h"
+#include "InputAction.h"
+
 #include "RCPlayerCharacter.generated.h"
 
 class UInputAction;
@@ -32,7 +35,7 @@ private:
 # pragma endregion
 
 # pragma region Input
-private:
+protected:
 	UPROPERTY(EditDefaultsOnly, Category = Input)
 	TObjectPtr<class UInputMappingContext> IMC_Default;
 
@@ -42,6 +45,11 @@ private:
 	TObjectPtr<UInputAction> IA_Aim;
 	UPROPERTY(EditDefaultsOnly, Category = Input)
 	TObjectPtr<UInputAction> IA_InteractF;
+
+private:
+	void HandleMoveInput(const FInputActionValue& InValue);
+	void HandleAimInput(const FInputActionValue& InValue);
+	void HandleInteractFInput(const FInputActionValue& InValue);
 
 # pragma endregion
 };
