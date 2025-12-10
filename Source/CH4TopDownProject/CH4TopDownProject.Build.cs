@@ -8,6 +8,22 @@ public class CH4TopDownProject : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "NavigationSystem", "AIModule", "Niagara", "EnhancedInput" });
+        PublicDependencyModuleNames.AddRange(new string[] 
+		{ 
+			"Core", 
+			"CoreUObject", 
+			"Engine", 
+			"InputCore", 
+			"NavigationSystem", 
+			"AIModule", 
+			"Niagara", 
+			"EnhancedInput",
+            "UMG",
+        });
+
+        PublicIncludePaths.AddRange(new string[] 
+		{ 
+			"CH4TopDownProject", 
+		});
     }
 }
