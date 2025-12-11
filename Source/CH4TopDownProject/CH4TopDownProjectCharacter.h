@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "CH4TopDownProjectCharacter.generated.h"
 
+class ATopDownWeaponBase;
+
 UCLASS(Blueprintable)
 class ACH4TopDownProjectCharacter : public ACharacter
 {
@@ -13,6 +15,8 @@ class ACH4TopDownProjectCharacter : public ACharacter
 
 public:
 	ACH4TopDownProjectCharacter();
+
+	virtual void BeginPlay() override;
 
 	// Called every frame.
 	virtual void Tick(float DeltaSeconds) override;
@@ -22,6 +26,9 @@ public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 
+	void StartWeaponFire();
+	void StopWeaponFire();
+
 private:
 	/** Top down camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -30,5 +37,12 @@ private:
 	/** Camera boom positioning the camera above the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* CameraBoom;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	TSubclassOf<class ATopDownWeaponBase> DefaultWeaponClass;
+
+	UPROPERTY()
+	ATopDownWeaponBase* CurrentWeapon;
+
 };
 
