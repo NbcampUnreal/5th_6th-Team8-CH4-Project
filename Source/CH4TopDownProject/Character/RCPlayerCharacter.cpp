@@ -87,6 +87,9 @@ void ARCPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 	EIC->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleMoveInput);
 	EIC->BindAction(DashAction, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleDashInput);
+	
+	EIC->BindAction(SprintAction, ETriggerEvent::Started, this, &ARCPlayerCharacter::HandleSprintPressedInput);
+	EIC->BindAction(SprintAction, ETriggerEvent::Completed, this, &ARCPlayerCharacter::HandleSprintReleasedInput);
 
 	EIC->BindAction(InteractFAction, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleInteractFInput);
 
@@ -122,6 +125,16 @@ void ARCPlayerCharacter::HandleDashInput(const FInputActionValue& InValue)
 		{
 			bCanDash = true;
 		}), DashCoolDown, false);
+}
+
+void ARCPlayerCharacter::HandleSprintPressedInput(const FInputActionValue& InValue)
+{
+	GetCharacterMovement()->MaxWalkSpeed = SprintMaxWalkSpeed;
+}
+
+void ARCPlayerCharacter::HandleSprintReleasedInput(const FInputActionValue& InValue)
+{
+	GetCharacterMovement()->MaxWalkSpeed = DefaultMaxWalkSpeed;
 }
 
 void ARCPlayerCharacter::HandleInteractFInput(const FInputActionValue& InValue)
