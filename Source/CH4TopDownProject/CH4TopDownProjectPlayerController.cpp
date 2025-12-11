@@ -53,6 +53,10 @@ void ACH4TopDownProjectPlayerController::SetupInputComponent()
 		EnhancedInputComponent->BindAction(SetDestinationTouchAction, ETriggerEvent::Triggered, this, &ACH4TopDownProjectPlayerController::OnTouchTriggered);
 		EnhancedInputComponent->BindAction(SetDestinationTouchAction, ETriggerEvent::Completed, this, &ACH4TopDownProjectPlayerController::OnTouchReleased);
 		EnhancedInputComponent->BindAction(SetDestinationTouchAction, ETriggerEvent::Canceled, this, &ACH4TopDownProjectPlayerController::OnTouchReleased);
+
+		// Setup weapon input events
+		EnhancedInputComponent->BindAction(WeaponShotAction, ETriggerEvent::Started, this, &ACH4TopDownProjectPlayerController::OnWeaponShotStarted);
+		EnhancedInputComponent->BindAction(WeaponShotAction, ETriggerEvent::Completed, this, &ACH4TopDownProjectPlayerController::OnWeaponShotCompleted);
 	}
 	else
 	{
@@ -122,4 +126,20 @@ void ACH4TopDownProjectPlayerController::OnTouchReleased()
 {
 	bIsTouch = false;
 	OnSetDestinationReleased();
+}
+
+void ACH4TopDownProjectPlayerController::OnWeaponShotStarted()
+{
+	if (ACH4TopDownProjectCharacter* MyChar = Cast<ACH4TopDownProjectCharacter>(GetPawn()))
+	{
+		MyChar->StartWeaponFire();
+	}
+}
+
+void ACH4TopDownProjectPlayerController::OnWeaponShotCompleted()
+{
+	if (ACH4TopDownProjectCharacter* MyChar = Cast<ACH4TopDownProjectCharacter>(GetPawn()))
+	{
+		MyChar->StopWeaponFire();
+	}
 }

@@ -10,6 +10,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Materials/Material.h"
 #include "Engine/World.h"
+#include "Weapon/TopDownWeaponBase.h"
 
 ACH4TopDownProjectCharacter::ACH4TopDownProjectCharacter()
 {
@@ -45,7 +46,61 @@ ACH4TopDownProjectCharacter::ACH4TopDownProjectCharacter()
 	PrimaryActorTick.bStartWithTickEnabled = true;
 }
 
+void ACH4TopDownProjectCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (DefaultWeaponClass)
+	{
+		FActorSpawnParameters Params;
+		Params.Owner = this;
+		Params.Instigator = this;
+
+		CurrentWeapon = GetWorld()->SpawnActor<ATopDownWeaponBase>(DefaultWeaponClass, Params);
+
+		if (CurrentWeapon)
+		{
+
+
+			if (GetMesh())
+			{
+				CurrentWeapon->AttachToComponent(
+					GetMesh(),
+					FAttachmentTransformRules::KeepRelativeTransform
+					// , TEXT("hand_r_weapon")  // 소켓 만들면 이 줄 활성화
+				);
+
+				CurrentWeapon->SetActorRelativeLocation(FVector(50.f, 0.f, 50.f));
+			}
+			else
+			{
+				CurrentWeapon->AttachToComponent(
+					RootComponent,
+					FAttachmentTransformRules::KeepRelativeTransform
+				);
+				CurrentWeapon->SetActorRelativeLocation(FVector(50.f, 0.f, 50.f));
+			}
+		}
+	}
+}
+
 void ACH4TopDownProjectCharacter::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
+}
+
+void ACH4TopDownProjectCharacter::StartWeaponFire()
+{
+	if (CurrentWeapon)
+	{
+		CurrentWeapon->StartFire();
+	}
+}
+
+void ACH4TopDownProjectCharacter::StopWeaponFire()
+{
+	if (CurrentWeapon)
+	{
+		CurrentWeapon->StopFire();
+	}
 }
