@@ -9,7 +9,6 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/GameplayStatics.h"
 
-
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
 
@@ -63,18 +62,40 @@ void ARCPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 	UEnhancedInputComponent* EIC = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
 
-	EIC->BindAction(IA_Move, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleMoveInput);
-	//EIC->BindAction(IA_Aim, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleAimInput);
+	EIC->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleMoveInput);
+	EIC->BindAction(DashAction, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleDashInput);
 
-	EIC->BindAction(IA_InteractF, ETriggerEvent::Started, this, &ARCPlayerCharacter::HandleInteractFInput);
+	EIC->BindAction(InteractFAction, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleInteractFInput);
 }
 
 void ARCPlayerCharacter::HandleMoveInput(const FInputActionValue& InValue)
 {
 	const FVector2D InMovementVector = InValue.Get<FVector2D>();
-	const FVector MoveDirection = FVector(InMovementVector.X, InMovementVector.Y, 0);
+	CurMoveDirection = FVector(InMovementVector.X, InMovementVector.Y, 0);
 
-	AddMovementInput(MoveDirection.GetSafeNormal(), 1);
+	AddMovementInput(CurMoveDirection.GetSafeNormal(), 1);
+}
+
+void ARCPlayerCharacter::HandleDashInput(const FInputActionValue& InValue)
+{
+	if (IsValid(FlappingMontage) == false || bCanDash == false)
+	{
+		return;
+	}
+
+	if (IsValid(GetMesh()) && IsValid(GetMesh()->GetAnimInstance()))
+	{
+		GetMesh()->GetAnimInstance()->Montage_Play(FlappingMontage, 2.0f);
+	}
+
+	LaunchCharacter(CurMoveDirection * DashMaxWalkSpeed, true, false);
+
+	bCanDash = false;
+	FTimerHandle Handle;
+	GetWorld()->GetTimerManager().SetTimer(Handle, FTimerDelegate::CreateLambda([&]()
+		{
+			bCanDash = true;
+		}), DashCoolDown, false);
 }
 
 void ARCPlayerCharacter::HandleInteractFInput(const FInputActionValue& InValue)

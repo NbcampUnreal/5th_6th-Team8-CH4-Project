@@ -42,16 +42,35 @@ protected:
 	TObjectPtr<class UInputMappingContext> IMC_Default;
 
 	UPROPERTY(EditDefaultsOnly, Category = Input)
-	TObjectPtr<UInputAction> IA_Move;
+	TObjectPtr<UInputAction> MoveAction;
 	UPROPERTY(EditDefaultsOnly, Category = Input)
-	TObjectPtr<UInputAction> IA_Aim;
+	TObjectPtr<UInputAction> AimAction;
 	UPROPERTY(EditDefaultsOnly, Category = Input)
-	TObjectPtr<UInputAction> IA_InteractF;
+	TObjectPtr<UInputAction> DashAction;
+	UPROPERTY(EditDefaultsOnly, Category = Input)
+	TObjectPtr<UInputAction> InteractFAction;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<UAnimMontage> FlappingMontage;
 
 private:
 	void HandleMoveInput(const FInputActionValue& InValue);
-	//void HandleAimInput(const FInputActionValue& InValue);
+	void HandleDashInput(const FInputActionValue& InValue);
 	void HandleInteractFInput(const FInputActionValue& InValue);
 
+# pragma endregion
+
+# pragma region Ablilty
+
+private:
+	const float DefaultMaxWalkSpeed = 600.0f;
+	const float SprintMaxWalkSpeed = 800.0f;
+	const float DashMaxWalkSpeed = 3000.0f;
+
+	const float DashCoolDown = 5.0f;
+	
+private:
+	FVector CurMoveDirection;
+	bool bCanDash = true;
 # pragma endregion
 };
