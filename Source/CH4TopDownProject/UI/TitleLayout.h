@@ -1,0 +1,36 @@
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Blueprint/UserWidget.h"
+#include "TitleLayout.generated.h"
+
+class UButton;
+class UEditableText;
+
+UCLASS()
+class CH4TOPDOWNPROJECT_API UTitleLayout : public UUserWidget
+{
+	GENERATED_BODY()
+	
+public:
+	UTitleLayout(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+
+protected:
+	virtual void NativeConstruct() override;
+
+	UFUNCTION()
+	void OnPlayButtonClicked();
+
+	UFUNCTION()
+	void OnExitButtonClicked();
+
+private:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = USTitleWidget, Meta = (AllowPrivateAccess, BindWidget))
+	TObjectPtr<UButton> PlayButton;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = USTitleWidget, Meta = (AllowPrivateAccess, BindWidget))
+	TObjectPtr<UButton> ExitButton;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = USLobbyLevelUI, Meta = (AllowPrivateAccess, BindWidget))
+	TObjectPtr<UEditableText> ServerIPEditableText;
+};
