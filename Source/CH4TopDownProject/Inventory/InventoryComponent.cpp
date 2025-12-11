@@ -60,6 +60,10 @@ void UInventoryComponent::AddItem(FName ItemID)
 	}
 }
 
+void UInventoryComponent::DropItem(FName ItemID)
+{
+}
+
 int32 UInventoryComponent::GetInventorytSize()
 {
 	if (ItemDataTable == nullptr)
