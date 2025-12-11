@@ -24,6 +24,8 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	virtual void Tick(float DeltaTime) override;
+
+	void RotatePlayerToMouseCursor();
 	
 # pragma region Components
 private:
@@ -48,7 +50,7 @@ protected:
 
 private:
 	void HandleMoveInput(const FInputActionValue& InValue);
-	void HandleAimInput(const FInputActionValue& InValue);
+	//void HandleAimInput(const FInputActionValue& InValue);
 	void HandleInteractFInput(const FInputActionValue& InValue);
 
 # pragma endregion

@@ -69,24 +69,6 @@ void ARCPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	EIC->BindAction(IA_InteractF, ETriggerEvent::Started, this, &ARCPlayerCharacter::HandleInteractFInput);
 }
 
-void ARCPlayerCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-	APlayerController* PlayerController = Cast<APlayerController>(GetController());
-	if (IsValid(PlayerController))
-	{
-		FHitResult HitResult;
-		PlayerController->GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, false, HitResult);
-
-		if (HitResult.bBlockingHit) {
-			FRotator NewRot = (HitResult.ImpactPoint - GetActorLocation()).Rotation();
-			
-			SetActorRotation(FRotator(0, NewRot.Yaw, 0));
-		}
-	}
-}
-
 void ARCPlayerCharacter::HandleMoveInput(const FInputActionValue& InValue)
 {
 	const FVector2D InMovementVector = InValue.Get<FVector2D>();
@@ -98,4 +80,27 @@ void ARCPlayerCharacter::HandleMoveInput(const FInputActionValue& InValue)
 void ARCPlayerCharacter::HandleInteractFInput(const FInputActionValue& InValue)
 {
 
+}
+
+void ARCPlayerCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	RotatePlayerToMouseCursor();
+}
+
+void ARCPlayerCharacter::RotatePlayerToMouseCursor()
+{
+	APlayerController* PlayerController = Cast<APlayerController>(GetController());
+	if (IsValid(PlayerController))
+	{
+		FHitResult HitResult;
+		PlayerController->GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, false, HitResult);
+
+		if (HitResult.bBlockingHit) {
+			FRotator NewRot = (HitResult.ImpactPoint - GetActorLocation()).Rotation();
+
+			SetActorRotation(FRotator(0, NewRot.Yaw, 0));
+		}
+	}
 }
