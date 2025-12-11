@@ -12,6 +12,8 @@
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
 
+#include "Weapon/TopDownWeaponBase.h"
+
 ARCPlayerCharacter::ARCPlayerCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -54,6 +56,27 @@ void ARCPlayerCharacter::BeginPlay()
 
 		EILPS->AddMappingContext(IMC_Default, 0);
 	}
+
+	if (DefaultWeaponClass && GetWorld())
+	{
+		FActorSpawnParameters Params;
+		Params.Owner = this;
+		Params.Instigator = this;
+
+		CurrentWeapon = GetWorld()->SpawnActor<ATopDownWeaponBase>(DefaultWeaponClass, Params);
+
+		if (CurrentWeapon)
+		{
+			if (GetMesh())
+			{
+				CurrentWeapon->AttachToComponent(
+					GetMesh(),
+					FAttachmentTransformRules::SnapToTargetNotIncludingScale,
+					TEXT("WeaponSocket")
+				);
+			}
+		}
+	}
 }
 
 void ARCPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -66,6 +89,9 @@ void ARCPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	EIC->BindAction(DashAction, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleDashInput);
 
 	EIC->BindAction(InteractFAction, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleInteractFInput);
+
+	EIC->BindAction(FireAction, ETriggerEvent::Started, this, &ARCPlayerCharacter::HandleFireStarted);
+	EIC->BindAction(FireAction, ETriggerEvent::Completed, this, &ARCPlayerCharacter::HandleFireStopped);
 }
 
 void ARCPlayerCharacter::HandleMoveInput(const FInputActionValue& InValue)
@@ -123,5 +149,21 @@ void ARCPlayerCharacter::RotatePlayerToMouseCursor()
 
 			SetActorRotation(FRotator(0, NewRot.Yaw, 0));
 		}
+	}
+}
+
+void ARCPlayerCharacter::HandleFireStarted(const FInputActionValue& InValue)
+{
+	if (CurrentWeapon)
+	{
+		CurrentWeapon->StartFire();
+	}
+}
+
+void ARCPlayerCharacter::HandleFireStopped(const FInputActionValue& InValue)
+{
+	if (CurrentWeapon)
+	{
+		CurrentWeapon->StopFire();
 	}
 }
