@@ -100,7 +100,7 @@ void ARCPlayerCharacter::HandleDashInput(const FInputActionValue& InValue)
 
 void ARCPlayerCharacter::HandleInteractFInput(const FInputActionValue& InValue)
 {
-
+	UE_LOG(LogTemp, Display, TEXT("HandleInteractFInput"));
 }
 
 void ARCPlayerCharacter::Tick(float DeltaTime)
