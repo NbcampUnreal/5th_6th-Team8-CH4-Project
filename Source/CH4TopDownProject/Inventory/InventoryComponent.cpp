@@ -1,16 +1,14 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Inventory/InventoryComponent.h"
+#include "Inventory/ItemData/ItemData.h"
+#include "Blueprint/UserWidget.h"
 
-// Sets default values for this component's properties
 UInventoryComponent::UInventoryComponent()
 {
-	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bCanEverTick = false;
 
-	// ...
 }
 
 
@@ -19,16 +17,77 @@ void UInventoryComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// ...
+	Items.SetNum(GetInventorytSize());
+
+	if (InventoryWidgetClass)
+	{
+		APlayerController* PlayerController = Cast<APlayerController>(GetOwner()->GetInstigatorController());
+
+		if (PlayerController)
+		{
+			InventoryWidget = CreateWidget<UUserWidget>(PlayerController, InventoryWidgetClass);
+		}
+	}
 	
 }
 
-
-// Called every frame
-void UInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+void UInventoryComponent::AddItem(FName ItemID)
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	if (ItemID == NAME_None)
+	{
+		return;
+	}
 
-	// ...
+	for (int32 i = 0; i < Items.Num(); i++)
+	{
+		if (Items[i].ItemID == NAME_None)
+		{
+			Items[i].ItemID = ItemID;
+
+			if (GEngine)
+			{
+				FString const Msg = FString::Printf(TEXT("Item[ %d ] slot [ %s ] store"), i, *ItemID.ToString());
+				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, Msg);
+			}
+
+			return;
+		}
+	}
+
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("Inventory is Full"));
+	}
+}
+
+int32 UInventoryComponent::GetInventorytSize()
+{
+	if (ItemDataTable == nullptr)
+	{
+		return DefaultInventorySize;
+	}
+
+	if (EquipmentBagID.IsNone())
+	{
+		return DefaultInventorySize;
+	}
+
+	const FItemData* ItemRow = ItemDataTable->FindRow<FItemData>(EquipmentBagID, TEXT("ItemID"));
+
+	if (ItemRow == nullptr)
+	{
+		return DefaultInventorySize;
+	}
+
+	return ItemRow->ContainerSize;
+}
+
+
+void UInventoryComponent::SetEquipmentBagID(FName NewID) { 
+	int32 curInventorySize = GetInventorytSize();
+	EquipmentBagID = NewID; 
+	int32 nextInventorySize = GetInventorytSize();
+
+	Items.SetNum(nextInventorySize);
 }
 
