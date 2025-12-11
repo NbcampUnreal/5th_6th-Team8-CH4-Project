@@ -10,6 +10,7 @@
 #include "RCPlayerCharacter.generated.h"
 
 class UInputAction;
+class ATopDownWeaponBase;
 
 UCLASS()
 class CH4TOPDOWNPROJECT_API ARCPlayerCharacter : public ACharacter
@@ -73,4 +74,22 @@ private:
 	FVector CurMoveDirection;
 	bool bCanDash = true;
 # pragma endregion
+
+# pragma region Weapon
+
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = Input)
+	TObjectPtr<UInputAction> FireAction;
+
+	UPROPERTY(EditDefaultsOnly, Category = Weapon)
+	TSubclassOf<ATopDownWeaponBase> DefaultWeaponClass;
+
+	UPROPERTY()
+	ATopDownWeaponBase* CurrentWeapon;
+
+private:
+	void HandleFireStarted(const FInputActionValue& InValue);
+	void HandleFireStopped(const FInputActionValue& InValue);
+# pragma endregion
 };
+

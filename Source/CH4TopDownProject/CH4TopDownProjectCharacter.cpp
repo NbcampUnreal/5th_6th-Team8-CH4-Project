@@ -67,7 +67,7 @@ void ACH4TopDownProjectCharacter::BeginPlay()
 				CurrentWeapon->AttachToComponent(
 					GetMesh(),
 					FAttachmentTransformRules::KeepRelativeTransform
-					// , TEXT("hand_r_weapon")  // 소켓 만들면 이 줄 활성화
+					// , TEXT("hand_r_weapon")
 				);
 
 				CurrentWeapon->SetActorRelativeLocation(FVector(50.f, 0.f, 50.f));

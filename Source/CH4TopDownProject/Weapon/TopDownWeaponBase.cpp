@@ -19,6 +19,14 @@ ATopDownWeaponBase::ATopDownWeaponBase()
 
     MagazineMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MagazineMesh"));
     MagazineMesh->SetupAttachment(WeaponMesh);
+
+    WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    WeaponMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
+    WeaponMesh->SetSimulatePhysics(false);
+
+    MagazineMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    MagazineMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
+    MagazineMesh->SetSimulatePhysics(false);
 }
 
 
