@@ -48,6 +48,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = Input)
 	TObjectPtr<UInputAction> DashAction;
 	UPROPERTY(EditDefaultsOnly, Category = Input)
+	TObjectPtr<UInputAction> SprintAction;
+	UPROPERTY(EditDefaultsOnly, Category = Input)
 	TObjectPtr<UInputAction> InteractFAction;
 
 	UPROPERTY(EditDefaultsOnly)
@@ -56,6 +58,8 @@ protected:
 private:
 	void HandleMoveInput(const FInputActionValue& InValue);
 	void HandleDashInput(const FInputActionValue& InValue);
+	void HandleSprintPressedInput(const FInputActionValue& InValue);
+	void HandleSprintReleasedInput(const FInputActionValue& InValue);
 	void HandleInteractFInput(const FInputActionValue& InValue);
 
 # pragma endregion
@@ -63,14 +67,18 @@ private:
 # pragma region Ablilty
 
 private:
-	const float DefaultMaxWalkSpeed = 600.0f;
-	const float SprintMaxWalkSpeed = 800.0f;
+	const float DefaultMaxWalkSpeed = 500.0f;
+	const float SprintMaxWalkSpeed = 1000.0f;
 	const float DashMaxWalkSpeed = 3000.0f;
 
 	const float DashCoolDown = 5.0f;
 	
 private:
 	FVector CurMoveDirection;
+
+	/// <summary>
+	/// Have to be Repliacted
+	/// </summary>
 	bool bCanDash = true;
 # pragma endregion
 };
