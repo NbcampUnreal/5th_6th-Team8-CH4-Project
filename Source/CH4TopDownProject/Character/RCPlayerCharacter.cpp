@@ -14,6 +14,9 @@
 
 #include "Weapon/TopDownWeaponBase.h"
 
+#include "Component/HealthComponent.h"
+#include "Component/StaminaComponent.h"
+
 ARCPlayerCharacter::ARCPlayerCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -40,6 +43,9 @@ ARCPlayerCharacter::ARCPlayerCharacter()
 	TopDownCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("TopDownCamera"));
 	TopDownCameraComponent->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	TopDownCameraComponent->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
+
+	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
+	StaminaComponent = CreateDefaultSubobject<UStaminaComponent>(TEXT("StaminaComponent"));
 }
 
 void ARCPlayerCharacter::BeginPlay()
