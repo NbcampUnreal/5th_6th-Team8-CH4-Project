@@ -1,6 +1,7 @@
 #include "UI/MainHUDWidget.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
+#include "Component/HealthComponent.h"
 
 void UMainHUDWidget::UpdateHealthAndStamina(float CurrentHealth, float MaxHealth, float CurrentStamina, float MaxStamina)
 {
@@ -12,6 +13,22 @@ void UMainHUDWidget::UpdateHealthAndStamina(float CurrentHealth, float MaxHealth
     if (StaminaBar && MaxStamina > 0)
     {
         StaminaBar->SetPercent(CurrentStamina / MaxStamina);
+    }
+}
+
+void UMainHUDWidget::UpdateHealth(float CurrentHealth, float MaxHealth)
+{
+    if (HealthBar && MaxHealth > 0)
+    {
+        HealthBar->SetPercent(FMath::Clamp(CurrentHealth / MaxHealth, 0.0f, 1.0f));
+    }
+}
+
+void UMainHUDWidget::UpdateStamina(float CurrentStamina, float MaxStamina)
+{
+    if (StaminaBar && MaxStamina > 0)
+    {
+        StaminaBar->SetPercent(FMath::Clamp(CurrentStamina / MaxStamina, 0.0f, 1.0f));
     }
 }
 
@@ -32,5 +49,20 @@ void UMainHUDWidget::NativeConstruct()
 {
     Super::NativeConstruct();
 
+    APawn* OwningPawn = GetOwningPlayerPawn();
+    if (!OwningPawn)
+    {
+        return;
+    }
 
+    PlayerHealthComponent = OwningPawn->FindComponentByClass<UHealthComponent>();
+    if (!PlayerHealthComponent)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Could not found HealthComp"));
+        return;
+    }
+
+    PlayerHealthComponent->OnHealthChanged.AddDynamic(this, &UMainHUDWidget::UpdateHealth);
+
+    UpdateHealth(PlayerHealthComponent->GetCurrentHealth(), PlayerHealthComponent->GetMaxHealth());
 }
