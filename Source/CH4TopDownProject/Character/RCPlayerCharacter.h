@@ -82,6 +82,7 @@ private:
 	const float DashMaxWalkSpeed = 3000.0f;
 
 	const float DashCoolDown = 5.0f;
+	const float DashStaminaCost = 25.0f;
 	
 private:
 	FVector CurMoveDirection;
