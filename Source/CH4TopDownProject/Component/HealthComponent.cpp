@@ -64,9 +64,10 @@ void UHealthComponent::SetHealth(float NewHealth)
         return;
     }
 
+    float OldHealth = CurrentHealth;
     CurrentHealth = NewHealth;
 
-    OnRep_CurrentHealth(CurrentHealth);
+    OnRep_CurrentHealth(OldHealth);
 }
 
 void UHealthComponent::OnRep_CurrentHealth(float OldHealth)
