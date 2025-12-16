@@ -13,6 +13,7 @@ class UInputAction;
 class ATopDownWeaponBase;
 class UHealthComponent;
 class UStaminaComponent;
+class UQuickSlotComponent;
 
 UCLASS()
 class CH4TOPDOWNPROJECT_API ARCPlayerCharacter : public ACharacter
@@ -46,6 +47,9 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaminaComponent> StaminaComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UQuickSlotComponent> QuickSlotComponent;
+
 # pragma endregion
 
 # pragma region Input
@@ -68,6 +72,30 @@ protected:
 	TObjectPtr<UAnimMontage> FlappingMontage;
 
 
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UInputAction> UseSlot1Action;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UInputAction> UseSlot2Action;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UInputAction> UseSlot3Action;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UInputAction> UseSlot4Action;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UInputAction> UseSlot5Action;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UInputAction> UseSlot6Action;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UInputAction> UseSlot7Action;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UInputAction> UseSlot8Action;
+
 	UPROPERTY()
 	TObjectPtr<AActor> CurrentInteractTarget = nullptr;
 private:
@@ -77,6 +105,15 @@ private:
 	void HandleSprintReleasedInput(const FInputActionValue& InValue);
 	void HandleInteractFInput(const FInputActionValue& InValue);
 	
+	void HandleUseQuickSlotInput(int32 SlotIndex);
+	void HandleUseSlot1Input(const FInputActionValue& InValue);
+	void HandleUseSlot2Input(const FInputActionValue& InValue);
+	void HandleUseSlot3Input(const FInputActionValue& InValue);
+	void HandleUseSlot4Input(const FInputActionValue& InValue);
+	void HandleUseSlot5Input(const FInputActionValue& InValue);
+	void HandleUseSlot6Input(const FInputActionValue& InValue);
+	void HandleUseSlot7Input(const FInputActionValue& InValue);
+	void HandleUseSlot8Input(const FInputActionValue& InValue);
 
 # pragma endregion
 
