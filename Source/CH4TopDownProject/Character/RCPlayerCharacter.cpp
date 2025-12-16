@@ -14,6 +14,10 @@
 
 #include "Weapon/TopDownWeaponBase.h"
 
+#include "Component/HealthComponent.h"
+#include "Component/StaminaComponent.h"
+#include "Interface/Interactable.h"
+
 ARCPlayerCharacter::ARCPlayerCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -40,6 +44,9 @@ ARCPlayerCharacter::ARCPlayerCharacter()
 	TopDownCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("TopDownCamera"));
 	TopDownCameraComponent->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	TopDownCameraComponent->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
+
+	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
+	StaminaComponent = CreateDefaultSubobject<UStaminaComponent>(TEXT("StaminaComponent"));
 }
 
 void ARCPlayerCharacter::BeginPlay()
@@ -87,6 +94,9 @@ void ARCPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 	EIC->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleMoveInput);
 	EIC->BindAction(DashAction, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleDashInput);
+	
+	EIC->BindAction(SprintAction, ETriggerEvent::Started, this, &ARCPlayerCharacter::HandleSprintPressedInput);
+	EIC->BindAction(SprintAction, ETriggerEvent::Completed, this, &ARCPlayerCharacter::HandleSprintReleasedInput);
 
 	EIC->BindAction(InteractFAction, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleInteractFInput);
 
@@ -109,6 +119,11 @@ void ARCPlayerCharacter::HandleDashInput(const FInputActionValue& InValue)
 		return;
 	}
 
+	if (!StaminaComponent || !StaminaComponent->ConsumeStamina(DashStaminaCost))
+	{
+		return;
+	}
+
 	if (IsValid(GetMesh()) && IsValid(GetMesh()->GetAnimInstance()))
 	{
 		GetMesh()->GetAnimInstance()->Montage_Play(FlappingMontage, 2.0f);
@@ -124,9 +139,35 @@ void ARCPlayerCharacter::HandleDashInput(const FInputActionValue& InValue)
 		}), DashCoolDown, false);
 }
 
+void ARCPlayerCharacter::HandleSprintPressedInput(const FInputActionValue& InValue)
+{
+	if (StaminaComponent)
+	{
+		StaminaComponent->StartStaminaDrain(10.0f);
+	}
+
+	GetCharacterMovement()->MaxWalkSpeed = SprintMaxWalkSpeed;
+}
+
+void ARCPlayerCharacter::HandleSprintReleasedInput(const FInputActionValue& InValue)
+{
+	if (StaminaComponent)
+	{
+		StaminaComponent->StopStaminaDrain();
+	}
+
+	GetCharacterMovement()->MaxWalkSpeed = DefaultMaxWalkSpeed;
+}
+
 void ARCPlayerCharacter::HandleInteractFInput(const FInputActionValue& InValue)
 {
-	UE_LOG(LogTemp, Display, TEXT("HandleInteractFInput"));
+	if (!IsValid(CurrentInteractTarget))
+		return;
+
+	if (CurrentInteractTarget->Implements<UInteractable>())
+	{
+		IInteractable::Execute_Interact(CurrentInteractTarget, this);
+	}
 }
 
 void ARCPlayerCharacter::Tick(float DeltaTime)
@@ -150,6 +191,20 @@ void ARCPlayerCharacter::RotatePlayerToMouseCursor()
 			SetActorRotation(FRotator(0, NewRot.Yaw, 0));
 		}
 	}
+}
+
+void ARCPlayerCharacter::SetInteractTarget(AActor* InteractTarget)
+{
+	CurrentInteractTarget = InteractTarget;
+}
+
+void ARCPlayerCharacter::ClearInteractTarget(AActor* InteractTarget)
+{
+	if (CurrentInteractTarget == InteractTarget)
+	{
+		CurrentInteractTarget = nullptr;
+	}
+	
 }
 
 void ARCPlayerCharacter::HandleFireStarted(const FInputActionValue& InValue)

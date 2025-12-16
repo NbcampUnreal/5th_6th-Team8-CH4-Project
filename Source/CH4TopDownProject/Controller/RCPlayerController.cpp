@@ -3,6 +3,7 @@
 
 #include "Net/UnrealNetwork.h"
 #include "Kismet/GameplayStatics.h"
+#include "UI/MainHUDWidget.h"
 
 //#include "Game/RCGameModeBase.h"
 
@@ -18,6 +19,15 @@ void ARCPlayerController::BeginPlay()
 	FInputModeGameOnly Mode;
 	SetInputMode(Mode);
 	bShowMouseCursor = true;
+
+	if (IsValid(MainHUDWidgetClass))
+	{
+		MainHUDWidgetInstance = CreateWidget<UMainHUDWidget>(this, MainHUDWidgetClass);
+		if (IsValid(MainHUDWidgetInstance))
+		{
+			MainHUDWidgetInstance->AddToViewport(1);
+		}
+	}
 }
 
 //void ARCPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
