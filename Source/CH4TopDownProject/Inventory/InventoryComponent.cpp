@@ -179,6 +179,12 @@ void UInventoryComponent::DropItem(int32 Index)
 	}
 
 	AActor* DroppedItem = SpawnItemOnGround(ItemRow->ItemActorClass);
+	UBaseItemComponent* ItemComp = DroppedItem->FindComponentByClass<UBaseItemComponent>();
+	if (!ItemComp)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Actor %s has no BaseItemComponent"), *ItemActor->GetName());
+		return;
+	}
 
 	if (!DroppedItem)
 	{
