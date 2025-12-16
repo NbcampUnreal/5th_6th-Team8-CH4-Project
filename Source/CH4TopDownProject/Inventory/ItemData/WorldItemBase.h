@@ -60,6 +60,8 @@ protected:
 	virtual  void NotifyActorEndOverlap(AActor* OtherActor);
 
 public :
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+	
 	virtual void Interact_Implementation(AActor* Interactor) override;
 	virtual void TakeDamage_Implementation(float Damage, AActor* DamageCauser) override;
 	

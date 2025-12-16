@@ -74,6 +74,18 @@ void AWorldItemBase::NotifyActorEndOverlap(AActor* OtherActor)
 	}
 }
 
+float AWorldItemBase::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
+	class AController* EventInstigator, AActor* DamageCauser)
+{
+
+	if (!bCanTakeDamage)
+		return 0.f;
+
+	IInteractable::Execute_TakeDamage(this,DamageAmount, DamageCauser);
+	
+	return DamageAmount;
+}
+
 
 void AWorldItemBase::Interact_Implementation(AActor* Interactor)
 {
