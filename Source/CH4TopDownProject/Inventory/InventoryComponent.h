@@ -7,16 +7,24 @@
 #include "Engine/DataTable.h"
 #include "InventoryComponent.generated.h"
 
+class UInventoryUI;
+
+struct FItemData;
+
 USTRUCT(BlueprintType)
 struct FInventorySlot // 아이템슬롯 == 아이템 한칸에 들어갈 정보들
 {
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory Slot")
-	FName ItemID; // 아이템 DT_ItemData를 찾아갈 ID입니다
+	FName ItemID;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory Slot")
+	uint8 ItemType;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory Slot")
+	int32 Num;
 };
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS(Blueprintable, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class CH4TOPDOWNPROJECT_API UInventoryComponent : public UActorComponent
 {
 	GENERATED_BODY()
@@ -31,29 +39,50 @@ protected:
 #pragma region Inventory
 private: 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
-	TArray<FInventorySlot> Items;
+	TArray<FItemData> Items;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
 	int32 DefaultInventorySize = 4; 
 
 	UPROPERTY(EditDefaultsOnly, Category = "Inventory|UI")
-	TSubclassOf<UUserWidget> InventoryWidgetClass;
+	TSubclassOf<UInventoryUI> InventoryWidgetClass;
 
 public:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Inventory|UI")
-	UUserWidget* InventoryWidget;
+	UInventoryUI* InventoryWidget;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory|Data")
 	UDataTable* ItemDataTable;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory|Data")
+	UDataTable* BagItemDataTable;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory|Data")
+	UDataTable* ConsumableItemDataTable;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory|Data")
+	UDataTable* EquipmentItemDataTable;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory|Data")
+	UDataTable* WeqponItemDataTable;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory|Data")
+	UDataTable* AmmoItemDataTable;
 	
+private:
+	AActor* SpawnItemOnGround(TSubclassOf<AActor> SpawnActor);
 public:
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void AddItem(FName ItemID);
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
-	void DropItem(FName ItemID);
+	void DropItem(int32 Index);
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	void RemoveItem(int32 Index);
 
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	const TArray<FInventorySlot>& GetItems() const { return Items; }
+
 	int32 GetInventorytSize();
 	
 #pragma endregion
@@ -90,6 +119,30 @@ public:
 	void SetEquipmentHeadID(FName NewID) { EquipmentHeadID = NewID; }
 #pragma endregion
 
+#pragma region Weapon
+
+private:
+
+	UPROPERTY(EditDefaultsOnly, Category = "Equpment")
+	FName EquipmentWeapon1ID = NAME_None;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Equpment")
+	FName EquipmentWeapon2ID = NAME_None;
+
+public:
+
+	// Getter
+	UFUNCTION(BlueprintCallable, Category = "Equipment")
+	FName GetEquipmentWeapon1ID() const { return EquipmentWeapon1ID; }
+	UFUNCTION(BlueprintCallable, Category = "Equipment")
+	FName GetEquipmentWeapon2ID() const { return EquipmentWeapon2ID; }
+
+	// Setter
+	UFUNCTION(BlueprintCallable, Category = "Equipment")
+	void SetEquipmentWeapon1ID(FName NewID) {}
+	UFUNCTION(BlueprintCallable, Category = "Equipment")
+	void SetEquipmentWeapon2ID(FName NewID) { EquipmentWeapon2ID = NewID; }
+#pragma endregion
 	
 
 

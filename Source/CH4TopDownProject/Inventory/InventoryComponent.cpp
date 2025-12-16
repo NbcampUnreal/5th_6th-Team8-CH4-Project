@@ -4,11 +4,14 @@
 #include "Inventory/InventoryComponent.h"
 #include "Inventory/ItemData/ItemData.h"
 #include "Blueprint/UserWidget.h"
+#include "Engine/World.h" 
+#include "GameFramework/Actor.h"
+#include "Inventory/UI/InventoryUI.h"
+#include "Inventory/ItemData/ItemData.h"
 
 UInventoryComponent::UInventoryComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
-
 }
 
 
@@ -25,10 +28,87 @@ void UInventoryComponent::BeginPlay()
 
 		if (PlayerController)
 		{
-			InventoryWidget = CreateWidget<UUserWidget>(PlayerController, InventoryWidgetClass);
+			InventoryWidget = CreateWidget<UInventoryUI>(PlayerController, InventoryWidgetClass);
+			if (InventoryWidget) {
+				InventoryWidget->OwnerInventoryComponent = this;
+				InventoryWidget->AddToViewport();
+			}
 		}
 	}
 	
+}
+
+AActor* UInventoryComponent::SpawnItemOnGround(TSubclassOf<AActor> SpawnActor)
+{
+	AActor* OwnerActor = GetOwner();
+	if (!OwnerActor)
+	{
+		return nullptr;
+	}
+
+	UWorld* World = OwnerActor->GetWorld();
+	if (!World)
+	{
+		return nullptr;
+	}
+
+	FVector Start = OwnerActor->GetActorLocation() + FVector(0.f, 0.f, 10.f);
+	FVector Forward = OwnerActor->GetActorForwardVector();
+	FVector End = Start + Forward * 300.f; 
+
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(OwnerActor);
+
+	FHitResult ForwardHit;
+	bool bHitForward = World->LineTraceSingleByChannel(
+		ForwardHit,
+		Start,
+		End,
+		ECC_Visibility,
+		Params
+	);
+
+	FVector DownStart;
+	if (bHitForward)
+	{
+		DownStart = ForwardHit.Location + FVector(0.f, 0.f, 50.f);
+	}
+	else
+	{
+		DownStart = End + FVector(0.f, 0.f, 50.f);
+	}
+
+	FVector DownEnd = DownStart - FVector(0.f, 0.f, 800.f);
+
+	FHitResult DownHit;
+	bool bHitDown = World->LineTraceSingleByChannel(
+		DownHit,
+		DownStart,
+		DownEnd,
+		ECC_Visibility,
+		Params
+	);
+
+	if (!bHitDown)
+	{
+		return nullptr;
+	}
+
+	FVector SpawnLocation = DownHit.Location;
+	FRotator SpawnRotation = OwnerActor->GetActorRotation();
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = nullptr;
+	SpawnParams.Instigator = nullptr;
+
+	AActor* SpawnedItem = World->SpawnActor<AActor>(
+		SpawnActor,
+		SpawnLocation,
+		SpawnRotation,
+		SpawnParams
+	);
+
+	return SpawnedItem;
 }
 
 void UInventoryComponent::AddItem(FName ItemID)
@@ -60,8 +140,46 @@ void UInventoryComponent::AddItem(FName ItemID)
 	}
 }
 
-void UInventoryComponent::DropItem(FName ItemID)
+void UInventoryComponent::DropItem(int32 Index)
 {
+	if (Items.IsValidIndex(Index)) {
+		UE_LOG(LogTemp, Warning, TEXT("InventoryIndex is not valid"));
+		return;
+	}
+
+	if (!ItemDataTable)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ItemDataTable is NULL"));
+		return;
+	}
+
+	FName ItemID = Items[Index].ItemID;
+	const FItemData* ItemRow = ItemDataTable->FindRow<FItemData>(ItemID, TEXT(""));
+	if (!ItemRow)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ItemID not found in DataTable: %s"), *ItemID.ToString());
+		return;
+	}
+
+	if (!ItemRow->ItemActorClass)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ItemActorClass is NULL for item: %s"), *ItemID.ToString());
+		return;
+	}
+
+	AActor* DroppedItem = SpawnItemOnGround(ItemRow->ItemActorClass);
+
+	if (!DroppedItem)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to spawn dropped item"));
+		return;
+	}
+	Items[Index].ItemID = "";
+	UE_LOG(LogTemp, Log, TEXT("Dropped item: %s"), *ItemID.ToString());
+}
+
+void UInventoryComponent::RemoveItem(int32 Index) {
+
 }
 
 int32 UInventoryComponent::GetInventorytSize()
@@ -91,7 +209,12 @@ void UInventoryComponent::SetEquipmentBagID(FName NewID) {
 	int32 curInventorySize = GetInventorytSize();
 	EquipmentBagID = NewID; 
 	int32 nextInventorySize = GetInventorytSize();
-
+	if (curInventorySize > nextInventorySize) {
+		for (int32 i = curInventorySize - 1; i >= nextInventorySize; --i)
+		{
+			DropItem(i);
+		}
+	}
 	Items.SetNum(nextInventorySize);
 }
 

@@ -21,4 +21,7 @@ protected:
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Data")
 	FName ItemID;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Data")
+	FName Num;
 };
