@@ -182,7 +182,7 @@ void UInventoryComponent::DropItem(int32 Index)
 	UBaseItemComponent* ItemComp = DroppedItem->FindComponentByClass<UBaseItemComponent>();
 	if (!ItemComp)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Actor %s has no BaseItemComponent"), *ItemActor->GetName());
+		UE_LOG(LogTemp, Warning, TEXT("Actor %s has no BaseItemComponent"), *DroppedItem->GetName());
 		return;
 	}
 
