@@ -11,6 +11,8 @@
 
 class UInputAction;
 class ATopDownWeaponBase;
+class UHealthComponent;
+class UStaminaComponent;
 
 UCLASS()
 class CH4TOPDOWNPROJECT_API ARCPlayerCharacter : public ACharacter
@@ -27,6 +29,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	void RotatePlayerToMouseCursor();
+	void SetInteractTarget(AActor* InteractTarget);
+	void ClearInteractTarget(AActor* InteractTarget);
 	
 # pragma region Components
 private:
@@ -35,6 +39,13 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	TObjectPtr<class USpringArmComponent> CameraBoom;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UHealthComponent> HealthComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UStaminaComponent> StaminaComponent;
+
 # pragma endregion
 
 # pragma region Input
@@ -56,12 +67,16 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UAnimMontage> FlappingMontage;
 
+
+	UPROPERTY()
+	TObjectPtr<AActor> CurrentInteractTarget = nullptr;
 private:
 	void HandleMoveInput(const FInputActionValue& InValue);
 	void HandleDashInput(const FInputActionValue& InValue);
 	void HandleSprintPressedInput(const FInputActionValue& InValue);
 	void HandleSprintReleasedInput(const FInputActionValue& InValue);
 	void HandleInteractFInput(const FInputActionValue& InValue);
+	
 
 # pragma endregion
 
@@ -73,6 +88,7 @@ private:
 	const float DashMaxWalkSpeed = 3000.0f;
 
 	const float DashCoolDown = 5.0f;
+	const float DashStaminaCost = 25.0f;
 	
 private:
 	FVector CurMoveDirection;
