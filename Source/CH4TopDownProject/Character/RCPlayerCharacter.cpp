@@ -16,6 +16,7 @@
 
 #include "Component/HealthComponent.h"
 #include "Component/StaminaComponent.h"
+#include "Interface/Interactable.h"
 
 ARCPlayerCharacter::ARCPlayerCharacter()
 {
@@ -160,7 +161,13 @@ void ARCPlayerCharacter::HandleSprintReleasedInput(const FInputActionValue& InVa
 
 void ARCPlayerCharacter::HandleInteractFInput(const FInputActionValue& InValue)
 {
-	UE_LOG(LogTemp, Display, TEXT("HandleInteractFInput"));
+	if (!IsValid(CurrentInteractTarget))
+		return;
+
+	if (CurrentInteractTarget->Implements<UInteractable>())
+	{
+		IInteractable::Execute_Interact(CurrentInteractTarget, this);
+	}
 }
 
 void ARCPlayerCharacter::Tick(float DeltaTime)
@@ -184,6 +191,20 @@ void ARCPlayerCharacter::RotatePlayerToMouseCursor()
 			SetActorRotation(FRotator(0, NewRot.Yaw, 0));
 		}
 	}
+}
+
+void ARCPlayerCharacter::SetInteractTarget(AActor* InteractTarget)
+{
+	CurrentInteractTarget = InteractTarget;
+}
+
+void ARCPlayerCharacter::ClearInteractTarget(AActor* InteractTarget)
+{
+	if (CurrentInteractTarget == InteractTarget)
+	{
+		CurrentInteractTarget = nullptr;
+	}
+	
 }
 
 void ARCPlayerCharacter::HandleFireStarted(const FInputActionValue& InValue)

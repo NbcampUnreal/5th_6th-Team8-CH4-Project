@@ -29,6 +29,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	void RotatePlayerToMouseCursor();
+	void SetInteractTarget(AActor* InteractTarget);
+	void ClearInteractTarget(AActor* InteractTarget);
 	
 # pragma region Components
 private:
@@ -65,12 +67,16 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UAnimMontage> FlappingMontage;
 
+
+	UPROPERTY()
+	TObjectPtr<AActor> CurrentInteractTarget = nullptr;
 private:
 	void HandleMoveInput(const FInputActionValue& InValue);
 	void HandleDashInput(const FInputActionValue& InValue);
 	void HandleSprintPressedInput(const FInputActionValue& InValue);
 	void HandleSprintReleasedInput(const FInputActionValue& InValue);
 	void HandleInteractFInput(const FInputActionValue& InValue);
+	
 
 # pragma endregion
 
