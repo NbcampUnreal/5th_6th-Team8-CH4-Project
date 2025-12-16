@@ -16,6 +16,13 @@ class CH4TOPDOWNPROJECT_API UQuickSlotComponent : public UActorComponent
 public:		
 	UQuickSlotComponent();
 
+protected:
+	virtual void BeginPlay() override;
+
+	UFUNCTION()
+	void OnRep_QuickSlotData();
+
+public:
 	UPROPERTY(BlueprintAssignable)
 	FOnQuickSlotDataChangedSignature OnQuickSlotDataChanged;
 
@@ -28,13 +35,7 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_UseQuickSlot(int32 SlotIndex);
 
-protected:
-	virtual void BeginPlay() override;
-
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
-	UFUNCTION()
-	void OnRep_QuickSlotData();
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;	
 
 protected:	
 	UPROPERTY(ReplicatedUsing = OnRep_QuickSlotData, VisibleAnywhere, Category = "QuickSlot")
