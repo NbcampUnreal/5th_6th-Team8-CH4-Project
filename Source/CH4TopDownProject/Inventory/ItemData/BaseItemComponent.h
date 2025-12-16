@@ -4,8 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Inventory/ItemData/ItemData.h"
 #include "BaseItemComponent.generated.h"
 
+struct FInventorySlot;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class CH4TOPDOWNPROJECT_API UBaseItemComponent : public UActorComponent
@@ -19,9 +21,13 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Data")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory Slot")
 	FName ItemID;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory Slot")
+	EItemType ItemType;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory Slot")
+	int32 Num;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Data")
-	FName Num;
+	UFUNCTION(BlueprintCallable)
+	FInventorySlot GetItemData();
 };

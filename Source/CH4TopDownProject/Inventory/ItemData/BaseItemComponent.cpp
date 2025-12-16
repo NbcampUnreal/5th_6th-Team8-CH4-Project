@@ -2,6 +2,7 @@
 
 
 #include "Inventory/ItemData/BaseItemComponent.h"
+#include "Inventory/InventoryComponent.h"
 
 // Sets default values for this component's properties
 UBaseItemComponent::UBaseItemComponent()
@@ -23,3 +24,10 @@ void UBaseItemComponent::BeginPlay()
 	
 }
 
+FInventorySlot UBaseItemComponent::GetItemData() {
+	FInventorySlot itemData;
+	itemData.ItemID = ItemID;
+	itemData.ItemType = ItemType;
+	itemData.Num = Num;
+	return itemData;
+}

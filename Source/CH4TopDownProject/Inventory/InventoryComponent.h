@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "Engine/DataTable.h"
+#include "Inventory/ItemData/ItemData.h"
 #include "InventoryComponent.generated.h"
 
 class UInventoryUI;
@@ -19,7 +20,7 @@ struct FInventorySlot // 아이템슬롯 == 아이템 한칸에 들어갈 정보
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory Slot")
 	FName ItemID;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory Slot")
-	uint8 ItemType;
+	EItemType ItemType;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory Slot")
 	int32 Num;
 };
@@ -39,7 +40,7 @@ protected:
 #pragma region Inventory
 private: 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
-	TArray<FItemData> Items;
+	TArray<FInventorySlot> Items;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
 	int32 DefaultInventorySize = 4; 
@@ -72,9 +73,14 @@ public:
 	
 private:
 	AActor* SpawnItemOnGround(TSubclassOf<AActor> SpawnActor);
+
+	UDataTable* GetDataTableByItemType(EItemType ItemType)const;
+
 public:
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
-	void AddItem(FName ItemID);
+	bool GetItem(AActor* ItemActor);
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	void AddItem(FInventorySlot Item);
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void DropItem(int32 Index);
 	UFUNCTION(BlueprintCallable, Category = "Inventory")

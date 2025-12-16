@@ -8,6 +8,7 @@
 #include "GameFramework/Actor.h"
 #include "Inventory/UI/InventoryUI.h"
 #include "Inventory/ItemData/ItemData.h"
+#include "Inventory/ItemData/BaseItemComponent.h"
 
 UInventoryComponent::UInventoryComponent()
 {
@@ -111,9 +112,18 @@ AActor* UInventoryComponent::SpawnItemOnGround(TSubclassOf<AActor> SpawnActor)
 	return SpawnedItem;
 }
 
-void UInventoryComponent::AddItem(FName ItemID)
+bool UInventoryComponent::GetItem(AActor* ItemActor)
 {
-	if (ItemID == NAME_None)
+	if (UBaseItemComponent* ItemComp = ItemActor->FindComponentByClass<UBaseItemComponent>()) {
+		AddItem(ItemComp->GetItemData());
+		return true;
+	}
+	return false;
+}
+
+void UInventoryComponent::AddItem(FInventorySlot Item)
+{
+	if (Item.ItemID == NAME_None)
 	{
 		return;
 	}
@@ -122,11 +132,11 @@ void UInventoryComponent::AddItem(FName ItemID)
 	{
 		if (Items[i].ItemID == NAME_None)
 		{
-			Items[i].ItemID = ItemID;
+			Items[i] = Item;
 
 			if (GEngine)
 			{
-				FString const Msg = FString::Printf(TEXT("Item[ %d ] slot [ %s ] store"), i, *ItemID.ToString());
+				FString const Msg = FString::Printf(TEXT("Item[ %d ] slot [ %s ] store"), i, *Item.ItemID.ToString());
 				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, Msg);
 			}
 
@@ -142,18 +152,19 @@ void UInventoryComponent::AddItem(FName ItemID)
 
 void UInventoryComponent::DropItem(int32 Index)
 {
-	if (Items.IsValidIndex(Index)) {
+	if (!Items.IsValidIndex(Index)) {
 		UE_LOG(LogTemp, Warning, TEXT("InventoryIndex is not valid"));
 		return;
-	}
+	}	
 
-	if (!ItemDataTable)
+	FName ItemID = Items[Index].ItemID;
+	UDataTable* itemdatatable = GetDataTableByItemType(Items[Index].ItemType);
+
+	if (!itemdatatable)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("ItemDataTable is NULL"));
 		return;
 	}
-
-	FName ItemID = Items[Index].ItemID;
 	const FItemData* ItemRow = ItemDataTable->FindRow<FItemData>(ItemID, TEXT(""));
 	if (!ItemRow)
 	{
@@ -194,16 +205,37 @@ int32 UInventoryComponent::GetInventorytSize()
 		return DefaultInventorySize;
 	}
 
-	const FItemData* ItemRow = ItemDataTable->FindRow<FItemData>(EquipmentBagID, TEXT("ItemID"));
+	const FBagItemData* ItemRow = ItemDataTable->FindRow<FBagItemData>(EquipmentBagID, TEXT("ItemID"));
 
 	if (ItemRow == nullptr)
 	{
 		return DefaultInventorySize;
 	}
 
-	return ItemRow->ContainerSize;
+	return ItemRow->ContainerSize + DefaultInventorySize;
 }
 
+UDataTable* UInventoryComponent::GetDataTableByItemType(EItemType ItemType) const
+{
+	switch (ItemType)
+	{
+	case EItemType::Bag:
+		return BagItemDataTable;
+
+	case EItemType::Consumable:
+		return ConsumableItemDataTable;
+
+	case EItemType::Equipment_Head:
+	case EItemType::Equipment_Body:
+		return EquipmentItemDataTable;
+
+	case EItemType::Ammo:
+		return AmmoItemDataTable;
+
+	default:
+		return nullptr;
+	}
+}
 
 void UInventoryComponent::SetEquipmentBagID(FName NewID) { 
 	int32 curInventorySize = GetInventorytSize();
