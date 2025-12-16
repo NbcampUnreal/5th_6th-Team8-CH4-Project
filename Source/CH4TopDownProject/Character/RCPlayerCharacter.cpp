@@ -14,6 +14,9 @@
 
 #include "Weapon/TopDownWeaponBase.h"
 
+#include "Component/HealthComponent.h"
+#include "Component/StaminaComponent.h"
+
 ARCPlayerCharacter::ARCPlayerCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -40,6 +43,9 @@ ARCPlayerCharacter::ARCPlayerCharacter()
 	TopDownCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("TopDownCamera"));
 	TopDownCameraComponent->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	TopDownCameraComponent->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
+
+	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
+	StaminaComponent = CreateDefaultSubobject<UStaminaComponent>(TEXT("StaminaComponent"));
 }
 
 void ARCPlayerCharacter::BeginPlay()
@@ -112,6 +118,11 @@ void ARCPlayerCharacter::HandleDashInput(const FInputActionValue& InValue)
 		return;
 	}
 
+	if (!StaminaComponent || !StaminaComponent->ConsumeStamina(DashStaminaCost))
+	{
+		return;
+	}
+
 	if (IsValid(GetMesh()) && IsValid(GetMesh()->GetAnimInstance()))
 	{
 		GetMesh()->GetAnimInstance()->Montage_Play(FlappingMontage, 2.0f);
@@ -129,11 +140,21 @@ void ARCPlayerCharacter::HandleDashInput(const FInputActionValue& InValue)
 
 void ARCPlayerCharacter::HandleSprintPressedInput(const FInputActionValue& InValue)
 {
+	if (StaminaComponent)
+	{
+		StaminaComponent->StartStaminaDrain(10.0f);
+	}
+
 	GetCharacterMovement()->MaxWalkSpeed = SprintMaxWalkSpeed;
 }
 
 void ARCPlayerCharacter::HandleSprintReleasedInput(const FInputActionValue& InValue)
 {
+	if (StaminaComponent)
+	{
+		StaminaComponent->StopStaminaDrain();
+	}
+
 	GetCharacterMovement()->MaxWalkSpeed = DefaultMaxWalkSpeed;
 }
 

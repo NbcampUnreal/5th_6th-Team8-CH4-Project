@@ -11,6 +11,8 @@
 
 class UInputAction;
 class ATopDownWeaponBase;
+class UHealthComponent;
+class UStaminaComponent;
 
 UCLASS()
 class CH4TOPDOWNPROJECT_API ARCPlayerCharacter : public ACharacter
@@ -35,6 +37,13 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	TObjectPtr<class USpringArmComponent> CameraBoom;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UHealthComponent> HealthComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UStaminaComponent> StaminaComponent;
+
 # pragma endregion
 
 # pragma region Input
@@ -73,6 +82,7 @@ private:
 	const float DashMaxWalkSpeed = 3000.0f;
 
 	const float DashCoolDown = 5.0f;
+	const float DashStaminaCost = 25.0f;
 	
 private:
 	FVector CurMoveDirection;

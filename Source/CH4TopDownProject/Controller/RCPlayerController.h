@@ -6,9 +6,8 @@
 #include "GameFramework/PlayerController.h"
 #include "RCPlayerController.generated.h"
 
-/**
- * 
- */
+class UMainHUDWidget;
+
 UCLASS()
 class CH4TOPDOWNPROJECT_API ARCPlayerController : public APlayerController
 {
@@ -25,6 +24,13 @@ public:
 //
 //	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 //	TSubclassOf<UUserWidget> NotificationTextUIClass;
+
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UMainHUDWidget> MainHUDWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<UMainHUDWidget> MainHUDWidgetInstance;
 
 public:
 	void OnCharacterDead();
