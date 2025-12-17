@@ -16,6 +16,7 @@
 
 #include "Component/HealthComponent.h"
 #include "Component/StaminaComponent.h"
+#include "Component/QuickSlotComponent.h"
 #include "Interface/Interactable.h"
 
 ARCPlayerCharacter::ARCPlayerCharacter()
@@ -47,6 +48,7 @@ ARCPlayerCharacter::ARCPlayerCharacter()
 
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
 	StaminaComponent = CreateDefaultSubobject<UStaminaComponent>(TEXT("StaminaComponent"));
+	QuickSlotComponent = CreateDefaultSubobject<UQuickSlotComponent>(TEXT("QuickSlotComponent"));
 }
 
 void ARCPlayerCharacter::BeginPlay()
@@ -102,6 +104,39 @@ void ARCPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 	EIC->BindAction(FireAction, ETriggerEvent::Started, this, &ARCPlayerCharacter::HandleFireStarted);
 	EIC->BindAction(FireAction, ETriggerEvent::Completed, this, &ARCPlayerCharacter::HandleFireStopped);
+
+	if (UseSlot1Action)
+	{
+		EIC->BindAction(UseSlot1Action, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleUseSlot1Input);
+	}
+	if (UseSlot2Action)
+	{
+		EIC->BindAction(UseSlot2Action, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleUseSlot2Input);
+	}
+	if (UseSlot3Action)
+	{
+		EIC->BindAction(UseSlot3Action, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleUseSlot3Input);
+	}
+	if (UseSlot4Action)
+	{
+		EIC->BindAction(UseSlot4Action, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleUseSlot4Input);
+	}
+	if (UseSlot5Action)
+	{
+		EIC->BindAction(UseSlot5Action, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleUseSlot5Input);
+	}
+	if (UseSlot6Action)
+	{
+		EIC->BindAction(UseSlot6Action, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleUseSlot6Input);
+	}
+	if (UseSlot7Action)
+	{
+		EIC->BindAction(UseSlot7Action, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleUseSlot7Input);
+	}
+	if (UseSlot8Action)
+	{
+		EIC->BindAction(UseSlot8Action, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleUseSlot8Input);
+	}
 }
 
 void ARCPlayerCharacter::HandleMoveInput(const FInputActionValue& InValue)
@@ -221,4 +256,52 @@ void ARCPlayerCharacter::HandleFireStopped(const FInputActionValue& InValue)
 	{
 		CurrentWeapon->StopFire();
 	}
+}
+
+void ARCPlayerCharacter::HandleUseQuickSlotInput(int32 SlotIndex)
+{
+	if (QuickSlotComponent)
+	{
+		QuickSlotComponent->Server_UseQuickSlot(SlotIndex);		
+	}
+}
+
+void ARCPlayerCharacter::HandleUseSlot1Input(const FInputActionValue& InValue)
+{
+	HandleUseQuickSlotInput(0);	
+}
+
+void ARCPlayerCharacter::HandleUseSlot2Input(const FInputActionValue& InValue)
+{
+	HandleUseQuickSlotInput(1);
+}
+
+void ARCPlayerCharacter::HandleUseSlot3Input(const FInputActionValue& InValue)
+{
+	HandleUseQuickSlotInput(2);
+}
+
+void ARCPlayerCharacter::HandleUseSlot4Input(const FInputActionValue& InValue)
+{
+	HandleUseQuickSlotInput(3);
+}
+
+void ARCPlayerCharacter::HandleUseSlot5Input(const FInputActionValue& InValue)
+{
+	HandleUseQuickSlotInput(4);
+}
+
+void ARCPlayerCharacter::HandleUseSlot6Input(const FInputActionValue& InValue)
+{
+	HandleUseQuickSlotInput(5);
+}
+
+void ARCPlayerCharacter::HandleUseSlot7Input(const FInputActionValue& InValue)
+{
+	HandleUseQuickSlotInput(6);
+}
+
+void ARCPlayerCharacter::HandleUseSlot8Input(const FInputActionValue& InValue)
+{
+	HandleUseQuickSlotInput(7);	
 }

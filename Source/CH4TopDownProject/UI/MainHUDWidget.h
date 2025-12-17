@@ -10,6 +10,8 @@ class UHorizontalBox;
 class UImage;
 class UHealthComponent;
 class UStaminaComponent;
+class UQuickSlotComponent;
+struct FQuickSlotItemData;
 
 UCLASS()
 class CH4TOPDOWNPROJECT_API UMainHUDWidget : public UUserWidget
@@ -26,6 +28,9 @@ public:
     UFUNCTION(BlueprintCallable, Category = "HUD")
     void UpdateStamina(float CurrentStamina, float MaxStamina);
 
+    UFUNCTION(BlueprintCallable, Category = "HUD")
+    void UpdateQuickSlotData(const TArray<FQuickSlotItemData>& NewSlotData);
+
     //UFUNCTION(BlueprintCallable, Category = "HUD")
     //void UpdateAmmoCount(int32 CurrentAmmo, int32 MaxClipAmmo);
 
@@ -41,13 +46,16 @@ private:
     //
     //UPROPERTY(meta = (BindWidget))
     //TObjectPtr<UTextBlock> MaxAmmoText;
-    //
-    //UPROPERTY(meta = (BindWidget))
-    //TObjectPtr<UHorizontalBox> QuickslotBox;
+    
+    UPROPERTY(meta = (BindWidget))
+    TObjectPtr<UHorizontalBox> QuickslotBox;
 
     UPROPERTY()
     TObjectPtr<UHealthComponent> PlayerHealthComponent;
 
     UPROPERTY()
     TObjectPtr<UStaminaComponent> PlayerStaminaComponent;
+
+    UPROPERTY()
+    TObjectPtr<UQuickSlotComponent> PlayerQuickSlotComponent;    
 };
