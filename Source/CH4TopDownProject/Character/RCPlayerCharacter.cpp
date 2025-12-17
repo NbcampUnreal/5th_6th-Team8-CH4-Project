@@ -8,11 +8,12 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/GameplayStatics.h"
-
+#include "Engine/Engine.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
 
 #include "Weapon/TopDownWeaponBase.h"
+#include "Net/UnrealNetwork.h"
 
 ARCPlayerCharacter::ARCPlayerCharacter()
 {
@@ -46,6 +47,11 @@ void ARCPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	if (HasAuthority())
+	{
+		OnTakePointDamage.AddDynamic(this, &ARCPlayerCharacter::HandlePointDamage);
+	}
+
 	if (IsLocallyControlled() == true)
 	{
 		APlayerController* PC = Cast<APlayerController>(GetController());
@@ -54,10 +60,11 @@ void ARCPlayerCharacter::BeginPlay()
 		UEnhancedInputLocalPlayerSubsystem* EILPS = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer());
 		checkf(IsValid(EILPS) == true, TEXT("EnhancedInputLocalPlayerSubsystem is invalid."));
 
+		UE_LOG(LogTemp, Warning, TEXT("AddMappingContext OK"));
 		EILPS->AddMappingContext(IMC_Default, 0);
 	}
 
-	if (DefaultWeaponClass && GetWorld())
+	if (HasAuthority() && DefaultWeaponClass)
 	{
 		FActorSpawnParameters Params;
 		Params.Owner = this;
@@ -65,16 +72,13 @@ void ARCPlayerCharacter::BeginPlay()
 
 		CurrentWeapon = GetWorld()->SpawnActor<ATopDownWeaponBase>(DefaultWeaponClass, Params);
 
-		if (CurrentWeapon)
+		if (CurrentWeapon && GetMesh())
 		{
-			if (GetMesh())
-			{
-				CurrentWeapon->AttachToComponent(
-					GetMesh(),
-					FAttachmentTransformRules::SnapToTargetNotIncludingScale,
-					TEXT("WeaponSocket")
-				);
-			}
+			CurrentWeapon->AttachToComponent(
+				GetMesh(),
+				FAttachmentTransformRules::SnapToTargetNotIncludingScale,
+				TEXT("WeaponSocket")
+			);
 		}
 	}
 }
@@ -138,6 +142,7 @@ void ARCPlayerCharacter::Tick(float DeltaTime)
 
 void ARCPlayerCharacter::RotatePlayerToMouseCursor()
 {
+	/*
 	APlayerController* PlayerController = Cast<APlayerController>(GetController());
 	if (IsValid(PlayerController))
 	{
@@ -150,13 +155,74 @@ void ARCPlayerCharacter::RotatePlayerToMouseCursor()
 			SetActorRotation(FRotator(0, NewRot.Yaw, 0));
 		}
 	}
+	*/
+
+	if (!IsLocallyControlled()) return;
+
+	APlayerController* PC = Cast<APlayerController>(GetController());
+	if (!PC) return;
+
+	FHitResult Hit;
+	PC->GetHitResultUnderCursor(ECC_Visibility, false, Hit);
+
+	if (Hit.bBlockingHit)
+	{
+		const float NewYaw = (Hit.ImpactPoint - GetActorLocation()).Rotation().Yaw;
+
+		SetActorRotation(FRotator(0.f, NewYaw, 0.f));
+
+		Server_SetAimYaw(NewYaw);
+	}
+
+
+}
+
+void ARCPlayerCharacter::GetLifetimeReplicatedProps(
+	TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	
+	DOREPLIFETIME(ARCPlayerCharacter, AimYaw);
+	DOREPLIFETIME(ARCPlayerCharacter, CurrentWeapon);
+}
+
+void ARCPlayerCharacter::HandlePointDamage(
+	AActor* DamagedActor,
+	float Damage,
+	AController* InstigatedBy,
+	FVector HitLocation,
+	UPrimitiveComponent* FHitComponent,
+	FName BoneName,
+	FVector ShotFromDirection,
+	const UDamageType* DamageType,
+	AActor* DamageCauser
+)
+{
+	UE_LOG(LogTemp, Error,
+		TEXT("[Character][Server][TakePointDamage] Victim=%s Damage=%.1f Causer=%s Bone=%s"),
+		*GetName(),
+		Damage,
+		*GetNameSafe(DamageCauser),
+		*BoneName.ToString()
+	);
+
 }
 
 void ARCPlayerCharacter::HandleFireStarted(const FInputActionValue& InValue)
 {
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow, TEXT("Fire Started"));
+	}
+	UE_LOG(LogTemp, Warning, TEXT("HandleFireStarted called"));
+
 	if (CurrentWeapon)
 	{
 		CurrentWeapon->StartFire();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("CurrentWeapon is null"));
 	}
 }
 
@@ -166,4 +232,25 @@ void ARCPlayerCharacter::HandleFireStopped(const FInputActionValue& InValue)
 	{
 		CurrentWeapon->StopFire();
 	}
+}
+
+void ARCPlayerCharacter::OnRep_CurrentWeapon()
+{
+	UE_LOG(LogTemp, Warning, TEXT("OnRep_CurrentWeapon: %s"),
+		*GetNameSafe(CurrentWeapon));
+
+	if (CurrentWeapon && GetMesh())
+	{
+		CurrentWeapon->AttachToComponent(
+			GetMesh(),
+			FAttachmentTransformRules::SnapToTargetNotIncludingScale,
+			TEXT("WeaponSocket")
+		);
+	}
+}
+
+void ARCPlayerCharacter::Server_SetAimYaw_Implementation(float NewYaw)
+{
+	AimYaw = NewYaw;
+	SetActorRotation(FRotator(0.f, AimYaw, 0.f));
 }

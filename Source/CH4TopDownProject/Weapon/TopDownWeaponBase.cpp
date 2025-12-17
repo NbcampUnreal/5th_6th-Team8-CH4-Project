@@ -1,15 +1,20 @@
-// TopDownWeaponBase.cpp
+#include "Weapon/TopDownWeaponBase.h"
 
-#include "TopDownWeaponBase.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SceneComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "NiagaraSystem.h"
 #include "NiagaraFunctionLibrary.h"
+#include "Engine/World.h"
+
+#include "ObjectPool/ActorObjectPoolSubsystem.h"
+#include "Weapon/BulletBase.h"
 
 ATopDownWeaponBase::ATopDownWeaponBase()
 {
     PrimaryActorTick.bCanEverTick = false;
+
+    bReplicates = true;
+    SetReplicateMovement(true);
 
     WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
     RootComponent = WeaponMesh;
@@ -29,7 +34,6 @@ ATopDownWeaponBase::ATopDownWeaponBase()
     MagazineMesh->SetSimulatePhysics(false);
 }
 
-
 void ATopDownWeaponBase::BeginPlay()
 {
     Super::BeginPlay();
@@ -37,102 +41,150 @@ void ATopDownWeaponBase::BeginPlay()
 
 void ATopDownWeaponBase::StartFire()
 {
-    Fire();
+    bWantsToFire = true;
+
+    if (!HasAuthority())
+    {
+        Server_StartFire();
+        return;
+    }
+
+    Server_StartFire();
+}
+
+void ATopDownWeaponBase::StopFire()
+{
+    bWantsToFire = false;
+
+    if (!HasAuthority())
+    {
+        Server_StopFire();
+        return;
+    }
+
+    Server_StopFire();
+}
+
+void ATopDownWeaponBase::Server_StartFire_Implementation()
+{
+    if (GetWorldTimerManager().IsTimerActive(FireTimerHandle))
+        return;
+
+    bWantsToFire = true;
+
+    Server_FireOnce(); 
 
     GetWorldTimerManager().SetTimer(
         FireTimerHandle,
         this,
-        &ATopDownWeaponBase::Fire,
+        &ATopDownWeaponBase::Server_FireOnce,
         WeaponStats.FireInterval,
         true
     );
 }
 
-void ATopDownWeaponBase::StopFire()
+void ATopDownWeaponBase::Server_StopFire_Implementation()
 {
+    bWantsToFire = false;
     GetWorldTimerManager().ClearTimer(FireTimerHandle);
 }
 
-void ATopDownWeaponBase::Fire()
+bool ATopDownWeaponBase::CanFire() const
 {
-    PerformLineTrace();
-
-    PlayMuzzleFlash();
-
-    PlayFireSound();
+    if (!GetWorld()) return false;
+    return (GetWorld()->GetTimeSeconds() - LastFireTime) >= WeaponStats.FireInterval;
 }
 
-void ATopDownWeaponBase::PerformLineTrace()
+void ATopDownWeaponBase::Server_FireOnce()
 {
-    if (!Muzzle || !GetWorld()) return;
+    if (!HasAuthority() || !bWantsToFire || !CanFire())
+        return;
 
-    const FVector Start = Muzzle->GetComponentLocation();
+    LastFireTime = GetWorld()->GetTimeSeconds();
 
-    FVector ShootDir = Muzzle->GetComponentRotation().Vector();
+    SpawnBullet_Server();
 
-    ShootDir = FMath::VRandCone(ShootDir, FMath::DegreesToRadians(WeaponStats.Spread));
+    const FVector Loc = Muzzle ? Muzzle->GetComponentLocation() : GetActorLocation();
+    const FRotator Rot = Muzzle ? Muzzle->GetComponentRotation() : GetActorRotation();
+    Multicast_PlayFireFX(Loc, Rot);
+}
 
-    const FVector End = Start + ShootDir * WeaponStats.MaxRange;
-    
-    DrawDebugLine(
-        GetWorld(),
-        Start,
-        End,
-        FColor::Red,
-        false,
-        1.0f,
-        0,
-        2.0f
+void ATopDownWeaponBase::SpawnBullet_Server()
+{
+    UE_LOG(LogTemp, Warning,
+        TEXT("[Weapon][Server][SpawnBullet] Authority=%d World=%d BulletClass=%s Muzzle=%s Owner=%s"),
+        HasAuthority(),
+        GetWorld() != nullptr,
+        *GetNameSafe(BulletClass),
+        *GetNameSafe(Muzzle),
+        *GetNameSafe(GetOwner())
     );
 
-    FHitResult Hit;
-    FCollisionQueryParams Params;
-    Params.AddIgnoredActor(this);
-    Params.AddIgnoredActor(GetOwner());
+    if (!HasAuthority() || !GetWorld() || !BulletClass || !Muzzle)
+        return;
 
-    const bool bHit = GetWorld()->LineTraceSingleByChannel(
-        Hit,
-        Start,
-        End,
-        ECC_Visibility,
-        Params
+    UActorObjectPoolSubsystem* Pool = GetWorld()->GetSubsystem<UActorObjectPoolSubsystem>();
+    if (!Pool)
+        return;
+
+    const FVector SpawnLoc = Muzzle->GetComponentLocation() + Muzzle->GetForwardVector() * MuzzleOffset;
+    const FRotator SpawnRot = Muzzle->GetComponentRotation();
+
+    UE_LOG(LogTemp, Warning,
+        TEXT("[Weapon][Server][SpawnBullet] SpawnLoc=%s SpawnRot=%s"),
+        *SpawnLoc.ToString(),
+        *SpawnRot.ToString()
     );
 
-    if (bHit)
-    {
-        UGameplayStatics::ApplyPointDamage(
-            Hit.GetActor(),
-            WeaponStats.Damage,
-            ShootDir,
-            Hit,
-            GetInstigatorController(),
-            this,
-            nullptr
-        );
+    FVector Dir = SpawnRot.Vector();
+    Dir = FMath::VRandCone(Dir, FMath::DegreesToRadians(WeaponStats.Spread));
+
+    AActor* PooledActor = Pool->SpawnFromPool(
+        BulletClass, 
+        SpawnLoc,
+        Dir.Rotation(),
+        GetOwner(),
+        Cast<APawn>(GetOwner())
+    );
+
+    UE_LOG(LogTemp, Warning,
+        TEXT("[Weapon][Server][SpawnBullet] PooledActor=%s"),
+        *GetNameSafe(PooledActor)
+    );
+
+    ABulletBase* Bullet = Cast<ABulletBase>(PooledActor);
+    if (!Bullet) {
+        UE_LOG(LogTemp, Error, TEXT("[Weapon][Server][SpawnBullet] Cast to Bullet FAILED"));
+        return;
     }
+
+    UE_LOG(LogTemp, Warning,
+        TEXT("[Weapon][Server][SpawnBullet] InitBullet Dir=%s Speed=%.1f Damage=%.1f"),
+        *Dir.ToString(),
+        WeaponStats.BulletSpeed,
+        WeaponStats.Damage
+    );
+
+    AController* InstCtrl = nullptr;
+    if (APawn* OwnerPawn = Cast<APawn>(GetOwner()))
+    {
+        InstCtrl = OwnerPawn->GetController();
+    }
+
+    Bullet->InitBullet(Dir, WeaponStats.BulletSpeed, WeaponStats.Damage, InstCtrl);
 }
 
-void ATopDownWeaponBase::PlayMuzzleFlash()
+void ATopDownWeaponBase::Multicast_PlayFireFX_Implementation(const FVector& Loc, const FRotator& Rot)
 {
-    if (!Muzzle || !MuzzleFlashFX || !GetWorld())
+    if (GetNetMode() == NM_DedicatedServer)
         return;
 
-    UNiagaraFunctionLibrary::SpawnSystemAtLocation(
-        GetWorld(),
-        MuzzleFlashFX,
-        Muzzle->GetComponentLocation(),
-        Muzzle->GetComponentRotation()
-    );
-}
-
-void ATopDownWeaponBase::PlayFireSound()
-{
-    if (!FireSound || !GetWorld())
-        return;
-
-    UGameplayStatics::PlaySoundAtLocation(
-        GetWorld(),
-        FireSound,
-        Muzzle ? Muzzle->GetComponentLocation() : GetActorLocation()
-    );
+    if (MuzzleFlashFX)
+    {
+        UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), MuzzleFlashFX, Loc, Rot);
+    }
+    if (FireSound)
+    {
+        UGameplayStatics::PlaySoundAtLocation(GetWorld(), FireSound, Loc);
+    }
 }
