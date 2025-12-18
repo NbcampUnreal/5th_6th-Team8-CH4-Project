@@ -26,6 +26,9 @@ public:
 //	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 //	TSubclassOf<UUserWidget> NotificationTextUIClass;
 
+	UFUNCTION(Client, Reliable)
+	void Client_HandleDeath();
+
 protected:
 	UFUNCTION()
 	void HandleDeath();

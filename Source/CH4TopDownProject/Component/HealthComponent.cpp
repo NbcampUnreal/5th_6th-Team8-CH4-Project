@@ -2,6 +2,7 @@
 #include "GameFramework/Actor.h"
 #include "Net/UnrealNetwork.h"
 #include "Kismet/GameplayStatics.h"
+#include "Controller/RCPlayerController.h"
 
 UHealthComponent::UHealthComponent()
     : CurrentHealth(100.0f)    
@@ -54,6 +55,16 @@ void UHealthComponent::HandleTakeDamage(AActor* DamagedActor, float Damage, cons
     if (NewHealth <= 0.0f)
     {        
         OnDeath.Broadcast();
+
+        APawn* OwnerPawn = Cast<APawn>(GetOwner());
+        if (OwnerPawn)
+        {
+            ARCPlayerController* PC = Cast<ARCPlayerController>(OwnerPawn->GetController());
+            if (PC)
+            {
+                PC->Client_HandleDeath();
+            }
+        }
     }
 }
 

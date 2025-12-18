@@ -159,22 +159,12 @@ void ARCPlayerCharacter::HandleMoveInput(const FInputActionValue& InValue)
 
 void ARCPlayerCharacter::HandleDashInput(const FInputActionValue& InValue)
 {
-	if (IsValid(FlappingMontage) == false || bCanDash == false)
+	if (bCanDash == false)
 	{
 		return;
 	}
 
-	if (!StaminaComponent || !StaminaComponent->ConsumeStamina(DashStaminaCost))
-	{
-		return;
-	}
-
-	if (IsValid(GetMesh()) && IsValid(GetMesh()->GetAnimInstance()))
-	{
-		GetMesh()->GetAnimInstance()->Montage_Play(FlappingMontage, 2.0f);
-	}
-
-	LaunchCharacter(CurMoveDirection * DashMaxWalkSpeed, true, false);
+	Server_HandleDash(CurMoveDirection);	
 
 	bCanDash = false;
 	FTimerHandle Handle;
@@ -186,22 +176,12 @@ void ARCPlayerCharacter::HandleDashInput(const FInputActionValue& InValue)
 
 void ARCPlayerCharacter::HandleSprintPressedInput(const FInputActionValue& InValue)
 {
-	if (StaminaComponent)
-	{
-		StaminaComponent->StartStaminaDrain(10.0f);
-	}
-
-	GetCharacterMovement()->MaxWalkSpeed = SprintMaxWalkSpeed;
+	Server_SetSprint(true);
 }
 
 void ARCPlayerCharacter::HandleSprintReleasedInput(const FInputActionValue& InValue)
 {
-	if (StaminaComponent)
-	{
-		StaminaComponent->StopStaminaDrain();
-	}
-
-	GetCharacterMovement()->MaxWalkSpeed = DefaultMaxWalkSpeed;
+	Server_SetSprint(false);
 }
 
 void ARCPlayerCharacter::HandleInteractFInput(const FInputActionValue& InValue)
@@ -297,6 +277,28 @@ void ARCPlayerCharacter::HandlePointDamage(
 	);
 }
 
+void ARCPlayerCharacter::Server_SetSprint_Implementation(bool bIsSprinting)
+{
+	if (bIsSprinting)
+	{
+		if (StaminaComponent)
+		{
+			StaminaComponent->StartStaminaDrain(10.0f);
+		}
+
+		GetCharacterMovement()->MaxWalkSpeed = SprintMaxWalkSpeed;
+	}
+	else
+	{
+		if (StaminaComponent)
+		{
+			StaminaComponent->StopStaminaDrain();
+		}
+
+		GetCharacterMovement()->MaxWalkSpeed = DefaultMaxWalkSpeed;
+	}
+}
+
 void ARCPlayerCharacter::SetInteractTarget(AActor* InteractTarget)
 {
 	CurrentInteractTarget = InteractTarget;
@@ -309,6 +311,21 @@ void ARCPlayerCharacter::ClearInteractTarget(AActor* InteractTarget)
 		CurrentInteractTarget = nullptr;
 	}
 	
+}
+
+void ARCPlayerCharacter::Server_HandleDash_Implementation(FVector DashDirection)
+{
+	if (!StaminaComponent || !StaminaComponent->ConsumeStamina(DashStaminaCost))
+	{
+		return;
+	}
+
+	if (IsValid(FlappingMontage))
+	{
+		PlayAnimMontage(FlappingMontage, 2.0f);
+	}
+
+	LaunchCharacter(DashDirection * DashMaxWalkSpeed, true, false);
 }
 
 void ARCPlayerCharacter::HandleFireStarted(const FInputActionValue& InValue)

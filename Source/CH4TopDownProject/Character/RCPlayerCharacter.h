@@ -177,6 +177,12 @@ protected:
 		AActor* DamageCauser
 	);
 
+	UFUNCTION(Server, Reliable)
+	void Server_SetSprint(bool bIsSprinting);
+
+	UFUNCTION(Server, Reliable)
+	void Server_HandleDash(FVector DashDirection);
+
 private:
 	void HandleFireStarted(const FInputActionValue& InValue);
 	void HandleFireStopped(const FInputActionValue& InValue);

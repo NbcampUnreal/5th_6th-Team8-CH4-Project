@@ -43,6 +43,11 @@ void ARCPlayerController::BeginPlay()
 	}
 }
 
+void ARCPlayerController::Client_HandleDeath_Implementation()
+{
+	HandleDeath();
+}
+
 void ARCPlayerController::HandleDeath()
 {
 	if (UGameplayStatics::IsGamePaused(GetWorld()))
