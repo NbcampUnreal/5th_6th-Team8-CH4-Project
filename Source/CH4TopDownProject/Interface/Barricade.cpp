@@ -15,7 +15,18 @@ void ABarricade::NotifyActorBeginOverlap(AActor* OtherActor)
 	if (OtherActor->IsA<ARCPlayerCharacter>())
 	{
 		this->SetOwner(OtherActor);
+
+		GEngine->AddOnScreenDebugMessage(
+			-1,
+			2.f,
+			FColor::Green,
+			FString::Printf(
+				TEXT("[WorldItemBase] Begin Overlap : %s"),
+				*OtherActor->GetName()
+			)
+		);
 	}
+	
 }
 
 void ABarricade::TakeDamage_Implementation(float Damage, AActor* DamageCauser)
