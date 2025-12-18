@@ -14,4 +14,18 @@ class CH4TOPDOWNPROJECT_API ARCGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
 	
+protected:
+	virtual void BeginPlay() override;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Pool")
+	TSubclassOf<AActor> BP_Bullet_Pistol_Class;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Pool")
+	TSubclassOf<AActor> BP_Bullet_Rifle_Class;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Pool")
+	TSubclassOf<AActor> BP_Bullet_Sniper_Class;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Pool")
+	TSubclassOf<AActor> BP_Bullet_Shotgun_Class;
 };

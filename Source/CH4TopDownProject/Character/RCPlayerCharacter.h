@@ -15,6 +15,7 @@ class UHealthComponent;
 class UStaminaComponent;
 class UQuickSlotComponent;
 
+
 UCLASS()
 class CH4TOPDOWNPROJECT_API ARCPlayerCharacter : public ACharacter
 {
@@ -33,6 +34,8 @@ public:
 	void SetInteractTarget(AActor* InteractTarget);
 	void ClearInteractTarget(AActor* InteractTarget);
 	
+	virtual void GetLifetimeReplicatedProps(
+		TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 # pragma region Components
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
@@ -145,12 +148,38 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = Weapon)
 	TSubclassOf<ATopDownWeaponBase> DefaultWeaponClass;
 
-	UPROPERTY()
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentWeapon)
 	ATopDownWeaponBase* CurrentWeapon;
+
+	UPROPERTY(EditDefaultsOnly, Category = Input)
+	TObjectPtr<UInputAction> ReloadAction;
+
+	UFUNCTION()
+	void OnRep_CurrentWeapon();
+
+	UFUNCTION(Server, Unreliable)
+	void Server_SetAimYaw(float NewYaw);
+
+	UPROPERTY(Replicated)
+	float AimYaw = 0.f;
+
+	UFUNCTION()
+	void HandlePointDamage(
+		AActor* DamagedActor,
+		float Damage,
+		AController* InstigatedBy,
+		FVector HitLocation,
+		UPrimitiveComponent* FHitComponent,
+		FName BoneName,
+		FVector ShotFromDirection,
+		const UDamageType* DamageType,
+		AActor* DamageCauser
+	);
 
 private:
 	void HandleFireStarted(const FInputActionValue& InValue);
 	void HandleFireStopped(const FInputActionValue& InValue);
+	void HandleReloadInput(const FInputActionValue& InValue);
 # pragma endregion
 };
 
