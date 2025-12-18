@@ -164,6 +164,11 @@ void ARCPlayerCharacter::HandleDashInput(const FInputActionValue& InValue)
 		return;
 	}
 
+	if (StaminaComponent && StaminaComponent->GetCurrentStamina() < DashStaminaCost)
+	{
+		return;
+	}
+
 	if (IsValid(FlappingMontage))
 	{
 		PlayAnimMontage(FlappingMontage, 2.0f);
@@ -258,6 +263,22 @@ void ARCPlayerCharacter::GetLifetimeReplicatedProps(
 	DOREPLIFETIME(ARCPlayerCharacter, CurrentArmor);
 }
 
+void ARCPlayerCharacter::StopSprint()
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	GetCharacterMovement()->MaxWalkSpeed = DefaultMaxWalkSpeed;
+	if (StaminaComponent)
+	{
+		StaminaComponent->StopStaminaDrain();
+	}
+
+	Client_StopSprint();
+}
+
 void ARCPlayerCharacter::HandlePointDamage(
 	AActor* DamagedActor,
 	float Damage,
@@ -335,6 +356,11 @@ void ARCPlayerCharacter::Server_HandleDash_Implementation(FVector DashDirection)
 	}
 
 	LaunchCharacter(DashDirection * DashMaxWalkSpeed, true, false);
+}
+
+void ARCPlayerCharacter::Client_StopSprint_Implementation()
+{
+	GetCharacterMovement()->MaxWalkSpeed = DefaultMaxWalkSpeed;
 }
 
 void ARCPlayerCharacter::HandleFireStarted(const FInputActionValue& InValue)

@@ -1,5 +1,8 @@
 #include "Component/StaminaComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Character/RCPlayerCharacter.h"
 
 UStaminaComponent::UStaminaComponent()
 	: CurrentStamina(100.0f)
@@ -43,7 +46,11 @@ void UStaminaComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 
 	if (CurrentDrainRate > 0.0f)
 	{
-		NewStamina -= CurrentDrainRate * DeltaTime;
+		ARCPlayerCharacter* PlayerCharacter = Cast<ARCPlayerCharacter>(GetOwner());
+		if (PlayerCharacter && PlayerCharacter->GetVelocity().Size() > 5.0f)
+		{
+			NewStamina -= CurrentDrainRate * DeltaTime;
+		}		
 	}	
 	else
 	{
@@ -51,6 +58,14 @@ void UStaminaComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 	}
 
 	SetStamina(FMath::Clamp(NewStamina, 0.0f, MaxStamina));
+
+	if (CurrentStamina <= 0.0f && CurrentDrainRate > 0.0f)
+	{
+		if (ARCPlayerCharacter* PlayerCharacter = Cast<ARCPlayerCharacter>(GetOwner()))
+		{			
+			PlayerCharacter->StopSprint();
+		}
+	}
 }
 
 bool UStaminaComponent::ConsumeStamina(float Amount)

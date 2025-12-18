@@ -37,6 +37,9 @@ public:
 	
 	virtual void GetLifetimeReplicatedProps(
 		TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	void StopSprint();
+
 # pragma region Components
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
@@ -182,6 +185,9 @@ protected:
 
 	UFUNCTION(Server, Reliable)
 	void Server_HandleDash(FVector DashDirection);
+
+	UFUNCTION(Client, Reliable)
+	void Client_StopSprint();
 
 private:
 	void HandleFireStarted(const FInputActionValue& InValue);
