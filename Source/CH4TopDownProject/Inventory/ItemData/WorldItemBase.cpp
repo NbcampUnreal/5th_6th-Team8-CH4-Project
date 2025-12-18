@@ -62,6 +62,16 @@ void AWorldItemBase::NotifyActorBeginOverlap(AActor* OtherActor)
 	{
 		ARCPlayerCharacter* Player = Cast<ARCPlayerCharacter>(OtherActor);
 		Player->SetInteractTarget(this);
+		
+		GEngine->AddOnScreenDebugMessage(
+			 -1,
+			 2.f,
+			 FColor::Green,
+			 FString::Printf(
+				 TEXT("[WorldItemBase] Begin Overlap : %s"),
+				 *OtherActor->GetName()
+			 )
+		 );
 	}
 }
 
@@ -73,6 +83,16 @@ void AWorldItemBase::NotifyActorEndOverlap(AActor* OtherActor)
 	{
 		ARCPlayerCharacter* Player = Cast<ARCPlayerCharacter>(OtherActor);
 		Player->ClearInteractTarget(this);
+		
+		   GEngine->AddOnScreenDebugMessage(
+                -1,
+                2.f,
+                FColor::Green,
+                FString::Printf(
+                    TEXT("[WorldItemBase] End Overlap : %s"),
+                    *OtherActor->GetName()
+                )
+            );
 	}
 }
 
