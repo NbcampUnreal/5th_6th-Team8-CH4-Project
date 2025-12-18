@@ -4,6 +4,8 @@
 #include "Net/UnrealNetwork.h"
 #include "Kismet/GameplayStatics.h"
 #include "UI/MainHUDWidget.h"
+#include "Component/HealthComponent.h"
+#include "UI/GameResultLayout.h"
 
 //#include "Game/RCGameModeBase.h"
 
@@ -26,6 +28,55 @@ void ARCPlayerController::BeginPlay()
 		if (IsValid(MainHUDWidgetInstance))
 		{
 			MainHUDWidgetInstance->AddToViewport(1);
+		}
+	}
+
+	APawn* MyPawn = GetPawn();
+	if (IsValid(MyPawn))
+	{
+		UHealthComponent* HealthComp = MyPawn->FindComponentByClass<UHealthComponent>();
+		if (IsValid(HealthComp))
+		{
+			HealthComp->OnDeath.AddDynamic(this, &ARCPlayerController::HandleDeath);
+		}
+	}
+}
+
+void ARCPlayerController::HandleDeath()
+{
+	if (UGameplayStatics::IsGamePaused(GetWorld()))
+	{
+		return;
+	}
+
+	ShowGameResultLayout(LoserLayoutClass);
+}
+
+void ARCPlayerController::HandleVictory()
+{
+	if (UGameplayStatics::IsGamePaused(GetWorld()))
+	{
+		return;
+	}
+
+	ShowGameResultLayout(WinnerLayoutClass);
+}
+
+void ARCPlayerController::ShowGameResultLayout(TSubclassOf<UGameResultLayout> TargetGameResultLayout)
+{
+	if (IsValid(TargetGameResultLayout))
+	{
+		UGameResultLayout* GameResultLayout = CreateWidget<UGameResultLayout>(this, TargetGameResultLayout);
+		if (GameResultLayout)
+		{
+			GameResultLayout->AddToViewport(10);
+
+			FInputModeUIOnly InputMode;
+			InputMode.SetWidgetToFocus(GameResultLayout->TakeWidget());
+			SetInputMode(InputMode);
+			bShowMouseCursor = true;
+
+			UGameplayStatics::SetGamePaused(GetWorld(), true);
 		}
 	}
 }
