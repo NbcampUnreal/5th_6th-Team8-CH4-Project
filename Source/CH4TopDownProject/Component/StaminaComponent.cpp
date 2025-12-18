@@ -40,18 +40,22 @@ void UStaminaComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 	if (!GetOwner()->HasAuthority())
 	{
 		return;
+	}	
+
+	bool bIsDraining = CurrentDrainRate > 0.0f;
+	bool bIsMoving = false;
+
+	if (ARCPlayerCharacter* PlayerCharacter = Cast<ARCPlayerCharacter>(GetOwner()))
+	{
+		bIsMoving = PlayerCharacter->GetVelocity().Size() > 5.0f;
 	}
 
 	float NewStamina = CurrentStamina;
 
-	if (CurrentDrainRate > 0.0f)
+	if (bIsDraining && bIsMoving)
 	{
-		ARCPlayerCharacter* PlayerCharacter = Cast<ARCPlayerCharacter>(GetOwner());
-		if (PlayerCharacter && PlayerCharacter->GetVelocity().Size() > 5.0f)
-		{
-			NewStamina -= CurrentDrainRate * DeltaTime;
-		}		
-	}	
+		NewStamina -= CurrentDrainRate * DeltaTime;
+	}
 	else
 	{
 		NewStamina += StaminaRecoveryRate * DeltaTime;
@@ -59,10 +63,10 @@ void UStaminaComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 
 	SetStamina(FMath::Clamp(NewStamina, 0.0f, MaxStamina));
 
-	if (CurrentStamina <= 0.0f && CurrentDrainRate > 0.0f)
+	if (CurrentStamina <= 0.0f && bIsDraining)
 	{
 		if (ARCPlayerCharacter* PlayerCharacter = Cast<ARCPlayerCharacter>(GetOwner()))
-		{			
+		{
 			PlayerCharacter->StopSprint();
 		}
 	}
