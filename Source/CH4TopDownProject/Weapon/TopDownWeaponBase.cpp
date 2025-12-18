@@ -1,15 +1,20 @@
-// TopDownWeaponBase.cpp
+#include "Weapon/TopDownWeaponBase.h"
 
-#include "TopDownWeaponBase.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SceneComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "NiagaraSystem.h"
 #include "NiagaraFunctionLibrary.h"
+#include "Engine/World.h"
+#include "Net/UnrealNetwork.h"
+#include "ObjectPool/ActorObjectPoolSubsystem.h"
+#include "Weapon/BulletBase.h"
 
 ATopDownWeaponBase::ATopDownWeaponBase()
 {
     PrimaryActorTick.bCanEverTick = false;
+
+    bReplicates = true;
+    SetReplicateMovement(true);
 
     WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
     RootComponent = WeaponMesh;
@@ -29,110 +34,293 @@ ATopDownWeaponBase::ATopDownWeaponBase()
     MagazineMesh->SetSimulatePhysics(false);
 }
 
-
 void ATopDownWeaponBase::BeginPlay()
 {
     Super::BeginPlay();
+
+    if (HasAuthority())
+    {
+        CurrentAmmoInMag = WeaponStats.MagazineSize;
+        bIsReloading = false;
+    }
 }
+
+void ATopDownWeaponBase::GetLifetimeReplicatedProps(
+    TArray<FLifetimeProperty>& OutLifetimeProps
+) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    DOREPLIFETIME(ATopDownWeaponBase, CurrentAmmoInMag);
+    DOREPLIFETIME(ATopDownWeaponBase, bIsReloading);
+}
+
 
 void ATopDownWeaponBase::StartFire()
 {
-    Fire();
+    bWantsToFire = true;
+
+    if (!HasAuthority())
+    {
+        Server_StartFire();
+        return;
+    }
+
+    Server_StartFire();
+}
+
+void ATopDownWeaponBase::StopFire()
+{
+    bWantsToFire = false;
+
+    if (!HasAuthority())
+    {
+        Server_StopFire();
+        return;
+    }
+
+    Server_StopFire();
+}
+
+void ATopDownWeaponBase::Server_StartFire_Implementation()
+{
+    if (bIsReloading)
+    {
+        bWantsToFire = true;
+        return;
+    }
+
+    if (GetWorldTimerManager().IsTimerActive(FireTimerHandle))
+    {
+        return;
+    }
+
+    bWantsToFire = true;
+
+    Server_FireOnce(); 
 
     GetWorldTimerManager().SetTimer(
         FireTimerHandle,
         this,
-        &ATopDownWeaponBase::Fire,
+        &ATopDownWeaponBase::Server_FireOnce,
         WeaponStats.FireInterval,
         true
     );
 }
 
-void ATopDownWeaponBase::StopFire()
+void ATopDownWeaponBase::Server_StopFire_Implementation()
 {
+    bWantsToFire = false;
     GetWorldTimerManager().ClearTimer(FireTimerHandle);
 }
 
-void ATopDownWeaponBase::Fire()
+bool ATopDownWeaponBase::CanFire() const
 {
-    PerformLineTrace();
+    if (!GetWorld())
+    {
+        return false;
+    }
+    if (bIsReloading)
+    {
+        return false;
+    }
+    if (CurrentAmmoInMag <= 0)
+    {
+        return false;
+    }
 
-    PlayMuzzleFlash();
-
-    PlayFireSound();
+    return (GetWorld()->GetTimeSeconds() - LastFireTime) >= WeaponStats.FireInterval;
 }
 
-void ATopDownWeaponBase::PerformLineTrace()
+void ATopDownWeaponBase::Server_FireOnce()
 {
-    if (!Muzzle || !GetWorld()) return;
-
-    const FVector Start = Muzzle->GetComponentLocation();
-
-    FVector ShootDir = Muzzle->GetComponentRotation().Vector();
-
-    ShootDir = FMath::VRandCone(ShootDir, FMath::DegreesToRadians(WeaponStats.Spread));
-
-    const FVector End = Start + ShootDir * WeaponStats.MaxRange;
-    
-    DrawDebugLine(
-        GetWorld(),
-        Start,
-        End,
-        FColor::Red,
-        false,
-        1.0f,
-        0,
-        2.0f
-    );
-
-    FHitResult Hit;
-    FCollisionQueryParams Params;
-    Params.AddIgnoredActor(this);
-    Params.AddIgnoredActor(GetOwner());
-
-    const bool bHit = GetWorld()->LineTraceSingleByChannel(
-        Hit,
-        Start,
-        End,
-        ECC_Visibility,
-        Params
-    );
-
-    if (bHit)
+    if (!HasAuthority() || !bWantsToFire || !CanFire())
     {
-        UGameplayStatics::ApplyPointDamage(
-            Hit.GetActor(),
-            WeaponStats.Damage,
-            ShootDir,
-            Hit,
-            GetInstigatorController(),
-            this,
-            nullptr
-        );
+        return;
+    }
+
+    LastFireTime = GetWorld()->GetTimeSeconds();
+
+    CurrentAmmoInMag = FMath::Max(0, CurrentAmmoInMag - 1);
+
+    SpawnBullet_Server();
+
+    const FVector Loc = Muzzle ? Muzzle->GetComponentLocation() : GetActorLocation();
+    const FRotator Rot = Muzzle ? Muzzle->GetComponentRotation() : GetActorRotation();
+    Multicast_PlayFireFX(Loc, Rot);
+
+    if (CurrentAmmoInMag <= 0)
+    {
+        Server_StartReload();
     }
 }
 
-void ATopDownWeaponBase::PlayMuzzleFlash()
+void ATopDownWeaponBase::SpawnBullet_Server()
 {
-    if (!Muzzle || !MuzzleFlashFX || !GetWorld())
-        return;
+    UE_LOG(LogTemp, Warning,
+        TEXT("[Weapon][Server][SpawnBullet] Authority=%d World=%d BulletClass=%s Muzzle=%s Owner=%s"),
+        HasAuthority(),
+        GetWorld() != nullptr,
+        *GetNameSafe(BulletClass),
+        *GetNameSafe(Muzzle),
+        *GetNameSafe(GetOwner())
+    );
 
-    UNiagaraFunctionLibrary::SpawnSystemAtLocation(
-        GetWorld(),
-        MuzzleFlashFX,
-        Muzzle->GetComponentLocation(),
-        Muzzle->GetComponentRotation()
+    if (!HasAuthority() || !GetWorld() || !BulletClass || !Muzzle)
+    {
+        return;
+    }
+
+    UActorObjectPoolSubsystem* Pool = GetWorld()->GetSubsystem<UActorObjectPoolSubsystem>();
+
+    if (!Pool)
+    {
+        return;
+    }
+
+    const FVector SpawnLoc = Muzzle->GetComponentLocation() + Muzzle->GetForwardVector() * MuzzleOffset;
+    const FRotator SpawnRot = Muzzle->GetComponentRotation();
+
+    UE_LOG(LogTemp, Warning,
+        TEXT("[Weapon][Server][SpawnBullet] SpawnLoc=%s SpawnRot=%s"),
+        *SpawnLoc.ToString(),
+        *SpawnRot.ToString()
+    );
+
+    FVector Dir = SpawnRot.Vector();
+    Dir = FMath::VRandCone(Dir, FMath::DegreesToRadians(WeaponStats.Spread));
+
+    AActor* PooledActor = Pool->SpawnFromPool(
+        BulletClass, 
+        SpawnLoc,
+        Dir.Rotation(),
+        GetOwner(),
+        Cast<APawn>(GetOwner())
+    );
+
+    UE_LOG(LogTemp, Warning,
+        TEXT("[Weapon][Server][SpawnBullet] PooledActor=%s"),
+        *GetNameSafe(PooledActor)
+    );
+
+    ABulletBase* Bullet = Cast<ABulletBase>(PooledActor);
+    if (!Bullet) {
+        UE_LOG(LogTemp, Error, TEXT("[Weapon][Server][SpawnBullet] Cast to Bullet FAILED"));
+        return;
+    }
+
+    UE_LOG(LogTemp, Warning,
+        TEXT("[Weapon][Server][SpawnBullet] InitBullet Dir=%s Speed=%.1f Damage=%.1f"),
+        *Dir.ToString(),
+        WeaponStats.BulletSpeed,
+        WeaponStats.Damage
+    );
+
+    AController* InstCtrl = nullptr;
+    if (APawn* OwnerPawn = Cast<APawn>(GetOwner()))
+    {
+        InstCtrl = OwnerPawn->GetController();
+    }
+
+    Bullet->InitBullet(Dir, WeaponStats.BulletSpeed, WeaponStats.Damage, InstCtrl);
+}
+
+void ATopDownWeaponBase::Multicast_PlayFireFX_Implementation(const FVector& Loc, const FRotator& Rot)
+{
+    if (GetNetMode() == NM_DedicatedServer)
+    {
+        return;
+    }
+
+    if (MuzzleFlashFX)
+    {
+        UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), MuzzleFlashFX, Loc, Rot);
+    }
+    if (FireSound)
+    {
+        UGameplayStatics::PlaySoundAtLocation(GetWorld(), FireSound, Loc);
+    }
+}
+
+void ATopDownWeaponBase::StartReload()
+{
+    if (!HasAuthority())
+    {
+        Server_StartReload();
+        return;
+    }
+    Server_StartReload();
+}
+
+bool ATopDownWeaponBase::CanReload() const
+{
+    if (!HasAuthority())
+    {
+        return false;
+    }
+    if (bIsReloading)
+    {
+        return false;
+    }
+    if (CurrentAmmoInMag >= WeaponStats.MagazineSize)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+void ATopDownWeaponBase::Server_StartReload_Implementation()
+{
+    if (!CanReload())
+    {
+        return;
+    }
+
+    GetWorldTimerManager().ClearTimer(FireTimerHandle);
+
+    bIsReloading = true;
+
+    GetWorldTimerManager().SetTimer(
+        ReloadTimerHandle,
+        this,
+        &ATopDownWeaponBase::FinishReload_Server,
+        WeaponStats.ReloadDuration,
+        false
     );
 }
 
-void ATopDownWeaponBase::PlayFireSound()
+void ATopDownWeaponBase::FinishReload_Server()
 {
-    if (!FireSound || !GetWorld())
+    if (!HasAuthority())
+    {
         return;
+    }
 
-    UGameplayStatics::PlaySoundAtLocation(
-        GetWorld(),
-        FireSound,
-        Muzzle ? Muzzle->GetComponentLocation() : GetActorLocation()
-    );
+    CurrentAmmoInMag = WeaponStats.MagazineSize;
+    bIsReloading = false;
+    ForceNetUpdate();
+
+    if (bWantsToFire)
+    {
+        Server_StartFire();
+    }
+}
+
+void ATopDownWeaponBase::OnRep_Ammo()
+{
+    UE_LOG(LogTemp, Verbose, TEXT("[Weapon][Client] Ammo=%d/%d"),
+        CurrentAmmoInMag, WeaponStats.MagazineSize);
+}
+
+void ATopDownWeaponBase::OnRep_Reloading()
+{
+    if (bIsReloading && ReloadSound)
+    {
+        UGameplayStatics::PlaySoundAtLocation(
+            this,
+            ReloadSound,
+            GetActorLocation()
+        );
+    }
 }
