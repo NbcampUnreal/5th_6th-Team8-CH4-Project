@@ -1,6 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "RCPlayerCharacter.h"
 
 #include "Camera/CameraComponent.h"
@@ -13,6 +12,7 @@
 #include "EnhancedInputComponent.h"
 
 #include "Weapon/TopDownWeaponBase.h"
+#include "Armor/ArmorBase.h" 
 #include "Net/UnrealNetwork.h"
 
 #include "Component/HealthComponent.h"
@@ -89,6 +89,11 @@ void ARCPlayerCharacter::BeginPlay()
 				TEXT("WeaponSocket")
 			);
 		}
+
+		CurrentArmor = GetWorld()->SpawnActor<AArmorBase>(
+			DefaultArmorClass,
+			Params
+		);
 	}
 }
 
@@ -261,6 +266,7 @@ void ARCPlayerCharacter::GetLifetimeReplicatedProps(
 	
 	DOREPLIFETIME(ARCPlayerCharacter, AimYaw);
 	DOREPLIFETIME(ARCPlayerCharacter, CurrentWeapon);
+	DOREPLIFETIME(ARCPlayerCharacter, CurrentArmor);
 }
 
 void ARCPlayerCharacter::HandlePointDamage(
@@ -275,14 +281,20 @@ void ARCPlayerCharacter::HandlePointDamage(
 	AActor* DamageCauser
 )
 {
+	float FinalDamage = Damage;
+
+	if (CurrentArmor)
+	{
+		FinalDamage = CurrentArmor->ModifyDamage(Damage);
+	}
+
 	UE_LOG(LogTemp, Error,
 		TEXT("[Character][Server][TakePointDamage] Victim=%s Damage=%.1f Causer=%s Bone=%s"),
 		*GetName(),
-		Damage,
+		FinalDamage,
 		*GetNameSafe(DamageCauser),
 		*BoneName.ToString()
 	);
-
 }
 
 void ARCPlayerCharacter::SetInteractTarget(AActor* InteractTarget)
@@ -379,6 +391,10 @@ void ARCPlayerCharacter::HandleReloadInput(const FInputActionValue& InValue)
 	{
 		CurrentWeapon->StartReload();
 	}
+}
+
+void ARCPlayerCharacter::OnRep_CurrentArmor()
+{
 }
 
 void ARCPlayerCharacter::OnRep_CurrentWeapon()

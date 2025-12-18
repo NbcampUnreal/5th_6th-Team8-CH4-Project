@@ -18,8 +18,9 @@ void ARCPlayerController::BeginPlay()
 		return;
 	}
 
-	//FInputModeGameOnly Mode;
-	//SetInputMode(Mode);
+	FInputModeGameOnly Mode;
+	Mode.SetConsumeCaptureMouseDown(false);
+	SetInputMode(Mode);
 	bShowMouseCursor = true;
 
 	if (IsValid(MainHUDWidgetClass))
@@ -79,6 +80,7 @@ void ARCPlayerController::ShowGameResultLayout(TSubclassOf<UGameResultLayout> Ta
 			UGameplayStatics::SetGamePaused(GetWorld(), true);
 		}
 	}
+
 }
 
 //void ARCPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

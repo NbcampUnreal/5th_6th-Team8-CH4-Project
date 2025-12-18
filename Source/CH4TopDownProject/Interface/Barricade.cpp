@@ -15,25 +15,18 @@ void ABarricade::NotifyActorBeginOverlap(AActor* OtherActor)
 	if (OtherActor->IsA<ARCPlayerCharacter>())
 	{
 		this->SetOwner(OtherActor);
-		
-		ARCPlayerCharacter* Player = Cast<ARCPlayerCharacter>(OtherActor);
-		Player->IgnoreActor = this;
+
+		GEngine->AddOnScreenDebugMessage(
+			-1,
+			2.f,
+			FColor::Green,
+			FString::Printf(
+				TEXT("[WorldItemBase] Begin Overlap : %s"),
+				*OtherActor->GetName()
+			)
+		);
 	}
 	
-}
-
-void ABarricade::NotifyActorEndOverlap(AActor* OtherActor)
-{
-	
-	if (!bCanInteract) return;
-
-	if (OtherActor->IsA<ARCPlayerCharacter>())
-	{
-		this->SetOwner(OtherActor);
-		
-		ARCPlayerCharacter* Player = Cast<ARCPlayerCharacter>(OtherActor);
-		Player->IgnoreActor = nullptr;
-	}
 }
 
 void ABarricade::TakeDamage_Implementation(float Damage, AActor* DamageCauser)
@@ -62,7 +55,7 @@ void ABarricade::Multicast_OnDeath_Implementation()
 {
 	if (IsNetMode(NM_DedicatedServer))
 	{
-		return; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½
+		return; // µ¥µð ¼­¹ö¿¡¼­´Â ½ÇÇà ¾È ÇÔ
 	}
 
 	if (DeathParticle)

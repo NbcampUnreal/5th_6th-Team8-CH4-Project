@@ -15,6 +15,7 @@ class UHealthComponent;
 class UStaminaComponent;
 class UQuickSlotComponent;
 
+class AArmorBase;
 
 UCLASS()
 class CH4TOPDOWNPROJECT_API ARCPlayerCharacter : public ACharacter
@@ -36,12 +37,6 @@ public:
 	
 	virtual void GetLifetimeReplicatedProps(
 		TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
-	
-	UPROPERTY()
-	TObjectPtr<AActor> IgnoreActor = nullptr;
-
-	
 # pragma region Components
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
@@ -58,7 +53,6 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UQuickSlotComponent> QuickSlotComponent;
-
 
 # pragma endregion
 
@@ -188,5 +182,17 @@ private:
 	void HandleFireStopped(const FInputActionValue& InValue);
 	void HandleReloadInput(const FInputActionValue& InValue);
 # pragma endregion
+
+#pragma region Armor
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = Armor)
+	TSubclassOf<AArmorBase> DefaultArmorClass;
+
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentArmor, VisibleAnywhere, Category = Armor)
+	AArmorBase* CurrentArmor;
+
+	UFUNCTION()
+	void OnRep_CurrentArmor();
+#pragma endregion
 };
 
