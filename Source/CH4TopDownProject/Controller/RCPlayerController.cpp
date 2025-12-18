@@ -18,8 +18,8 @@ void ARCPlayerController::BeginPlay()
 		return;
 	}
 
-	FInputModeGameOnly Mode;
-	SetInputMode(Mode);
+	//FInputModeGameOnly Mode;
+	//SetInputMode(Mode);
 	bShowMouseCursor = true;
 
 	if (IsValid(MainHUDWidgetClass))
