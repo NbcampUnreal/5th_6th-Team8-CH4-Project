@@ -48,6 +48,7 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Inventory|UI")
 	TSubclassOf<UInventoryUI> InventoryWidgetClass;
 
+	bool InventoryUIIsOpen = false;
 public:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Inventory|UI")
@@ -89,8 +90,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	const TArray<FInventorySlot>& GetItems() const { return Items; }
 
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	int32 GetInventorytSize();
 	
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	void Open_CloseInventoryUI();
 #pragma endregion
 
 
@@ -99,30 +103,36 @@ public:
 private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Equpment")
-	FName EquipmentBagID = NAME_None;
+	FInventorySlot EquipmentBagID;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Equpment")
-	FName EquipmentChestID = NAME_None;
+	FInventorySlot EquipmentChestID;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Equpment")
-	FName EquipmentHeadID = NAME_None;
+	FInventorySlot EquipmentHeadID;
 public:
 
 	// Getter
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
-	FName GetEquipmentBagID() const { return EquipmentBagID; }
+	FInventorySlot GetEquipmentBagID() const { return EquipmentBagID; }
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
-	FName GetEquipmentChestID() const { return EquipmentChestID; }
+	FInventorySlot GetEquipmentChestID() const { return EquipmentChestID; }
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
-	FName GetEquipmentHeadID() const { return EquipmentHeadID; }
+	FInventorySlot GetEquipmentHeadID() const { return EquipmentHeadID; }
 
 	// Setter
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
-	void SetEquipmentBagID(FName NewID);
+	void SetEquipmentBagID(FInventorySlot NewID);
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
-	void SetEquipmentChestID(FName NewID) { EquipmentChestID = NewID; }
+	void SetEquipmentChestID(FInventorySlot NewID) { EquipmentChestID = NewID; }
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
-	void SetEquipmentHeadID(FName NewID) { EquipmentHeadID = NewID; }
+	void SetEquipmentHeadID(FInventorySlot NewID) { EquipmentHeadID = NewID; }
+
+	UFUNCTION(BlueprintCallable, Category = "Equipment")
+	int32 GetBonusHealth();
+
+	UFUNCTION(BlueprintCallable, Category = "Equipment")
+	int32 GetDeffence();
 #pragma endregion
 
 #pragma region Weapon
@@ -130,24 +140,39 @@ public:
 private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Equpment")
-	FName EquipmentWeapon1ID = NAME_None;
+	FInventorySlot EquipmentWeapon1ID;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Equpment")
-	FName EquipmentWeapon2ID = NAME_None;
+	FInventorySlot EquipmentWeapon2ID;
+
+	UPROPERTY(Transient)
+	AActor* EquippedWeaponActor = nullptr;
 
 public:
 
 	// Getter
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
-	FName GetEquipmentWeapon1ID() const { return EquipmentWeapon1ID; }
+	FInventorySlot GetEquipmentWeapon1ID() const { return EquipmentWeapon1ID; }
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
-	FName GetEquipmentWeapon2ID() const { return EquipmentWeapon2ID; }
+	FInventorySlot GetEquipmentWeapon2ID() const { return EquipmentWeapon2ID; }
 
 	// Setter
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
-	void SetEquipmentWeapon1ID(FName NewID) {}
+	void SetEquipmentWeapon(FInventorySlot NewID) { EquipmentWeapon1ID = NewID; }
+
+	// Getter (Actor)
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
-	void SetEquipmentWeapon2ID(FName NewID) { EquipmentWeapon2ID = NewID; }
+	AActor* GetWeaponActor() const { return EquippedWeaponActor; }
+
+
+	// Equip
+	UFUNCTION(BlueprintCallable, Category = "Equipment")
+	void EquipWeapon(FInventorySlot NewWeapon);
+
+	// Unequip
+	UFUNCTION(BlueprintCallable, Category = "Equipment")
+	void UnequipWeapon();
+
 #pragma endregion
 	
 
