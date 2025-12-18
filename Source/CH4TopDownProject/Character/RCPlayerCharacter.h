@@ -11,7 +11,7 @@
 
 class UInputAction;
 class ATopDownWeaponBase;
-
+class AArmorBase;
 
 UCLASS()
 class CH4TOPDOWNPROJECT_API ARCPlayerCharacter : public ACharacter
@@ -120,5 +120,17 @@ private:
 	void HandleFireStopped(const FInputActionValue& InValue);
 	void HandleReloadInput(const FInputActionValue& InValue);
 # pragma endregion
+
+#pragma region Armor
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = Armor)
+	TSubclassOf<AArmorBase> DefaultArmorClass;
+
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentArmor, VisibleAnywhere, Category = Armor)
+	AArmorBase* CurrentArmor;
+
+	UFUNCTION()
+	void OnRep_CurrentArmor();
+#pragma endregion
 };
 

@@ -15,9 +15,11 @@ void ARCPlayerController::BeginPlay()
 		return;
 	}
 
-	FInputModeGameOnly Mode;
-	SetInputMode(Mode);
 	bShowMouseCursor = true;
+
+	FInputModeGameOnly Mode;
+	Mode.SetConsumeCaptureMouseDown(false);
+	SetInputMode(Mode);
 }
 
 //void ARCPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
