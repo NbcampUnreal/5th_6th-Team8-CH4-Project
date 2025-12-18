@@ -15,6 +15,8 @@ AWorldItemBase::AWorldItemBase()
 
 	bReplicates = true;
 
+	CurrentHP = MaxHP;
+
 	Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	SetRootComponent(Root);
 
@@ -77,11 +79,10 @@ void AWorldItemBase::NotifyActorEndOverlap(AActor* OtherActor)
 float AWorldItemBase::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
 	class AController* EventInstigator, AActor* DamageCauser)
 {
-
 	if (!bCanTakeDamage)
 		return 0.f;
 
-	IInteractable::Execute_TakeDamage(this,DamageAmount, DamageCauser);
+	IInteractable::Execute_TakeDamage(this, DamageAmount, DamageCauser);
 	
 	return DamageAmount;
 }
