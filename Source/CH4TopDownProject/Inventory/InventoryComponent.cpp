@@ -130,14 +130,49 @@ void UInventoryComponent::AddItem(FInventorySlot Item)
 
 	for (int32 i = 0; i < Items.Num(); i++)
 	{
+		if (Items[i].ItemID == Item.ItemID)
+		{
+			
+			const FItemData* ItemRow = ItemDataTable->FindRow<FItemData>(Item.ItemID, TEXT(""));
+			if (!ItemRow) {
+				UE_LOG(LogTemp, Warning, TEXT("ItemID not found in DataTable: %s"), *Item.ItemID.ToString());
+				return;
+			}
+			Items[i].Num += Item.Num;
+
+			bool IsRemain = false;
+			if (ItemRow->MaxNum < Items[i].Num) {
+				Item.Num = Items[i].Num - ItemRow->MaxNum;
+				Items[i].Num = ItemRow->MaxNum;
+				IsRemain = true;
+			}
+			
+			if (GEngine){
+				FString Msg = FString::Printf(
+					TEXT("Stack Item [ %s ] -> Num : %d"),
+					*Item.ItemID.ToString(),
+					Items[i].Num
+				);				
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, Msg);
+			}
+			if (IsRemain) break;
+			else return;
+		}
+	}
+
+	for (int32 i = 0; i < Items.Num(); i++)
+	{
 		if (Items[i].ItemID == NAME_None)
 		{
 			Items[i] = Item;
 
-			if (GEngine)
-			{
-				FString const Msg = FString::Printf(TEXT("Item[ %d ] slot [ %s ] store"), i, *Item.ItemID.ToString());
-				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, Msg);
+			if (GEngine){
+				FString Msg = FString::Printf(
+					TEXT("New Item [ %s ] stored in Slot %d"),
+					*Item.ItemID.ToString(),
+					i
+				);
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, Msg);
 			}
 
 			return;
@@ -158,22 +193,20 @@ void UInventoryComponent::DropItem(int32 Index)
 	}	
 
 	FName ItemID = Items[Index].ItemID;
+
 	UDataTable* itemdatatable = GetDataTableByItemType(Items[Index].ItemType);
 
-	if (!itemdatatable)
-	{
+	if (!itemdatatable)	{
 		UE_LOG(LogTemp, Warning, TEXT("ItemDataTable is NULL"));
 		return;
 	}
+
 	const FItemData* ItemRow = ItemDataTable->FindRow<FItemData>(ItemID, TEXT(""));
-	if (!ItemRow)
-	{
+	if (!ItemRow)	{
 		UE_LOG(LogTemp, Warning, TEXT("ItemID not found in DataTable: %s"), *ItemID.ToString());
 		return;
 	}
-
-	if (!ItemRow->ItemActorClass)
-	{
+	if (!ItemRow->ItemActorClass)	{
 		UE_LOG(LogTemp, Warning, TEXT("ItemActorClass is NULL for item: %s"), *ItemID.ToString());
 		return;
 	}
@@ -185,6 +218,10 @@ void UInventoryComponent::DropItem(int32 Index)
 		UE_LOG(LogTemp, Warning, TEXT("Actor %s has no BaseItemComponent"), *DroppedItem->GetName());
 		return;
 	}
+	ItemComp->ItemID = Items[Index].ItemID;
+	ItemComp->ItemType = Items[Index].ItemType;
+	//temp
+	ItemComp->Num = Items[Index].Num;
 
 	if (!DroppedItem)
 	{
@@ -221,6 +258,11 @@ int32 UInventoryComponent::GetInventorytSize()
 	return ItemRow->ContainerSize + DefaultInventorySize;
 }
 
+void UInventoryComponent::Open_CloseInventoryUI()
+{
+
+}
+
 UDataTable* UInventoryComponent::GetDataTableByItemType(EItemType ItemType) const
 {
 	switch (ItemType)
@@ -254,5 +296,21 @@ void UInventoryComponent::SetEquipmentBagID(FName NewID) {
 		}
 	}
 	Items.SetNum(nextInventorySize);
+}
+
+int32 UInventoryComponent::GetBonusHealth()
+{
+	int32 BonusHealth =
+		EquipmentItemDataTable->FindRow<FEquipmentItemData>(EquipmentChestID, TEXT(""))->BonusHealth
+		+ EquipmentItemDataTable->FindRow<FEquipmentItemData>(EquipmentHeadID, TEXT(""))->BonusHealth;
+	return BonusHealth;
+}
+
+int32 UInventoryComponent::GetDeffence()
+{
+	int32 Deffence =
+		EquipmentItemDataTable->FindRow<FEquipmentItemData>(EquipmentChestID, TEXT(""))->Deffence
+		+ EquipmentItemDataTable->FindRow<FEquipmentItemData>(EquipmentHeadID, TEXT(""))->Deffence;
+	return Deffence;
 }
 

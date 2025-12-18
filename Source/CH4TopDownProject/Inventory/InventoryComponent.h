@@ -48,6 +48,7 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Inventory|UI")
 	TSubclassOf<UInventoryUI> InventoryWidgetClass;
 
+	bool InventoryUIIsOpen = false;
 public:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Inventory|UI")
@@ -89,8 +90,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	const TArray<FInventorySlot>& GetItems() const { return Items; }
 
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	int32 GetInventorytSize();
 	
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	void Open_CloseInventoryUI();
 #pragma endregion
 
 
@@ -123,6 +127,12 @@ public:
 	void SetEquipmentChestID(FName NewID) { EquipmentChestID = NewID; }
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
 	void SetEquipmentHeadID(FName NewID) { EquipmentHeadID = NewID; }
+
+	UFUNCTION(BlueprintCallable, Category = "Equipment")
+	int32 GetBonusHealth();
+
+	UFUNCTION(BlueprintCallable, Category = "Equipment")
+	int32 GetDeffence();
 #pragma endregion
 
 #pragma region Weapon
