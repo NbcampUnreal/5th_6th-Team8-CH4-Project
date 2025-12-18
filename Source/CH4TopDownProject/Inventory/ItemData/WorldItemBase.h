@@ -51,7 +51,7 @@ protected:
 	virtual void HandleDestroyed();
 
 	UFUNCTION(BlueprintNativeEvent)
-	 void OnItemDestroyed();
+	void OnItemDestroyed();
 
 	UFUNCTION(BlueprintCallable)
 	virtual void NotifyActorBeginOverlap(AActor* OtherActor);
