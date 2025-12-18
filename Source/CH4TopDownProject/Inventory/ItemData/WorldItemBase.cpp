@@ -15,6 +15,8 @@ AWorldItemBase::AWorldItemBase()
 
 	bReplicates = true;
 
+	CurrentHP = MaxHP;
+
 	Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	SetRootComponent(Root);
 
@@ -60,6 +62,16 @@ void AWorldItemBase::NotifyActorBeginOverlap(AActor* OtherActor)
 	{
 		ARCPlayerCharacter* Player = Cast<ARCPlayerCharacter>(OtherActor);
 		Player->SetInteractTarget(this);
+		
+		GEngine->AddOnScreenDebugMessage(
+			 -1,
+			 2.f,
+			 FColor::Green,
+			 FString::Printf(
+				 TEXT("[WorldItemBase] Begin Overlap : %s"),
+				 *OtherActor->GetName()
+			 )
+		 );
 	}
 }
 
@@ -71,17 +83,26 @@ void AWorldItemBase::NotifyActorEndOverlap(AActor* OtherActor)
 	{
 		ARCPlayerCharacter* Player = Cast<ARCPlayerCharacter>(OtherActor);
 		Player->ClearInteractTarget(this);
+		
+		   GEngine->AddOnScreenDebugMessage(
+                -1,
+                2.f,
+                FColor::Green,
+                FString::Printf(
+                    TEXT("[WorldItemBase] End Overlap : %s"),
+                    *OtherActor->GetName()
+                )
+            );
 	}
 }
 
 float AWorldItemBase::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
 	class AController* EventInstigator, AActor* DamageCauser)
 {
-
 	if (!bCanTakeDamage)
 		return 0.f;
 
-	IInteractable::Execute_TakeDamage(this,DamageAmount, DamageCauser);
+	IInteractable::Execute_TakeDamage(this, DamageAmount, DamageCauser);
 	
 	return DamageAmount;
 }

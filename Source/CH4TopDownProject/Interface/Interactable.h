@@ -13,9 +13,6 @@ class UInteractable : public UInterface
 	GENERATED_BODY()
 };
 
-/**
- * 
- */
 class CH4TOPDOWNPROJECT_API IInteractable
 {
 	GENERATED_BODY()
