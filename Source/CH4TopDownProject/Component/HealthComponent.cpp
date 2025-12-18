@@ -52,8 +52,8 @@ void UHealthComponent::HandleTakeDamage(AActor* DamagedActor, float Damage, cons
     SetHealth(NewHealth);
 
     if (NewHealth <= 0.0f)
-    {
-        // Character Death Logic
+    {        
+        OnDeath.Broadcast();
     }
 }
 
