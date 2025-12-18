@@ -5,7 +5,9 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
+#include "Character/RCPlayerCharacter.h"
 #include "Engine/World.h"
+#include "Interface/Barricade.h"
 #include "ObjectPool/ActorObjectPoolSubsystem.h"
 
 ABulletBase::ABulletBase()
@@ -63,6 +65,13 @@ void ABulletBase::InitBullet(
     if (APawn* InstPawn = InInstigatorController ? InInstigatorController->GetPawn() : nullptr)
     {
         Collision->IgnoreActorWhenMoving(InstPawn, true);
+        
+        ARCPlayerCharacter* Player = Cast<ARCPlayerCharacter>(InstPawn);
+        if (Player)
+        {
+            if (IsValid(Player->IgnoreActor))
+            Collision->IgnoreActorWhenMoving(Player->IgnoreActor,true);
+        }
     }
 
     if (AActor* OwnerActor = GetOwner())
@@ -148,7 +157,9 @@ void ABulletBase::OnHit(
 {
     if (!HasAuthority())
         return;
+    
 
+    
     UE_LOG(LogTemp, Warning,
         TEXT("[Bullet][Server][OnHit] Self=%s HitActor=%s Comp=%s HasAuthority=%d"),
         *GetName(),
