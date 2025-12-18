@@ -127,7 +127,10 @@ void UInventoryComponent::AddItem(FInventorySlot Item)
 	{
 		return;
 	}
-
+	if (Item.ItemType == EItemType::Ammo) {
+		ItemCountCache[Item.ItemID] += Item.Num;
+	}
+	
 	for (int32 i = 0; i < Items.Num(); i++)
 	{
 		if (Items[i].ItemID == Item.ItemID)
@@ -183,6 +186,7 @@ void UInventoryComponent::AddItem(FInventorySlot Item)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("Inventory is Full"));
 	}
+	//문제점 발견 이거 아이템먹었을때 만약 가방 공간이 없으면 그냥 템 먹튀함
 }
 
 void UInventoryComponent::DropItem(int32 Index)
@@ -228,12 +232,13 @@ void UInventoryComponent::DropItem(int32 Index)
 		UE_LOG(LogTemp, Error, TEXT("Failed to spawn dropped item"));
 		return;
 	}
-	Items[Index].ItemID = "";
+	RemoveItem(Index);
 	UE_LOG(LogTemp, Log, TEXT("Dropped item: %s"), *ItemID.ToString());
 }
 
 void UInventoryComponent::RemoveItem(int32 Index) {
-
+	ItemCountCache[Items[Index].ItemID] -= Items[Index].Num;
+	Items[Index].ItemID = "";	
 }
 
 int32 UInventoryComponent::GetInventorytSize()
@@ -352,4 +357,5 @@ void UInventoryComponent::UnequipWeapon()
 		EquippedWeaponActor = nullptr;
 	}
 }
+
 

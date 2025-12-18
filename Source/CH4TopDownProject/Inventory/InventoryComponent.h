@@ -48,6 +48,8 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Inventory|UI")
 	TSubclassOf<UInventoryUI> InventoryWidgetClass;
 
+	TMap<FName, int32> ItemCountCache;
+
 	bool InventoryUIIsOpen = false;
 public:
 
@@ -159,7 +161,6 @@ public:
 	// Setter
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
 	void SetEquipmentWeapon(FInventorySlot NewID) { EquipmentWeapon1ID = NewID; }
-
 	// Getter (Actor)
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
 	AActor* GetWeaponActor() const { return EquippedWeaponActor; }
@@ -168,11 +169,13 @@ public:
 	// Equip
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
 	void EquipWeapon(FInventorySlot NewWeapon);
-
 	// Unequip
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
 	void UnequipWeapon();
 
+	UFUNCTION(BlueprintCallable, Category = "Equipment")
+	int32 GetUseableAmmo(FName UseAmmoID) const {
+		return ItemCountCache[UseAmmoID];	}
 #pragma endregion
 	
 
