@@ -243,12 +243,12 @@ int32 UInventoryComponent::GetInventorytSize()
 		return DefaultInventorySize;
 	}
 
-	if (EquipmentBagID.IsNone())
+	if (EquipmentBagID.ItemID.IsNone())
 	{
 		return DefaultInventorySize;
 	}
 
-	const FBagItemData* ItemRow = ItemDataTable->FindRow<FBagItemData>(EquipmentBagID, TEXT("ItemID"));
+	const FBagItemData* ItemRow = ItemDataTable->FindRow<FBagItemData>(EquipmentBagID.ItemID, TEXT("ItemID"));
 
 	if (ItemRow == nullptr)
 	{
@@ -285,7 +285,7 @@ UDataTable* UInventoryComponent::GetDataTableByItemType(EItemType ItemType) cons
 	}
 }
 
-void UInventoryComponent::SetEquipmentBagID(FName NewID) { 
+void UInventoryComponent::SetEquipmentBagID(FInventorySlot NewID) {
 	int32 curInventorySize = GetInventorytSize();
 	EquipmentBagID = NewID; 
 	int32 nextInventorySize = GetInventorytSize();
@@ -301,16 +301,55 @@ void UInventoryComponent::SetEquipmentBagID(FName NewID) {
 int32 UInventoryComponent::GetBonusHealth()
 {
 	int32 BonusHealth =
-		EquipmentItemDataTable->FindRow<FEquipmentItemData>(EquipmentChestID, TEXT(""))->BonusHealth
-		+ EquipmentItemDataTable->FindRow<FEquipmentItemData>(EquipmentHeadID, TEXT(""))->BonusHealth;
+		EquipmentItemDataTable->FindRow<FEquipmentItemData>(EquipmentChestID.ItemID, TEXT(""))->BonusHealth
+		+ EquipmentItemDataTable->FindRow<FEquipmentItemData>(EquipmentHeadID.ItemID, TEXT(""))->BonusHealth;
 	return BonusHealth;
 }
 
 int32 UInventoryComponent::GetDeffence()
 {
 	int32 Deffence =
-		EquipmentItemDataTable->FindRow<FEquipmentItemData>(EquipmentChestID, TEXT(""))->Deffence
-		+ EquipmentItemDataTable->FindRow<FEquipmentItemData>(EquipmentHeadID, TEXT(""))->Deffence;
+		EquipmentItemDataTable->FindRow<FEquipmentItemData>(EquipmentChestID.ItemID, TEXT(""))->Deffence
+		+ EquipmentItemDataTable->FindRow<FEquipmentItemData>(EquipmentHeadID.ItemID, TEXT(""))->Deffence;
 	return Deffence;
+}
+
+
+//무기 장착
+//EquipWeapon(GetEquipmentWeapon1ID()) or EquipWeapon(GetEquipmentWeapon2ID()) 
+void UInventoryComponent::EquipWeapon(FInventorySlot NewWeapon)
+{
+
+	TSubclassOf<AActor> NewWeaponClass = 
+		EquipmentItemDataTable->FindRow<FEquipmentItemData>(NewWeapon.ItemID, TEXT(""))->ItemActorClass;
+	if (!NewWeaponClass) return;
+
+	// 기존 무기 제거
+	UnequipWeapon();
+
+	UWorld* World = GetWorld();
+	if (!World) return;
+
+	FActorSpawnParameters Params;
+	Params.Owner = GetOwner();
+	Params.Instigator = Cast<APawn>(GetOwner());
+
+	EquippedWeaponActor = World->SpawnActor<AActor>(NewWeaponClass, Params);
+
+	// 소켓 부착
+	EquippedWeaponActor->AttachToComponent(
+		GetOwner()->GetRootComponent(),
+		FAttachmentTransformRules::SnapToTargetNotIncludingScale,
+		TEXT("WeaponSocket")
+	);
+}
+
+void UInventoryComponent::UnequipWeapon()
+{
+	if (EquippedWeaponActor)
+	{
+		EquippedWeaponActor->Destroy();
+		EquippedWeaponActor = nullptr;
+	}
 }
 
