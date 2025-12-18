@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 
 #include "Interface/Barricade.h"
 #include <Kismet/GameplayStatics.h>
@@ -7,6 +5,7 @@
 
 ABarricade::ABarricade()
 {
+
 }
 
 void ABarricade::NotifyActorBeginOverlap(AActor* OtherActor)
@@ -21,6 +20,24 @@ void ABarricade::NotifyActorBeginOverlap(AActor* OtherActor)
 
 void ABarricade::TakeDamage_Implementation(float Damage, AActor* DamageCauser)
 {
+	if (!bCanTakeDamage)
+	{
+		return;
+	}
+
+	CurrentHP -= Damage;
+
+	if (CurrentHP <= 0)
+	{
+		if (HasAuthority())
+		{
+			HandleDestroyed();
+		}
+		else
+		{
+			Multicast_OnDeath();
+		}
+	}
 }
 
 void ABarricade::Multicast_OnDeath_Implementation()

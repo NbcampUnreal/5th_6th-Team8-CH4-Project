@@ -370,7 +370,9 @@ void ARCPlayerCharacter::HandleUseSlot7Input(const FInputActionValue& InValue)
 
 void ARCPlayerCharacter::HandleUseSlot8Input(const FInputActionValue& InValue)
 {
-	HandleUseQuickSlotInput(7);	
+	HandleUseQuickSlotInput(7);
+}
+
 void ARCPlayerCharacter::HandleReloadInput(const FInputActionValue& InValue)
 {
 	if (CurrentWeapon)
