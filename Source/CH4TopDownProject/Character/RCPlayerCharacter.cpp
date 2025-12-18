@@ -164,6 +164,11 @@ void ARCPlayerCharacter::HandleDashInput(const FInputActionValue& InValue)
 		return;
 	}
 
+	if (IsValid(FlappingMontage))
+	{
+		PlayAnimMontage(FlappingMontage, 2.0f);
+	}
+
 	Server_HandleDash(CurMoveDirection);	
 
 	bCanDash = false;
@@ -176,11 +181,15 @@ void ARCPlayerCharacter::HandleDashInput(const FInputActionValue& InValue)
 
 void ARCPlayerCharacter::HandleSprintPressedInput(const FInputActionValue& InValue)
 {
+	GetCharacterMovement()->MaxWalkSpeed = SprintMaxWalkSpeed;
+
 	Server_SetSprint(true);
 }
 
 void ARCPlayerCharacter::HandleSprintReleasedInput(const FInputActionValue& InValue)
 {
+	GetCharacterMovement()->MaxWalkSpeed = DefaultMaxWalkSpeed;
+
 	Server_SetSprint(false);
 }
 
@@ -281,21 +290,21 @@ void ARCPlayerCharacter::Server_SetSprint_Implementation(bool bIsSprinting)
 {
 	if (bIsSprinting)
 	{
+		GetCharacterMovement()->MaxWalkSpeed = SprintMaxWalkSpeed;
+
 		if (StaminaComponent)
 		{
 			StaminaComponent->StartStaminaDrain(10.0f);
 		}
-
-		GetCharacterMovement()->MaxWalkSpeed = SprintMaxWalkSpeed;
 	}
 	else
 	{
+		GetCharacterMovement()->MaxWalkSpeed = DefaultMaxWalkSpeed;
+
 		if (StaminaComponent)
 		{
 			StaminaComponent->StopStaminaDrain();
 		}
-
-		GetCharacterMovement()->MaxWalkSpeed = DefaultMaxWalkSpeed;
 	}
 }
 
