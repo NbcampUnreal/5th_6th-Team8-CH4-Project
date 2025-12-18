@@ -96,6 +96,7 @@ void ARCPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 	EIC->BindAction(FireAction, ETriggerEvent::Started, this, &ARCPlayerCharacter::HandleFireStarted);
 	EIC->BindAction(FireAction, ETriggerEvent::Completed, this, &ARCPlayerCharacter::HandleFireStopped);
+	EIC->BindAction(ReloadAction, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleReloadInput);
 }
 
 void ARCPlayerCharacter::HandleMoveInput(const FInputActionValue& InValue)
@@ -231,6 +232,14 @@ void ARCPlayerCharacter::HandleFireStopped(const FInputActionValue& InValue)
 	if (CurrentWeapon)
 	{
 		CurrentWeapon->StopFire();
+	}
+}
+
+void ARCPlayerCharacter::HandleReloadInput(const FInputActionValue& InValue)
+{
+	if (CurrentWeapon)
+	{
+		CurrentWeapon->StartReload();
 	}
 }
 

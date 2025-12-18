@@ -90,6 +90,9 @@ protected:
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentWeapon)
 	ATopDownWeaponBase* CurrentWeapon;
 
+	UPROPERTY(EditDefaultsOnly, Category = Input)
+	TObjectPtr<UInputAction> ReloadAction;
+
 	UFUNCTION()
 	void OnRep_CurrentWeapon();
 
@@ -115,6 +118,7 @@ protected:
 private:
 	void HandleFireStarted(const FInputActionValue& InValue);
 	void HandleFireStopped(const FInputActionValue& InValue);
+	void HandleReloadInput(const FInputActionValue& InValue);
 # pragma endregion
 };
 
