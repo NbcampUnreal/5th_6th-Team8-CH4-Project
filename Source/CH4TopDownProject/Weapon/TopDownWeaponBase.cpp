@@ -249,7 +249,7 @@ void ATopDownWeaponBase::StartReload()
         Server_StartReload();
         return;
     }
-    Server_StartReload();
+
 }
 
 bool ATopDownWeaponBase::CanReload() const
@@ -280,6 +280,7 @@ void ATopDownWeaponBase::Server_StartReload_Implementation()
     GetWorldTimerManager().ClearTimer(FireTimerHandle);
 
     bIsReloading = true;
+    ForceNetUpdate();
 
     GetWorldTimerManager().SetTimer(
         ReloadTimerHandle,
