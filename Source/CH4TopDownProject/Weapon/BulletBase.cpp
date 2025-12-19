@@ -7,6 +7,7 @@
 #include "TimerManager.h"
 #include "Engine/World.h"
 #include "ObjectPool/ActorObjectPoolSubsystem.h"
+#include "Net/UnrealNetwork.h"
 
 ABulletBase::ABulletBase()
 {
@@ -34,6 +35,10 @@ ABulletBase::ABulletBase()
     Movement->MaxSpeed = 100000.f;
     Movement->bRotationFollowsVelocity = true;
     Movement->bShouldBounce = false;
+
+    TrailComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("TrailComp"));
+    TrailComp->SetupAttachment(RootComponent);
+    TrailComp->SetAutoActivate(false);
 
     SetActorHiddenInGame(true);
     SetActorEnableCollision(false);
@@ -192,6 +197,7 @@ void ABulletBase::OnHit(
 
 void ABulletBase::OnSpawnFromPool_Implementation()
 {
+
     StopLifeTimer();
 
     SetActorHiddenInGame(false);
@@ -208,6 +214,15 @@ void ABulletBase::OnSpawnFromPool_Implementation()
     {
         Movement->StopMovementImmediately();
         Movement->Deactivate();
+    }
+
+    if (GetNetMode() != NM_DedicatedServer)
+    {
+        if (TrailFX)
+        {
+            TrailComp->SetAsset(TrailFX);
+            TrailComp->Activate(true);
+        }
     }
 }
 
@@ -226,6 +241,15 @@ void ABulletBase::OnReturnToPool_Implementation()
         Movement->Deactivate();
     }
 
+    if (GetNetMode() != NM_DedicatedServer)
+    {
+        if (TrailComp)
+        {
+            TrailComp->Deactivate();
+            TrailComp->SetAsset(nullptr); 
+        }
+    }
+
     SetActorEnableCollision(false);
     SetActorHiddenInGame(true);
     SetActorTickEnabled(false);
@@ -236,4 +260,9 @@ void ABulletBase::OnReturnToPool_Implementation()
 UClass* ABulletBase::GetPoolKeyClass_Implementation()
 {
     return GetClass();
+}
+
+void ABulletBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 }

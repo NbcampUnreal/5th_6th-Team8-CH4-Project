@@ -3,6 +3,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Interface/Poolable.h"
+#include "NiagaraComponent.h"
+#include "NiagaraSystem.h"
 #include "BulletBase.generated.h"
 
 class USphereComponent;
@@ -32,6 +34,7 @@ protected:
 	virtual void OnSpawnFromPool_Implementation() override;
 	virtual void OnReturnToPool_Implementation() override;
 	virtual UClass* GetPoolKeyClass_Implementation() override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitComp,
@@ -50,6 +53,12 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Bullet")
 	TObjectPtr<UProjectileMovementComponent> Movement;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Bullet|VFX")
+	TObjectPtr<UNiagaraComponent> TrailComp;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Bullet|VFX")
+	TObjectPtr<UNiagaraSystem> TrailFX;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Bullet")
 	float LifeTime = 3.f;
