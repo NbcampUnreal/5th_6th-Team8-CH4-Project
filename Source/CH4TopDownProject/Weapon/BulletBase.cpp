@@ -7,6 +7,7 @@
 #include "TimerManager.h"
 #include "Engine/World.h"
 #include "ObjectPool/ActorObjectPoolSubsystem.h"
+#include "Net/UnrealNetwork.h"
 
 ABulletBase::ABulletBase()
 {
@@ -199,6 +200,7 @@ void ABulletBase::OnHit(
 
 void ABulletBase::OnSpawnFromPool_Implementation()
 {
+
     StopLifeTimer();
 
     SetActorHiddenInGame(false);
@@ -243,4 +245,9 @@ void ABulletBase::OnReturnToPool_Implementation()
 UClass* ABulletBase::GetPoolKeyClass_Implementation()
 {
     return GetClass();
+}
+
+void ABulletBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 }

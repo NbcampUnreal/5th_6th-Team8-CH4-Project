@@ -32,6 +32,7 @@ protected:
 	virtual void OnSpawnFromPool_Implementation() override;
 	virtual void OnReturnToPool_Implementation() override;
 	virtual UClass* GetPoolKeyClass_Implementation() override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitComp,

@@ -18,6 +18,7 @@ class UQuickSlotComponent;
 
 class AArmorBase;
 
+
 UCLASS()
 class CH4TOPDOWNPROJECT_API ARCPlayerCharacter : public ACharacter
 {
