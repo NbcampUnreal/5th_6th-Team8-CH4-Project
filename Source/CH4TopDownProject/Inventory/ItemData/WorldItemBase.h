@@ -30,7 +30,7 @@ protected:
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UBoxComponent> Collision;
 
-	UPROPERTY(VisibleAnywhere, Category="Interact")
+	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category="Interact")
 	TObjectPtr<UWidgetComponent> InteractWidget;
 
 	UPROPERTY(EditAnywhere)
