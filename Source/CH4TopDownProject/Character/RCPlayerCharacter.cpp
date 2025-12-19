@@ -12,13 +12,14 @@
 #include "EnhancedInputComponent.h"
 
 #include "Weapon/TopDownWeaponBase.h"
-#include "Armor/ArmorBase.h" 
+#include "Armor/ArmorBase.h"
 #include "Net/UnrealNetwork.h"
 
 #include "Component/HealthComponent.h"
 #include "Component/StaminaComponent.h"
 #include "Component/QuickSlotComponent.h"
 #include "Interface/Interactable.h"
+#include "Inventory/ItemData/WorldItemBase.h"
 
 ARCPlayerCharacter::ARCPlayerCharacter()
 {
@@ -55,7 +56,7 @@ ARCPlayerCharacter::ARCPlayerCharacter()
 void ARCPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	if (HasAuthority())
 	{
 		OnTakePointDamage.AddDynamic(this, &ARCPlayerCharacter::HandlePointDamage);
@@ -66,7 +67,8 @@ void ARCPlayerCharacter::BeginPlay()
 		APlayerController* PC = Cast<APlayerController>(GetController());
 		checkf(IsValid(PC) == true, TEXT("PlayerController is invalid."));
 
-		UEnhancedInputLocalPlayerSubsystem* EILPS = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer());
+		UEnhancedInputLocalPlayerSubsystem* EILPS = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(
+			PC->GetLocalPlayer());
 		checkf(IsValid(EILPS) == true, TEXT("EnhancedInputLocalPlayerSubsystem is invalid."));
 
 		UE_LOG(LogTemp, Warning, TEXT("AddMappingContext OK"));
@@ -105,7 +107,7 @@ void ARCPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 	EIC->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleMoveInput);
 	EIC->BindAction(DashAction, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleDashInput);
-	
+
 	EIC->BindAction(SprintAction, ETriggerEvent::Started, this, &ARCPlayerCharacter::HandleSprintPressedInput);
 	EIC->BindAction(SprintAction, ETriggerEvent::Completed, this, &ARCPlayerCharacter::HandleSprintReleasedInput);
 
@@ -174,14 +176,14 @@ void ARCPlayerCharacter::HandleDashInput(const FInputActionValue& InValue)
 		PlayAnimMontage(FlappingMontage, 2.0f);
 	}
 
-	Server_HandleDash(CurMoveDirection);	
+	Server_HandleDash(CurMoveDirection);
 
 	bCanDash = false;
 	FTimerHandle Handle;
 	GetWorld()->GetTimerManager().SetTimer(Handle, FTimerDelegate::CreateLambda([&]()
-		{
-			bCanDash = true;
-		}), DashCoolDown, false);
+	{
+		bCanDash = true;
+	}), DashCoolDown, false);
 }
 
 void ARCPlayerCharacter::HandleSprintPressedInput(const FInputActionValue& InValue)
@@ -249,15 +251,13 @@ void ARCPlayerCharacter::RotatePlayerToMouseCursor()
 
 		Server_SetAimYaw(NewYaw);
 	}
-
-
 }
 
 void ARCPlayerCharacter::GetLifetimeReplicatedProps(
 	TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	
+
 	DOREPLIFETIME(ARCPlayerCharacter, AimYaw);
 	DOREPLIFETIME(ARCPlayerCharacter, CurrentWeapon);
 	DOREPLIFETIME(ARCPlayerCharacter, CurrentArmor);
@@ -299,11 +299,11 @@ void ARCPlayerCharacter::HandlePointDamage(
 	}
 
 	UE_LOG(LogTemp, Error,
-		TEXT("[Character][Server][TakePointDamage] Victim=%s Damage=%.1f Causer=%s Bone=%s"),
-		*GetName(),
-		FinalDamage,
-		*GetNameSafe(DamageCauser),
-		*BoneName.ToString()
+	       TEXT("[Character][Server][TakePointDamage] Victim=%s Damage=%.1f Causer=%s Bone=%s"),
+	       *GetName(),
+	       FinalDamage,
+	       *GetNameSafe(DamageCauser),
+	       *BoneName.ToString()
 	);
 }
 
@@ -329,18 +329,24 @@ void ARCPlayerCharacter::Server_SetSprint_Implementation(bool bIsSprinting)
 	}
 }
 
-void ARCPlayerCharacter::SetInteractTarget(AActor* InteractTarget)
+void ARCPlayerCharacter::SetInteractTarget(AWorldItemBase* InteractTarget)
 {
+	if (IsValid(CurrentInteractTarget))
+	{
+		CurrentInteractTarget->SetOutLineEnable(false);
+	}
+
 	CurrentInteractTarget = InteractTarget;
+	CurrentInteractTarget->SetOutLineEnable(true);
 }
 
-void ARCPlayerCharacter::ClearInteractTarget(AActor* InteractTarget)
+void ARCPlayerCharacter::ClearInteractTarget(AWorldItemBase* InteractTarget)
 {
 	if (CurrentInteractTarget == InteractTarget)
 	{
+		CurrentInteractTarget->SetOutLineEnable(false);
 		CurrentInteractTarget = nullptr;
 	}
-	
 }
 
 void ARCPlayerCharacter::Server_HandleDash_Implementation(FVector DashDirection)
@@ -393,13 +399,13 @@ void ARCPlayerCharacter::HandleUseQuickSlotInput(int32 SlotIndex)
 {
 	if (QuickSlotComponent)
 	{
-		QuickSlotComponent->Server_UseQuickSlot(SlotIndex);		
+		QuickSlotComponent->Server_UseQuickSlot(SlotIndex);
 	}
 }
 
 void ARCPlayerCharacter::HandleUseSlot1Input(const FInputActionValue& InValue)
 {
-	HandleUseQuickSlotInput(0);	
+	HandleUseQuickSlotInput(0);
 }
 
 void ARCPlayerCharacter::HandleUseSlot2Input(const FInputActionValue& InValue)
@@ -452,7 +458,7 @@ void ARCPlayerCharacter::OnRep_CurrentArmor()
 void ARCPlayerCharacter::OnRep_CurrentWeapon()
 {
 	UE_LOG(LogTemp, Warning, TEXT("OnRep_CurrentWeapon: %s"),
-		*GetNameSafe(CurrentWeapon));
+	       *GetNameSafe(CurrentWeapon));
 
 	if (CurrentWeapon && GetMesh())
 	{

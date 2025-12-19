@@ -14,14 +14,13 @@ UCLASS()
 class CH4TOPDOWNPROJECT_API AWorldItemBase : public AActor, public IInteractable
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	AWorldItemBase();
 
 protected:
-	
 	virtual void BeginPlay() override;
-	
+
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<USceneComponent> Root;
 
@@ -33,15 +32,15 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category="Interact")
 	TObjectPtr<UWidgetComponent> InteractWidget;
-	
-	UPROPERTY(EditAnywhere)
-	bool bCanInteract =true;
 
 	UPROPERTY(EditAnywhere)
-	bool bCanTakeDamage=true;
+	bool bCanInteract = true;
 
 	UPROPERTY(EditAnywhere)
-	float MaxHP =100;
+	bool bCanTakeDamage = true;
+
+	UPROPERTY(EditAnywhere)
+	float MaxHP = 100;
 
 	UPROPERTY(EditAnywhere)
 	float CurrentHP;
@@ -57,16 +56,17 @@ protected:
 	virtual void NotifyActorBeginOverlap(AActor* OtherActor);
 
 	UFUNCTION(BlueprintCallable)
-	virtual  void NotifyActorEndOverlap(AActor* OtherActor);
+	virtual void NotifyActorEndOverlap(AActor* OtherActor);
 
 public :
-	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
-	
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
+	                         class AController* EventInstigator, AActor* DamageCauser) override;
+
 	virtual void Interact_Implementation(AActor* Interactor) override;
 	virtual void TakeDamage_Implementation(float Damage, AActor* DamageCauser) override;
-	
+
 	virtual void ShowInteractWidget(AActor* OtherActor);
 	virtual void HideInteractWidget(AActor* OtherActor);
 
-	
+	virtual void SetOutLineEnable(bool Enable);
 };
