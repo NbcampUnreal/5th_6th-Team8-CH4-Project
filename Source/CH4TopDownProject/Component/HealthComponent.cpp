@@ -34,11 +34,53 @@ float UHealthComponent::GetMaxHealth() const
     return MaxHealth;
 }
 
+float UHealthComponent::GetArmor() const
+{
+    return Armor;
+}
+
+void UHealthComponent::AddMaxHealth(float Amount)
+{
+    if (!GetOwner()->HasAuthority() || Amount == 0.0f)
+    {
+        return;
+    }
+
+    MaxHealth += Amount;
+    CurrentHealth += Amount;
+
+    OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
+}
+
+void UHealthComponent::AddArmor(float Amount)
+{
+    if (!GetOwner()->HasAuthority() || Amount == 0.0f)
+    {
+        return;
+    }
+
+    Armor += Amount;
+}
+
+void UHealthComponent::Heal(float HealAmount)
+{
+    if (!GetOwner()->HasAuthority() || HealAmount <= 0.0f || CurrentHealth <= 0.0f)
+    {
+        return;
+    }
+
+    float NewHealth = FMath::Clamp(CurrentHealth + HealAmount, 0.0f, MaxHealth);
+
+    SetHealth(NewHealth);
+}
+
 void UHealthComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
     DOREPLIFETIME(UHealthComponent, CurrentHealth);
+    DOREPLIFETIME(UHealthComponent, MaxHealth);
+    DOREPLIFETIME(UHealthComponent, Armor);
 }
 
 void UHealthComponent::HandleTakeDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser)
@@ -48,7 +90,9 @@ void UHealthComponent::HandleTakeDamage(AActor* DamagedActor, float Damage, cons
         return;
     }
 
-    float NewHealth = FMath::Clamp(CurrentHealth - Damage, 0.0f, MaxHealth);
+    float ActualDamage = FMath::Max(Damage - Armor, 0.0f);
+
+    float NewHealth = FMath::Clamp(CurrentHealth - ActualDamage, 0.0f, MaxHealth);
 
     SetHealth(NewHealth);
 
