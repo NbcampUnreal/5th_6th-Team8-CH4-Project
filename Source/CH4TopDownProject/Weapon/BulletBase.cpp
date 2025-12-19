@@ -63,6 +63,13 @@ void ABulletBase::InitBullet(
     if (APawn* InstPawn = InInstigatorController ? InInstigatorController->GetPawn() : nullptr)
     {
         Collision->IgnoreActorWhenMoving(InstPawn, true);
+        
+        ARCPlayerCharacter* Player = Cast<ARCPlayerCharacter>(InstPawn);
+        if (Player)
+        {
+            if (IsValid(Player->IgnoreActor))
+            Collision->IgnoreActorWhenMoving(Player->IgnoreActor,true);
+        }
     }
 
     if (AActor* OwnerActor = GetOwner())
