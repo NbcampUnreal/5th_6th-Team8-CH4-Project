@@ -101,6 +101,7 @@ void AWorldItemBase::SetOutLineEnable(bool Enable)
 	if (!bCanInteract) return;
 	
 	StaticMesh->SetRenderCustomDepth(Enable);
+	ShowInteractWidget(Enable);
 }
 
 float AWorldItemBase::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
@@ -129,28 +130,13 @@ void AWorldItemBase::TakeDamage_Implementation(float Damage, AActor* DamageCause
 	//Todo 파생 클래스에서 구현
 }
 
-void AWorldItemBase::ShowInteractWidget(AActor* OtherActor)
+void AWorldItemBase::ShowInteractWidget( bool bVisible)
 {
 	
-	APawn* Pawn = Cast<APawn>(OtherActor);
-	if (!Pawn || !Pawn->IsLocallyControlled())
-		return;
-
 	if (InteractWidget)
 	{
-		InteractWidget->SetVisibility(true);
+		InteractWidget->SetVisibility(bVisible);
 	}
 }
 
-void AWorldItemBase::HideInteractWidget(AActor* OtherActor)
-{
-	APawn* Pawn = Cast<APawn>(OtherActor);
 
-	if (!Pawn || !Pawn->IsLocallyControlled())
-		return;
-
-	if (InteractWidget)
-	{
-		InteractWidget->SetVisibility(false);
-	}
-}
