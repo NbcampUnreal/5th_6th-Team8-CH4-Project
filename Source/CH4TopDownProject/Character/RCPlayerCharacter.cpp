@@ -216,6 +216,22 @@ void ARCPlayerCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	RotatePlayerToMouseCursor();
+
+	if (IsLocallyControlled())
+	{
+		const float Speed2D = GetVelocity().Size2D();
+		const bool bIsMoving = Speed2D > 10.f;
+		const bool bIsFalling = GetCharacterMovement() ? GetCharacterMovement()->IsFalling() : false;
+
+		if (bIsMoving && !bIsFalling)
+		{
+			StartFootstepLoop();
+		}
+		else
+		{
+			StopFootstepLoop();
+		}
+	}
 }
 
 void ARCPlayerCharacter::RotatePlayerToMouseCursor()
@@ -362,6 +378,8 @@ void ARCPlayerCharacter::Server_HandleDash_Implementation(FVector DashDirection)
 	}
 
 	LaunchCharacter(DashDirection * DashMaxWalkSpeed, true, false);
+
+	Multicast_PlayDashSFX(GetActorLocation());
 }
 
 void ARCPlayerCharacter::Client_StopSprint_Implementation()
@@ -474,4 +492,50 @@ void ARCPlayerCharacter::Server_SetAimYaw_Implementation(float NewYaw)
 {
 	AimYaw = NewYaw;
 	SetActorRotation(FRotator(0.f, AimYaw, 0.f));
+}
+
+void ARCPlayerCharacter::StartFootstepLoop()
+{
+	if (!IsLocallyControlled()) return;
+	if (!FootstepSound) return;
+
+	if (!GetWorldTimerManager().IsTimerActive(FootstepTimerHandle))
+	{
+		PlayFootstepOnce();
+
+		GetWorldTimerManager().SetTimer(
+			FootstepTimerHandle,
+			this,
+			&ARCPlayerCharacter::PlayFootstepOnce,
+			FootstepInterval,
+			true
+		);
+	}
+}
+
+void ARCPlayerCharacter::StopFootstepLoop()
+{
+	if (!IsLocallyControlled()) return;
+	GetWorldTimerManager().ClearTimer(FootstepTimerHandle);
+}
+
+void ARCPlayerCharacter::PlayFootstepOnce()
+{
+	if (!IsLocallyControlled()) return;
+	if (!FootstepSound) return;
+
+	const float Speed2D = GetVelocity().Size2D();
+	if (Speed2D < 10.f) return;
+
+	if (GetCharacterMovement() && GetCharacterMovement()->IsFalling()) return;
+
+	UGameplayStatics::PlaySoundAtLocation(this, FootstepSound, GetActorLocation());
+}
+
+void ARCPlayerCharacter::Multicast_PlayDashSFX_Implementation(const FVector& Loc)
+{
+	if (GetNetMode() == NM_DedicatedServer) return;
+	if (!DashSound) return;
+
+	UGameplayStatics::PlaySoundAtLocation(this, DashSound, Loc);
 }
