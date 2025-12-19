@@ -58,6 +58,18 @@ void UMainHUDWidget::UpdateHealth(float CurrentHealth, float MaxHealth)
     {
         HealthBar->SetPercent(FMath::Clamp(CurrentHealth / MaxHealth, 0.0f, 1.0f));
     }
+
+    if (CurrentHealthText)
+    {
+        FString CurrentHealthString = FString::Printf(TEXT("%d"), FMath::RoundToInt(CurrentHealth));
+        CurrentHealthText->SetText(FText::FromString(CurrentHealthString));
+    }
+
+    if (MaxHealthText)
+    {
+        FString MaxHealthString = FString::Printf(TEXT("%d"), FMath::RoundToInt(MaxHealth));
+        MaxHealthText->SetText(FText::FromString(MaxHealthString));
+    }
 }
 
 void UMainHUDWidget::UpdateStamina(float CurrentStamina, float MaxStamina)

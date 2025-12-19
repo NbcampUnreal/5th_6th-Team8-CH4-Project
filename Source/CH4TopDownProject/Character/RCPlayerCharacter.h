@@ -9,6 +9,7 @@
 
 #include "RCPlayerCharacter.generated.h"
 
+class AWorldItemBase;
 class UInputAction;
 class ATopDownWeaponBase;
 class UHealthComponent;
@@ -16,6 +17,7 @@ class UStaminaComponent;
 class UQuickSlotComponent;
 
 class AArmorBase;
+
 
 UCLASS()
 class CH4TOPDOWNPROJECT_API ARCPlayerCharacter : public ACharacter
@@ -32,13 +34,16 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	void RotatePlayerToMouseCursor();
-	void SetInteractTarget(AActor* InteractTarget);
-	void ClearInteractTarget(AActor* InteractTarget);
+	void SetInteractTarget(AWorldItemBase* InteractTarget);
+	void ClearInteractTarget(AWorldItemBase* InteractTarget);
 	
 	virtual void GetLifetimeReplicatedProps(
 		TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	void StopSprint();
+
+	UPROPERTY()
+	TObjectPtr<AActor> IgnoreActor = nullptr;
 
 # pragma region Components
 private:
@@ -104,7 +109,7 @@ protected:
 	TObjectPtr<UInputAction> UseSlot8Action;
 
 	UPROPERTY()
-	TObjectPtr<AActor> CurrentInteractTarget = nullptr;
+	TObjectPtr<AWorldItemBase> CurrentInteractTarget = nullptr;
 private:
 	void HandleMoveInput(const FInputActionValue& InValue);
 	void HandleDashInput(const FInputActionValue& InValue);

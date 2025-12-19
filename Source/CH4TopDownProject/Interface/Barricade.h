@@ -19,6 +19,7 @@ protected:
 	UParticleSystem* DeathParticle;
 
 	virtual void NotifyActorBeginOverlap(AActor* OtherActor) override;
+	virtual void NotifyActorEndOverlap(AActor* OhtherActor) override;
 	virtual void TakeDamage_Implementation(float Damage, AActor* DamageCauser) override;
 
 	UFUNCTION(NetMulticast, Reliable)
