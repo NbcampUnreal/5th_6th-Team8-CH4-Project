@@ -85,7 +85,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void AddItem(FInventorySlot Item);
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
-	void DropItem(int32 Index);
+	void DropItem(FInventorySlot Item);
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void RemoveItem(int32 Index);
 
@@ -174,7 +174,7 @@ public:
 	void UnequipWeapon();
 
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
-	int32 GetUseableAmmo(FName UseAmmoID) const {
+	int32 GetUseableAmmoNum(FName UseAmmoID) const {
 		return ItemCountCache[UseAmmoID];	}
 #pragma endregion
 	

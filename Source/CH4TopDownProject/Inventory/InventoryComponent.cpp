@@ -130,17 +130,15 @@ void UInventoryComponent::AddItem(FInventorySlot Item)
 	if (Item.ItemType == EItemType::Ammo) {
 		ItemCountCache[Item.ItemID] += Item.Num;
 	}
-	
+	const FItemData* ItemRow = ItemDataTable->FindRow<FItemData>(Item.ItemID, TEXT(""));
+	if (!ItemRow) {
+		UE_LOG(LogTemp, Warning, TEXT("ItemID not found in DataTable: %s"), *Item.ItemID.ToString());
+		return;
+	}
 	for (int32 i = 0; i < Items.Num(); i++)
 	{
 		if (Items[i].ItemID == Item.ItemID)
-		{
-			
-			const FItemData* ItemRow = ItemDataTable->FindRow<FItemData>(Item.ItemID, TEXT(""));
-			if (!ItemRow) {
-				UE_LOG(LogTemp, Warning, TEXT("ItemID not found in DataTable: %s"), *Item.ItemID.ToString());
-				return;
-			}
+		{			
 			Items[i].Num += Item.Num;
 
 			bool IsRemain = false;
@@ -177,10 +175,18 @@ void UInventoryComponent::AddItem(FInventorySlot Item)
 				);
 				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, Msg);
 			}
-
-			return;
+			bool IsRemain = false;
+			if (ItemRow->MaxNum < Items[i].Num) {
+				Item.Num = Items[i].Num - ItemRow->MaxNum;
+				Items[i].Num = ItemRow->MaxNum;
+				IsRemain = true;
+			}
+			if (IsRemain) break;
+			else return;
 		}
+
 	}
+	DropItem(Item);
 
 	if (GEngine)
 	{
@@ -189,16 +195,12 @@ void UInventoryComponent::AddItem(FInventorySlot Item)
 	//문제점 발견 이거 아이템먹었을때 만약 가방 공간이 없으면 그냥 템 먹튀함
 }
 
-void UInventoryComponent::DropItem(int32 Index)
-{
-	if (!Items.IsValidIndex(Index)) {
-		UE_LOG(LogTemp, Warning, TEXT("InventoryIndex is not valid"));
-		return;
-	}	
+void UInventoryComponent::DropItem(FInventorySlot Item)
+{	
 
-	FName ItemID = Items[Index].ItemID;
+	FName ItemID = Item.ItemID;
 
-	UDataTable* itemdatatable = GetDataTableByItemType(Items[Index].ItemType);
+	UDataTable* itemdatatable = GetDataTableByItemType(Item.ItemType);
 
 	if (!itemdatatable)	{
 		UE_LOG(LogTemp, Warning, TEXT("ItemDataTable is NULL"));
@@ -222,22 +224,37 @@ void UInventoryComponent::DropItem(int32 Index)
 		UE_LOG(LogTemp, Warning, TEXT("Actor %s has no BaseItemComponent"), *DroppedItem->GetName());
 		return;
 	}
-	ItemComp->ItemID = Items[Index].ItemID;
-	ItemComp->ItemType = Items[Index].ItemType;
+	ItemComp->ItemID = Item.ItemID;
+	ItemComp->ItemType = Item.ItemType;
 	//temp
-	ItemComp->Num = Items[Index].Num;
+	ItemComp->Num = Item.Num;
 
 	if (!DroppedItem)
 	{
 		UE_LOG(LogTemp, Error, TEXT("Failed to spawn dropped item"));
 		return;
 	}
-	RemoveItem(Index);
 	UE_LOG(LogTemp, Log, TEXT("Dropped item: %s"), *ItemID.ToString());
 }
 
 void UInventoryComponent::RemoveItem(int32 Index) {
-	ItemCountCache[Items[Index].ItemID] -= Items[Index].Num;
+	const FName ItemID = Items[Index].ItemID;
+	const int32 Num = Items[Index].Num;
+
+	if (int32* Count = ItemCountCache.Find(ItemID))
+	{
+		*Count -= Num;
+
+		if (*Count <= 0)
+		{
+			ItemCountCache.Remove(ItemID);
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ItemID %s not found in ItemCountCache"), *ItemID.ToString());
+	}
+
 	Items[Index].ItemID = "";	
 }
 
@@ -297,7 +314,8 @@ void UInventoryComponent::SetEquipmentBagID(FInventorySlot NewID) {
 	if (curInventorySize > nextInventorySize) {
 		for (int32 i = curInventorySize - 1; i >= nextInventorySize; --i)
 		{
-			DropItem(i);
+			DropItem(Items[i]);
+			RemoveItem(i);
 		}
 	}
 	Items.SetNum(nextInventorySize);
