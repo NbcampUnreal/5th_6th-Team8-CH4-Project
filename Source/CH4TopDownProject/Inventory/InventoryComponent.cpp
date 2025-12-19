@@ -157,7 +157,7 @@ void UInventoryComponent::AddItem(FInventorySlot Item)
 
 	}
 	if (Item.ItemType == EItemType::Weapon) {
-
+		
 	}
 	UDataTable* itemdatatable = GetDataTableByItemType(Item.ItemType);
 	const FItemData* ItemRow = itemdatatable->FindRow<FItemData>(Item.ItemID, TEXT(""));
