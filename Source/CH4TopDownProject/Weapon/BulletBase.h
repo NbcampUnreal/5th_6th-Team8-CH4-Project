@@ -3,8 +3,6 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Interface/Poolable.h"
-#include "NiagaraComponent.h"
-#include "NiagaraSystem.h"
 #include "BulletBase.generated.h"
 
 class USphereComponent;
@@ -53,12 +51,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Bullet")
 	TObjectPtr<UProjectileMovementComponent> Movement;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Bullet|VFX")
-	TObjectPtr<UNiagaraComponent> TrailComp;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Bullet|VFX")
-	TObjectPtr<UNiagaraSystem> TrailFX;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Bullet")
 	float LifeTime = 3.f;

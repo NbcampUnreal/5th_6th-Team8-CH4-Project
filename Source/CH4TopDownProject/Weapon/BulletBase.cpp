@@ -36,10 +36,6 @@ ABulletBase::ABulletBase()
     Movement->bRotationFollowsVelocity = true;
     Movement->bShouldBounce = false;
 
-    TrailComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("TrailComp"));
-    TrailComp->SetupAttachment(RootComponent);
-    TrailComp->SetAutoActivate(false);
-
     SetActorHiddenInGame(true);
     SetActorEnableCollision(false);
     SetActorTickEnabled(false);
@@ -215,15 +211,6 @@ void ABulletBase::OnSpawnFromPool_Implementation()
         Movement->StopMovementImmediately();
         Movement->Deactivate();
     }
-
-    if (GetNetMode() != NM_DedicatedServer)
-    {
-        if (TrailFX)
-        {
-            TrailComp->SetAsset(TrailFX);
-            TrailComp->Activate(true);
-        }
-    }
 }
 
 void ABulletBase::OnReturnToPool_Implementation()
@@ -239,15 +226,6 @@ void ABulletBase::OnReturnToPool_Implementation()
     {
         Movement->StopMovementImmediately();
         Movement->Deactivate();
-    }
-
-    if (GetNetMode() != NM_DedicatedServer)
-    {
-        if (TrailComp)
-        {
-            TrailComp->Deactivate();
-            TrailComp->SetAsset(nullptr); 
-        }
     }
 
     SetActorEnableCollision(false);
