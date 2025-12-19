@@ -39,6 +39,12 @@ private:
     TObjectPtr<UProgressBar> HealthBar;
 
     UPROPERTY(meta = (BindWidget))
+    TObjectPtr<UTextBlock> CurrentHealthText;
+
+    UPROPERTY(meta = (BindWidget))
+    TObjectPtr<UTextBlock> MaxHealthText;
+
+    UPROPERTY(meta = (BindWidget))
     TObjectPtr<UProgressBar> StaminaBar;
 
     //UPROPERTY(meta = (BindWidget))
