@@ -217,6 +217,8 @@ void ARCPlayerCharacter::Tick(float DeltaTime)
 
 	RotatePlayerToMouseCursor();
 
+	UpdateFireAim();
+
 	if (IsLocallyControlled())
 	{
 		const float Speed2D = GetVelocity().Size2D();
@@ -395,6 +397,8 @@ void ARCPlayerCharacter::HandleFireStarted(const FInputActionValue& InValue)
 	}
 	UE_LOG(LogTemp, Warning, TEXT("HandleFireStarted called"));
 
+	bIsFireButtonDown = true;
+	
 	if (CurrentWeapon)
 	{
 		CurrentWeapon->StartFire();
@@ -407,6 +411,8 @@ void ARCPlayerCharacter::HandleFireStarted(const FInputActionValue& InValue)
 
 void ARCPlayerCharacter::HandleFireStopped(const FInputActionValue& InValue)
 {
+	bIsFireButtonDown = false;
+	
 	if (CurrentWeapon)
 	{
 		CurrentWeapon->StopFire();
@@ -467,6 +473,33 @@ void ARCPlayerCharacter::HandleReloadInput(const FInputActionValue& InValue)
 	{
 		CurrentWeapon->StartReload();
 	}
+}
+
+void ARCPlayerCharacter::UpdateFireAim()
+{
+	if (!IsLocallyControlled())
+		return;
+
+
+	if (!bIsFireButtonDown)
+		return;
+
+	if (!CurrentWeapon)
+		return;
+
+	APlayerController* PC = Cast<APlayerController>(GetController());
+	if (!PC)
+		return;
+
+	FHitResult Hit;
+	if (!PC->GetHitResultUnderCursor(ECC_Visibility, false, Hit))
+		return;
+
+	FVector Target = Hit.ImpactPoint;
+	Target.Z += 80.f; 
+
+	CurrentWeapon->Server_UpdateAim(Target);
+
 }
 
 void ARCPlayerCharacter::OnRep_CurrentArmor()

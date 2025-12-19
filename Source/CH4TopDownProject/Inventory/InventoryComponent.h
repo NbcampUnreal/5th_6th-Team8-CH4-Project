@@ -37,24 +37,37 @@ public:
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
+#pragma region UI
+private:
+	UPROPERTY(EditDefaultsOnly, Category = "Inventory|UI")
+	TSubclassOf<UInventoryUI> InventoryWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Inventory|UI")
+	TSubclassOf<UInventoryUI> ContainerWidgetClass;
+
+	
+public:
+	UPROPERTY(BlueprintReadOnly, Category = "Inventory|UI")
+	UInventoryUI* InventoryWidget;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Inventory|UI")
+	UInventoryUI* ContainerWidget;
+public:
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	void Open_CloseInventoryUI();
+#pragma endregion
+
 #pragma region Inventory
 private: 
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	TArray<FInventorySlot> Items;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
-	int32 DefaultInventorySize = 4; 
+	int32 DefaultInventorySize = 4; 	
 
-	UPROPERTY(EditDefaultsOnly, Category = "Inventory|UI")
-	TSubclassOf<UInventoryUI> InventoryWidgetClass;
+	TMap<FName, int32> ItemCountCache;	
 
-	TMap<FName, int32> ItemCountCache;
-
-	bool InventoryUIIsOpen = false;
-public:
-
-	UPROPERTY(BlueprintReadOnly, Category = "Inventory|UI")
-	UInventoryUI* InventoryWidget;
+public:	
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory|Data")
 	UDataTable* ItemDataTable;
@@ -76,7 +89,6 @@ public:
 	
 private:
 	AActor* SpawnItemOnGround(TSubclassOf<AActor> SpawnActor);
-
 	UDataTable* GetDataTableByItemType(EItemType ItemType)const;
 
 public:
@@ -85,7 +97,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void AddItem(FInventorySlot Item);
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
-	void DropItem(int32 Index);
+	void DropItem(FInventorySlot Item);
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void RemoveItem(int32 Index);
 
@@ -95,10 +107,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	int32 GetInventorytSize();
 	
-	UFUNCTION(BlueprintCallable, Category = "Inventory")
-	void Open_CloseInventoryUI();
+	
 #pragma endregion
-
 
 #pragma region Equipment
 
@@ -160,7 +170,9 @@ public:
 
 	// Setter
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
-	void SetEquipmentWeapon(FInventorySlot NewID) { EquipmentWeapon1ID = NewID; }
+	void SetEquipmentWeapon1(FInventorySlot NewID) { EquipmentWeapon1ID = NewID; }
+	UFUNCTION(BlueprintCallable, Category = "Equipment")
+	void SetEquipmentWeapon2(FInventorySlot NewID) { EquipmentWeapon2ID = NewID; }
 	// Getter (Actor)
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
 	AActor* GetWeaponActor() const { return EquippedWeaponActor; }
@@ -174,11 +186,8 @@ public:
 	void UnequipWeapon();
 
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
-	int32 GetUseableAmmo(FName UseAmmoID) const {
+	int32 GetUseableAmmoNum(FName UseAmmoID) const {
 		return ItemCountCache[UseAmmoID];	}
 #pragma endregion
-	
-
-
 
 };
