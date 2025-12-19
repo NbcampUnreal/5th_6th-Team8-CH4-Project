@@ -41,6 +41,9 @@ public:
 
 	void StopSprint();
 
+	UPROPERTY()
+	TObjectPtr<AActor> IgnoreActor = nullptr;
+
 # pragma region Components
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
