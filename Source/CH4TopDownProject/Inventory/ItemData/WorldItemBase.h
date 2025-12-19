@@ -65,8 +65,8 @@ public :
 	virtual void Interact_Implementation(AActor* Interactor) override;
 	virtual void TakeDamage_Implementation(float Damage, AActor* DamageCauser) override;
 
-	virtual void ShowInteractWidget(AActor* OtherActor);
-	virtual void HideInteractWidget(AActor* OtherActor);
+	virtual void ShowInteractWidget(bool bVisible);
+
 
 	virtual void SetOutLineEnable(bool Enable);
 };
