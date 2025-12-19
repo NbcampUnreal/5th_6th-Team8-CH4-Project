@@ -25,6 +25,7 @@ struct FInventorySlot // 아이템슬롯 == 아이템 한칸에 들어갈 정보
 	int32 Num;
 };
 
+
 UCLASS(Blueprintable, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class CH4TOPDOWNPROJECT_API UInventoryComponent : public UActorComponent
 {
