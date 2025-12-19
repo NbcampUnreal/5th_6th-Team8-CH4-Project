@@ -6,7 +6,7 @@
 #include "Character/RCPlayerCharacter.h"
 #include "Components/BoxComponent.h"
 #include "Components/WidgetComponent.h"
-#include "Net/UnrealNetwork.h"
+
 
 // Sets default values
 AWorldItemBase::AWorldItemBase()
@@ -96,8 +96,15 @@ void AWorldItemBase::NotifyActorEndOverlap(AActor* OtherActor)
 	}
 }
 
+void AWorldItemBase::SetOutLineEnable(bool Enable)
+{
+	if (!bCanInteract) return;
+	
+	StaticMesh->SetRenderCustomDepth(Enable);
+}
+
 float AWorldItemBase::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
-	class AController* EventInstigator, AActor* DamageCauser)
+                                 class AController* EventInstigator, AActor* DamageCauser)
 {
 	if (!bCanTakeDamage)
 		return 0.f;
