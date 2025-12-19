@@ -14,7 +14,6 @@ enum class EItemType : uint8
 	Equipment_Head,
 	Equipment_Body,
 	Ammo,
-	Weapon
 }; 
 
 
@@ -40,7 +39,7 @@ public:
 	TSubclassOf<AActor> ItemActorClass;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Data")
-	int32 MaxNum; //인벤토리 한칸의 크기
+	int32 MaxNum; //인벤토리에서 차지할 공간
 };
 
 USTRUCT(BlueprintType)
@@ -77,10 +76,6 @@ USTRUCT(BlueprintType)
 struct FWeaponItemData : public FItemData
 {
 	GENERATED_BODY()
-
-public:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Data")
-	FName UseAmmoID;
 };
 
 USTRUCT(BlueprintType)

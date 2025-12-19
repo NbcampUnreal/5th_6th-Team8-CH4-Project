@@ -23,34 +23,20 @@ void UInventoryComponent::BeginPlay()
 
 	Items.SetNum(GetInventorytSize());
 
-	Open_CloseInventoryUI();	
-}
-
-void UInventoryComponent::Open_CloseInventoryUI()
-{
-	APlayerController* PlayerController =
-		Cast<APlayerController>(GetOwner()->GetInstigatorController());
-
-	if (!PlayerController)
-		return;
-
-	if (InventoryWidget)
-	{
-		InventoryWidget->RemoveFromParent();
-		InventoryWidget = nullptr;
-		return;
-	}
-
 	if (InventoryWidgetClass)
 	{
-		InventoryWidget = CreateWidget<UInventoryUI>(PlayerController, InventoryWidgetClass);
+		APlayerController* PlayerController = Cast<APlayerController>(GetOwner()->GetInstigatorController());
 
-		if (InventoryWidget)
+		if (PlayerController)
 		{
-			InventoryWidget->OwnerInventoryComponent = this;
-			InventoryWidget->AddToViewport();
+			InventoryWidget = CreateWidget<UInventoryUI>(PlayerController, InventoryWidgetClass);
+			if (InventoryWidget) {
+				InventoryWidget->OwnerInventoryComponent = this;
+				InventoryWidget->AddToViewport();
+			}
 		}
 	}
+	
 }
 
 AActor* UInventoryComponent::SpawnItemOnGround(TSubclassOf<AActor> SpawnActor)
@@ -144,31 +130,17 @@ void UInventoryComponent::AddItem(FInventorySlot Item)
 	if (Item.ItemType == EItemType::Ammo) {
 		ItemCountCache[Item.ItemID] += Item.Num;
 	}
-	if (Item.ItemType == EItemType::Bag) {
-		if (EquipmentBagID.ItemID == NAME_None) {
-			SetEquipmentBagID(Item);
-			return;
-		}
-	}
-	if (Item.ItemType == EItemType::Equipment_Body) {
-
-	}
-	if (Item.ItemType == EItemType::Equipment_Head) {
-
-	}
-	if (Item.ItemType == EItemType::Weapon) {
-		
-	}
-	UDataTable* itemdatatable = GetDataTableByItemType(Item.ItemType);
-	const FItemData* ItemRow = itemdatatable->FindRow<FItemData>(Item.ItemID, TEXT(""));
-	if (!ItemRow) {
-		UE_LOG(LogTemp, Warning, TEXT("ItemID not found in DataTable: %s"), *Item.ItemID.ToString());
-		return;
-	}
+	
 	for (int32 i = 0; i < Items.Num(); i++)
 	{
 		if (Items[i].ItemID == Item.ItemID)
-		{			
+		{
+			
+			const FItemData* ItemRow = ItemDataTable->FindRow<FItemData>(Item.ItemID, TEXT(""));
+			if (!ItemRow) {
+				UE_LOG(LogTemp, Warning, TEXT("ItemID not found in DataTable: %s"), *Item.ItemID.ToString());
+				return;
+			}
 			Items[i].Num += Item.Num;
 
 			bool IsRemain = false;
@@ -205,32 +177,28 @@ void UInventoryComponent::AddItem(FInventorySlot Item)
 				);
 				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, Msg);
 			}
-			bool IsRemain = false;
-			if (ItemRow->MaxNum < Items[i].Num) {
-				Item.Num = Items[i].Num - ItemRow->MaxNum;
-				Items[i].Num = ItemRow->MaxNum;
-				IsRemain = true;
-			}
-			if (IsRemain) break;
-			else return;
+
+			return;
 		}
-
 	}
-
-	DropItem(Item);
 
 	if (GEngine)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("Inventory is Full"));
 	}
+	//문제점 발견 이거 아이템먹었을때 만약 가방 공간이 없으면 그냥 템 먹튀함
 }
 
-void UInventoryComponent::DropItem(FInventorySlot Item)
-{	
+void UInventoryComponent::DropItem(int32 Index)
+{
+	if (!Items.IsValidIndex(Index)) {
+		UE_LOG(LogTemp, Warning, TEXT("InventoryIndex is not valid"));
+		return;
+	}	
 
-	FName ItemID = Item.ItemID;
+	FName ItemID = Items[Index].ItemID;
 
-	UDataTable* itemdatatable = GetDataTableByItemType(Item.ItemType);
+	UDataTable* itemdatatable = GetDataTableByItemType(Items[Index].ItemType);
 
 	if (!itemdatatable)	{
 		UE_LOG(LogTemp, Warning, TEXT("ItemDataTable is NULL"));
@@ -254,43 +222,28 @@ void UInventoryComponent::DropItem(FInventorySlot Item)
 		UE_LOG(LogTemp, Warning, TEXT("Actor %s has no BaseItemComponent"), *DroppedItem->GetName());
 		return;
 	}
-	ItemComp->ItemID = Item.ItemID;
-	ItemComp->ItemType = Item.ItemType;
+	ItemComp->ItemID = Items[Index].ItemID;
+	ItemComp->ItemType = Items[Index].ItemType;
 	//temp
-	ItemComp->Num = Item.Num;
+	ItemComp->Num = Items[Index].Num;
 
 	if (!DroppedItem)
 	{
 		UE_LOG(LogTemp, Error, TEXT("Failed to spawn dropped item"));
 		return;
 	}
+	RemoveItem(Index);
 	UE_LOG(LogTemp, Log, TEXT("Dropped item: %s"), *ItemID.ToString());
 }
 
 void UInventoryComponent::RemoveItem(int32 Index) {
-	const FName ItemID = Items[Index].ItemID;
-	const int32 Num = Items[Index].Num;
-
-	if (int32* Count = ItemCountCache.Find(ItemID))
-	{
-		*Count -= Num;
-
-		if (*Count <= 0)
-		{
-			ItemCountCache.Remove(ItemID);
-		}
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("ItemID %s not found in ItemCountCache"), *ItemID.ToString());
-	}
-
+	ItemCountCache[Items[Index].ItemID] -= Items[Index].Num;
 	Items[Index].ItemID = "";	
 }
 
 int32 UInventoryComponent::GetInventorytSize()
 {
-	if (BagItemDataTable == nullptr)
+	if (ItemDataTable == nullptr)
 	{
 		return DefaultInventorySize;
 	}
@@ -300,7 +253,7 @@ int32 UInventoryComponent::GetInventorytSize()
 		return DefaultInventorySize;
 	}
 
-	const FBagItemData* ItemRow = BagItemDataTable->FindRow<FBagItemData>(EquipmentBagID.ItemID, TEXT("ItemID"));
+	const FBagItemData* ItemRow = ItemDataTable->FindRow<FBagItemData>(EquipmentBagID.ItemID, TEXT("ItemID"));
 
 	if (ItemRow == nullptr)
 	{
@@ -310,7 +263,10 @@ int32 UInventoryComponent::GetInventorytSize()
 	return ItemRow->ContainerSize + DefaultInventorySize;
 }
 
+void UInventoryComponent::Open_CloseInventoryUI()
+{
 
+}
 
 UDataTable* UInventoryComponent::GetDataTableByItemType(EItemType ItemType) const
 {
@@ -341,8 +297,7 @@ void UInventoryComponent::SetEquipmentBagID(FInventorySlot NewID) {
 	if (curInventorySize > nextInventorySize) {
 		for (int32 i = curInventorySize - 1; i >= nextInventorySize; --i)
 		{
-			DropItem(Items[i]);
-			RemoveItem(i);
+			DropItem(i);
 		}
 	}
 	Items.SetNum(nextInventorySize);

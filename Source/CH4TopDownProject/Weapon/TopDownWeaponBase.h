@@ -62,14 +62,10 @@ public:
 	virtual void StopFire();
 
 	UFUNCTION(Server, Reliable)
-	void Server_StartFire(const FVector_NetQuantize& TargetWorldPos);
+	void Server_StartFire();
 
 	UFUNCTION(Server, Reliable)
 	void Server_StopFire();
-
-	UFUNCTION(Server, Unreliable)
-	void Server_UpdateAim(const FVector_NetQuantize& NewTargetWorldPos);
-	
 
 	void StartReload();
 
@@ -121,9 +117,6 @@ protected:
 
 	UFUNCTION()
 	void OnRep_Reloading();
-
-	UPROPERTY()
-	FVector_NetQuantize CachedTargetWorldPos;
 
 private:
 	FTimerHandle FireTimerHandle;
