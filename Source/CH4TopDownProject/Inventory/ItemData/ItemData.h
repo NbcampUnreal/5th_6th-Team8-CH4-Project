@@ -1,0 +1,85 @@
+﻿#pragma once 
+
+#include "CoreMinimal.h"
+#include "Engine/DataTable.h" 
+#include "ItemData.generated.h"
+
+// class ABaseItem; // 아이템
+UENUM(BlueprintType)
+enum class EItemType : uint8
+{
+	None,
+	Bag,
+	Consumable,
+	Equipment_Head,
+	Equipment_Body,
+	Ammo,
+}; 
+
+
+USTRUCT(BlueprintType) 
+struct FItemData : public FTableRowBase 
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Data")
+	FName ItemID; // 아이템ID Apple, Potion
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Data")
+	FText ItemName; // 유저가 보는 아이템 이름 사과, 체력포션
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Data")
+	EItemType ItemType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Data")
+	UTexture2D* Thumbnail; // 인벤토리에서 보여줄 아이템 썸네일
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Data")
+	TSubclassOf<AActor> ItemActorClass;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Data")
+	int32 MaxNum; //인벤토리에서 차지할 공간
+};
+
+USTRUCT(BlueprintType)
+struct FBagItemData : public FItemData
+{
+	GENERATED_BODY()
+
+public:
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Data")
+	int32 ContainerSize; //인벤토리 공간
+};
+
+USTRUCT(BlueprintType)
+struct FConsumableItemData : public FItemData
+{
+	GENERATED_BODY()
+};
+
+USTRUCT(BlueprintType)
+struct FEquipmentItemData : public FItemData
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Data")
+	int32 BonusHealth;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Data")
+	int32 Deffence;
+};
+
+USTRUCT(BlueprintType)
+struct FWeaponItemData : public FItemData
+{
+	GENERATED_BODY()
+};
+
+USTRUCT(BlueprintType)
+struct FAmmoItemData : public FItemData
+{
+	GENERATED_BODY()
+};

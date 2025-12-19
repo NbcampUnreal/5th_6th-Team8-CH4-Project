@@ -41,6 +41,9 @@ struct FWeaponStats
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	int32 MagazineSize = 30;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
+	float ReloadDuration = 1.6f;
 };
 
 UCLASS()
@@ -53,6 +56,8 @@ public:
 
 	virtual void BeginPlay() override;
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 	virtual void StartFire();
 	virtual void StopFire();
 
@@ -62,6 +67,10 @@ public:
 	UFUNCTION(Server, Reliable)
 	void Server_StopFire();
 
+	void StartReload();
+
+	UFUNCTION(Server, Reliable)
+	void Server_StartReload();
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	TObjectPtr<UStaticMeshComponent> WeaponMesh;
@@ -84,22 +93,43 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Bullet")
 	TSubclassOf<ABulletBase> BulletClass;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VFX")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|VFX")
 	TObjectPtr<UNiagaraSystem> MuzzleFlashFX;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "SFX")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|SFX")
 	TObjectPtr<USoundBase> FireSound;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|SFX")
+	TObjectPtr<USoundBase> ReloadSound;
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void Multicast_PlayFireFX(const FVector& Loc, const FRotator& Rot);
 
+protected:
+	UPROPERTY(ReplicatedUsing = OnRep_Ammo, BlueprintReadOnly, Category = "Weapon|Ammo")
+	int32 CurrentAmmoInMag = 0;
+
+	UFUNCTION()
+	void OnRep_Ammo();
+
+	UPROPERTY(ReplicatedUsing = OnRep_Reloading, BlueprintReadOnly, Category = "Weapon|Ammo")
+	bool bIsReloading = false;
+
+	UFUNCTION()
+	void OnRep_Reloading();
+
 private:
 	FTimerHandle FireTimerHandle;
+	FTimerHandle ReloadTimerHandle;
+
 	bool bWantsToFire = false;
 	float LastFireTime = -FLT_MAX;
 
 	void Server_FireOnce();
 	bool CanFire() const;
+
 	void SpawnBullet_Server();
+
+	bool CanReload() const;
+	void FinishReload_Server();
 };

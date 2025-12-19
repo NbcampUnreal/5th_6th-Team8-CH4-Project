@@ -6,9 +6,9 @@
 #include "GameFramework/PlayerController.h"
 #include "RCPlayerController.generated.h"
 
-/**
- * 
- */
+class UMainHUDWidget;
+class UGameResultLayout;
+
 UCLASS()
 class CH4TOPDOWNPROJECT_API ARCPlayerController : public APlayerController
 {
@@ -25,6 +25,31 @@ public:
 //
 //	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 //	TSubclassOf<UUserWidget> NotificationTextUIClass;
+
+	UFUNCTION(Client, Reliable)
+	void Client_HandleDeath();
+
+protected:
+	UFUNCTION()
+	void HandleDeath();
+
+	UFUNCTION()
+	void HandleVictory();
+
+	void ShowGameResultLayout(TSubclassOf<UGameResultLayout> TargetGameResultLayout);
+
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UMainHUDWidget> MainHUDWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<UMainHUDWidget> MainHUDWidgetInstance;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UGameResultLayout> WinnerLayoutClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UGameResultLayout> LoserLayoutClass;
 
 public:
 	void OnCharacterDead();

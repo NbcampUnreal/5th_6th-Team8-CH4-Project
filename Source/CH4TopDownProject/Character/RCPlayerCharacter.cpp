@@ -1,6 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "RCPlayerCharacter.h"
 
 #include "Camera/CameraComponent.h"
@@ -13,7 +12,13 @@
 #include "EnhancedInputComponent.h"
 
 #include "Weapon/TopDownWeaponBase.h"
+#include "Armor/ArmorBase.h" 
 #include "Net/UnrealNetwork.h"
+
+#include "Component/HealthComponent.h"
+#include "Component/StaminaComponent.h"
+#include "Component/QuickSlotComponent.h"
+#include "Interface/Interactable.h"
 
 ARCPlayerCharacter::ARCPlayerCharacter()
 {
@@ -41,6 +46,10 @@ ARCPlayerCharacter::ARCPlayerCharacter()
 	TopDownCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("TopDownCamera"));
 	TopDownCameraComponent->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	TopDownCameraComponent->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
+
+	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
+	StaminaComponent = CreateDefaultSubobject<UStaminaComponent>(TEXT("StaminaComponent"));
+	QuickSlotComponent = CreateDefaultSubobject<UQuickSlotComponent>(TEXT("QuickSlotComponent"));
 }
 
 void ARCPlayerCharacter::BeginPlay()
@@ -80,6 +89,11 @@ void ARCPlayerCharacter::BeginPlay()
 				TEXT("WeaponSocket")
 			);
 		}
+
+		CurrentArmor = GetWorld()->SpawnActor<AArmorBase>(
+			DefaultArmorClass,
+			Params
+		);
 	}
 }
 
@@ -91,11 +105,48 @@ void ARCPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 	EIC->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleMoveInput);
 	EIC->BindAction(DashAction, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleDashInput);
+	
+	EIC->BindAction(SprintAction, ETriggerEvent::Started, this, &ARCPlayerCharacter::HandleSprintPressedInput);
+	EIC->BindAction(SprintAction, ETriggerEvent::Completed, this, &ARCPlayerCharacter::HandleSprintReleasedInput);
 
 	EIC->BindAction(InteractFAction, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleInteractFInput);
 
 	EIC->BindAction(FireAction, ETriggerEvent::Started, this, &ARCPlayerCharacter::HandleFireStarted);
 	EIC->BindAction(FireAction, ETriggerEvent::Completed, this, &ARCPlayerCharacter::HandleFireStopped);
+
+	if (UseSlot1Action)
+	{
+		EIC->BindAction(UseSlot1Action, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleUseSlot1Input);
+	}
+	if (UseSlot2Action)
+	{
+		EIC->BindAction(UseSlot2Action, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleUseSlot2Input);
+	}
+	if (UseSlot3Action)
+	{
+		EIC->BindAction(UseSlot3Action, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleUseSlot3Input);
+	}
+	if (UseSlot4Action)
+	{
+		EIC->BindAction(UseSlot4Action, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleUseSlot4Input);
+	}
+	if (UseSlot5Action)
+	{
+		EIC->BindAction(UseSlot5Action, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleUseSlot5Input);
+	}
+	if (UseSlot6Action)
+	{
+		EIC->BindAction(UseSlot6Action, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleUseSlot6Input);
+	}
+	if (UseSlot7Action)
+	{
+		EIC->BindAction(UseSlot7Action, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleUseSlot7Input);
+	}
+	if (UseSlot8Action)
+	{
+		EIC->BindAction(UseSlot8Action, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleUseSlot8Input);
+	}
+	EIC->BindAction(ReloadAction, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleReloadInput);
 }
 
 void ARCPlayerCharacter::HandleMoveInput(const FInputActionValue& InValue)
@@ -108,17 +159,22 @@ void ARCPlayerCharacter::HandleMoveInput(const FInputActionValue& InValue)
 
 void ARCPlayerCharacter::HandleDashInput(const FInputActionValue& InValue)
 {
-	if (IsValid(FlappingMontage) == false || bCanDash == false)
+	if (bCanDash == false)
 	{
 		return;
 	}
 
-	if (IsValid(GetMesh()) && IsValid(GetMesh()->GetAnimInstance()))
+	if (StaminaComponent && StaminaComponent->GetCurrentStamina() < DashStaminaCost)
 	{
-		GetMesh()->GetAnimInstance()->Montage_Play(FlappingMontage, 2.0f);
+		return;
 	}
 
-	LaunchCharacter(CurMoveDirection * DashMaxWalkSpeed, true, false);
+	if (IsValid(FlappingMontage))
+	{
+		PlayAnimMontage(FlappingMontage, 2.0f);
+	}
+
+	Server_HandleDash(CurMoveDirection);	
 
 	bCanDash = false;
 	FTimerHandle Handle;
@@ -128,9 +184,29 @@ void ARCPlayerCharacter::HandleDashInput(const FInputActionValue& InValue)
 		}), DashCoolDown, false);
 }
 
+void ARCPlayerCharacter::HandleSprintPressedInput(const FInputActionValue& InValue)
+{
+	GetCharacterMovement()->MaxWalkSpeed = SprintMaxWalkSpeed;
+
+	Server_SetSprint(true);
+}
+
+void ARCPlayerCharacter::HandleSprintReleasedInput(const FInputActionValue& InValue)
+{
+	GetCharacterMovement()->MaxWalkSpeed = DefaultMaxWalkSpeed;
+
+	Server_SetSprint(false);
+}
+
 void ARCPlayerCharacter::HandleInteractFInput(const FInputActionValue& InValue)
 {
-	UE_LOG(LogTemp, Display, TEXT("HandleInteractFInput"));
+	if (!IsValid(CurrentInteractTarget))
+		return;
+
+	if (CurrentInteractTarget->Implements<UInteractable>())
+	{
+		IInteractable::Execute_Interact(CurrentInteractTarget, this);
+	}
 }
 
 void ARCPlayerCharacter::Tick(float DeltaTime)
@@ -184,6 +260,23 @@ void ARCPlayerCharacter::GetLifetimeReplicatedProps(
 	
 	DOREPLIFETIME(ARCPlayerCharacter, AimYaw);
 	DOREPLIFETIME(ARCPlayerCharacter, CurrentWeapon);
+	DOREPLIFETIME(ARCPlayerCharacter, CurrentArmor);
+}
+
+void ARCPlayerCharacter::StopSprint()
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	GetCharacterMovement()->MaxWalkSpeed = DefaultMaxWalkSpeed;
+	if (StaminaComponent)
+	{
+		StaminaComponent->StopStaminaDrain();
+	}
+
+	Client_StopSprint();
 }
 
 void ARCPlayerCharacter::HandlePointDamage(
@@ -198,14 +291,76 @@ void ARCPlayerCharacter::HandlePointDamage(
 	AActor* DamageCauser
 )
 {
+	float FinalDamage = Damage;
+
+	if (CurrentArmor)
+	{
+		FinalDamage = CurrentArmor->ModifyDamage(Damage);
+	}
+
 	UE_LOG(LogTemp, Error,
 		TEXT("[Character][Server][TakePointDamage] Victim=%s Damage=%.1f Causer=%s Bone=%s"),
 		*GetName(),
-		Damage,
+		FinalDamage,
 		*GetNameSafe(DamageCauser),
 		*BoneName.ToString()
 	);
+}
 
+void ARCPlayerCharacter::Server_SetSprint_Implementation(bool bIsSprinting)
+{
+	if (bIsSprinting)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = SprintMaxWalkSpeed;
+
+		if (StaminaComponent)
+		{
+			StaminaComponent->StartStaminaDrain(10.0f);
+		}
+	}
+	else
+	{
+		GetCharacterMovement()->MaxWalkSpeed = DefaultMaxWalkSpeed;
+
+		if (StaminaComponent)
+		{
+			StaminaComponent->StopStaminaDrain();
+		}
+	}
+}
+
+void ARCPlayerCharacter::SetInteractTarget(AActor* InteractTarget)
+{
+	CurrentInteractTarget = InteractTarget;
+}
+
+void ARCPlayerCharacter::ClearInteractTarget(AActor* InteractTarget)
+{
+	if (CurrentInteractTarget == InteractTarget)
+	{
+		CurrentInteractTarget = nullptr;
+	}
+	
+}
+
+void ARCPlayerCharacter::Server_HandleDash_Implementation(FVector DashDirection)
+{
+	if (!StaminaComponent || !StaminaComponent->ConsumeStamina(DashStaminaCost))
+	{
+		return;
+	}
+
+	if (IsValid(FlappingMontage))
+	{
+		PlayAnimMontage(FlappingMontage, 2.0f);
+	}
+
+	LaunchCharacter(DashDirection * DashMaxWalkSpeed, true, false);
+}
+
+void ARCPlayerCharacter::Client_StopSprint_Implementation()
+{
+	GetCharacterMovement()->MaxWalkSpeed = DefaultMaxWalkSpeed;
 }
 
 void ARCPlayerCharacter::HandleFireStarted(const FInputActionValue& InValue)
@@ -232,6 +387,66 @@ void ARCPlayerCharacter::HandleFireStopped(const FInputActionValue& InValue)
 	{
 		CurrentWeapon->StopFire();
 	}
+}
+
+void ARCPlayerCharacter::HandleUseQuickSlotInput(int32 SlotIndex)
+{
+	if (QuickSlotComponent)
+	{
+		QuickSlotComponent->Server_UseQuickSlot(SlotIndex);		
+	}
+}
+
+void ARCPlayerCharacter::HandleUseSlot1Input(const FInputActionValue& InValue)
+{
+	HandleUseQuickSlotInput(0);	
+}
+
+void ARCPlayerCharacter::HandleUseSlot2Input(const FInputActionValue& InValue)
+{
+	HandleUseQuickSlotInput(1);
+}
+
+void ARCPlayerCharacter::HandleUseSlot3Input(const FInputActionValue& InValue)
+{
+	HandleUseQuickSlotInput(2);
+}
+
+void ARCPlayerCharacter::HandleUseSlot4Input(const FInputActionValue& InValue)
+{
+	HandleUseQuickSlotInput(3);
+}
+
+void ARCPlayerCharacter::HandleUseSlot5Input(const FInputActionValue& InValue)
+{
+	HandleUseQuickSlotInput(4);
+}
+
+void ARCPlayerCharacter::HandleUseSlot6Input(const FInputActionValue& InValue)
+{
+	HandleUseQuickSlotInput(5);
+}
+
+void ARCPlayerCharacter::HandleUseSlot7Input(const FInputActionValue& InValue)
+{
+	HandleUseQuickSlotInput(6);
+}
+
+void ARCPlayerCharacter::HandleUseSlot8Input(const FInputActionValue& InValue)
+{
+	HandleUseQuickSlotInput(7);
+}
+
+void ARCPlayerCharacter::HandleReloadInput(const FInputActionValue& InValue)
+{
+	if (CurrentWeapon)
+	{
+		CurrentWeapon->StartReload();
+	}
+}
+
+void ARCPlayerCharacter::OnRep_CurrentArmor()
+{
 }
 
 void ARCPlayerCharacter::OnRep_CurrentWeapon()
