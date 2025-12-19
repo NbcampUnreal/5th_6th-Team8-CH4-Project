@@ -19,6 +19,7 @@ void ARCPlayerController::BeginPlay()
 	}
 
 	FInputModeGameOnly Mode;
+	Mode.SetConsumeCaptureMouseDown(false);
 	SetInputMode(Mode);
 	bShowMouseCursor = true;
 
@@ -40,6 +41,11 @@ void ARCPlayerController::BeginPlay()
 			HealthComp->OnDeath.AddDynamic(this, &ARCPlayerController::HandleDeath);
 		}
 	}
+}
+
+void ARCPlayerController::Client_HandleDeath_Implementation()
+{
+	HandleDeath();
 }
 
 void ARCPlayerController::HandleDeath()
@@ -79,6 +85,7 @@ void ARCPlayerController::ShowGameResultLayout(TSubclassOf<UGameResultLayout> Ta
 			UGameplayStatics::SetGamePaused(GetWorld(), true);
 		}
 	}
+
 }
 
 //void ARCPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

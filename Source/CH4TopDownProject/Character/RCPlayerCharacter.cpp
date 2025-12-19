@@ -1,6 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "RCPlayerCharacter.h"
 
 #include "Camera/CameraComponent.h"
@@ -13,6 +12,7 @@
 #include "EnhancedInputComponent.h"
 
 #include "Weapon/TopDownWeaponBase.h"
+#include "Armor/ArmorBase.h" 
 #include "Net/UnrealNetwork.h"
 
 #include "Component/HealthComponent.h"
@@ -89,6 +89,11 @@ void ARCPlayerCharacter::BeginPlay()
 				TEXT("WeaponSocket")
 			);
 		}
+
+		CurrentArmor = GetWorld()->SpawnActor<AArmorBase>(
+			DefaultArmorClass,
+			Params
+		);
 	}
 }
 
@@ -154,22 +159,22 @@ void ARCPlayerCharacter::HandleMoveInput(const FInputActionValue& InValue)
 
 void ARCPlayerCharacter::HandleDashInput(const FInputActionValue& InValue)
 {
-	if (IsValid(FlappingMontage) == false || bCanDash == false)
+	if (bCanDash == false)
 	{
 		return;
 	}
 
-	if (!StaminaComponent || !StaminaComponent->ConsumeStamina(DashStaminaCost))
+	if (StaminaComponent && StaminaComponent->GetCurrentStamina() < DashStaminaCost)
 	{
 		return;
 	}
 
-	if (IsValid(GetMesh()) && IsValid(GetMesh()->GetAnimInstance()))
+	if (IsValid(FlappingMontage))
 	{
-		GetMesh()->GetAnimInstance()->Montage_Play(FlappingMontage, 2.0f);
+		PlayAnimMontage(FlappingMontage, 2.0f);
 	}
 
-	LaunchCharacter(CurMoveDirection * DashMaxWalkSpeed, true, false);
+	Server_HandleDash(CurMoveDirection);	
 
 	bCanDash = false;
 	FTimerHandle Handle;
@@ -181,22 +186,16 @@ void ARCPlayerCharacter::HandleDashInput(const FInputActionValue& InValue)
 
 void ARCPlayerCharacter::HandleSprintPressedInput(const FInputActionValue& InValue)
 {
-	if (StaminaComponent)
-	{
-		StaminaComponent->StartStaminaDrain(10.0f);
-	}
-
 	GetCharacterMovement()->MaxWalkSpeed = SprintMaxWalkSpeed;
+
+	Server_SetSprint(true);
 }
 
 void ARCPlayerCharacter::HandleSprintReleasedInput(const FInputActionValue& InValue)
 {
-	if (StaminaComponent)
-	{
-		StaminaComponent->StopStaminaDrain();
-	}
-
 	GetCharacterMovement()->MaxWalkSpeed = DefaultMaxWalkSpeed;
+
+	Server_SetSprint(false);
 }
 
 void ARCPlayerCharacter::HandleInteractFInput(const FInputActionValue& InValue)
@@ -261,6 +260,23 @@ void ARCPlayerCharacter::GetLifetimeReplicatedProps(
 	
 	DOREPLIFETIME(ARCPlayerCharacter, AimYaw);
 	DOREPLIFETIME(ARCPlayerCharacter, CurrentWeapon);
+	DOREPLIFETIME(ARCPlayerCharacter, CurrentArmor);
+}
+
+void ARCPlayerCharacter::StopSprint()
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	GetCharacterMovement()->MaxWalkSpeed = DefaultMaxWalkSpeed;
+	if (StaminaComponent)
+	{
+		StaminaComponent->StopStaminaDrain();
+	}
+
+	Client_StopSprint();
 }
 
 void ARCPlayerCharacter::HandlePointDamage(
@@ -275,14 +291,42 @@ void ARCPlayerCharacter::HandlePointDamage(
 	AActor* DamageCauser
 )
 {
+	float FinalDamage = Damage;
+
+	if (CurrentArmor)
+	{
+		FinalDamage = CurrentArmor->ModifyDamage(Damage);
+	}
+
 	UE_LOG(LogTemp, Error,
 		TEXT("[Character][Server][TakePointDamage] Victim=%s Damage=%.1f Causer=%s Bone=%s"),
 		*GetName(),
-		Damage,
+		FinalDamage,
 		*GetNameSafe(DamageCauser),
 		*BoneName.ToString()
 	);
+}
 
+void ARCPlayerCharacter::Server_SetSprint_Implementation(bool bIsSprinting)
+{
+	if (bIsSprinting)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = SprintMaxWalkSpeed;
+
+		if (StaminaComponent)
+		{
+			StaminaComponent->StartStaminaDrain(10.0f);
+		}
+	}
+	else
+	{
+		GetCharacterMovement()->MaxWalkSpeed = DefaultMaxWalkSpeed;
+
+		if (StaminaComponent)
+		{
+			StaminaComponent->StopStaminaDrain();
+		}
+	}
 }
 
 void ARCPlayerCharacter::SetInteractTarget(AActor* InteractTarget)
@@ -297,6 +341,26 @@ void ARCPlayerCharacter::ClearInteractTarget(AActor* InteractTarget)
 		CurrentInteractTarget = nullptr;
 	}
 	
+}
+
+void ARCPlayerCharacter::Server_HandleDash_Implementation(FVector DashDirection)
+{
+	if (!StaminaComponent || !StaminaComponent->ConsumeStamina(DashStaminaCost))
+	{
+		return;
+	}
+
+	if (IsValid(FlappingMontage))
+	{
+		PlayAnimMontage(FlappingMontage, 2.0f);
+	}
+
+	LaunchCharacter(DashDirection * DashMaxWalkSpeed, true, false);
+}
+
+void ARCPlayerCharacter::Client_StopSprint_Implementation()
+{
+	GetCharacterMovement()->MaxWalkSpeed = DefaultMaxWalkSpeed;
 }
 
 void ARCPlayerCharacter::HandleFireStarted(const FInputActionValue& InValue)
@@ -379,6 +443,10 @@ void ARCPlayerCharacter::HandleReloadInput(const FInputActionValue& InValue)
 	{
 		CurrentWeapon->StartReload();
 	}
+}
+
+void ARCPlayerCharacter::OnRep_CurrentArmor()
+{
 }
 
 void ARCPlayerCharacter::OnRep_CurrentWeapon()

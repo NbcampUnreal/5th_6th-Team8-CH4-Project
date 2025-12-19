@@ -38,6 +38,18 @@ public:
 
     UFUNCTION(BlueprintPure)
     float GetMaxHealth() const;
+
+    UFUNCTION(BlueprintPure)
+    float GetArmor() const;
+
+    UFUNCTION(BlueprintCallable)
+    void AddMaxHealth(float Amount);
+
+    UFUNCTION(BlueprintCallable)
+    void AddArmor(float Amount);
+
+    UFUNCTION(BlueprintCallable)
+    void Heal(float HealAmount);
         
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
@@ -45,6 +57,9 @@ protected:
     UPROPERTY(ReplicatedUsing = OnRep_CurrentHealth, VisibleAnywhere, Category = "Health")
     float CurrentHealth;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health", meta = (ClampMin = "1.0"))
+    UPROPERTY(Replicated, EditAnywhere, Category = "Health", meta = (ClampMin = "1.0"))
     float MaxHealth = 100.0f;
+
+    UPROPERTY(Replicated, EditAnywhere, Category = "Armor", meta = (ClampMin = "0.0"))
+    float Armor = 0.0f;
 };
