@@ -45,6 +45,7 @@ public:
 	UPROPERTY()
 	TObjectPtr<AActor> IgnoreActor = nullptr;
 
+	ATopDownWeaponBase* GetCurrentWeapon() {return CurrentWeapon;}
 # pragma region Components
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
