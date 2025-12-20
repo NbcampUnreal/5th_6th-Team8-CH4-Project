@@ -3,6 +3,9 @@
 
 #include "Component/LOSVisibilityComponent.h"
 
+#include "Character/RCPlayerCharacter.h"
+#include "Weapon/TopDownWeaponBase.h"
+
 
 ULOSVisibilityComponent::ULOSVisibilityComponent()
 {
@@ -37,6 +40,15 @@ void ULOSVisibilityComponent::SetOwnerVisible(bool bVisible) const
 	if (AActor* Owner = GetOwner())
 	{
 		Owner->SetActorHiddenInGame(!bVisible);
+
+		if (ARCPlayerCharacter* Player = Cast<ARCPlayerCharacter>(Owner))
+		{
+			ATopDownWeaponBase* weapon  =Player->GetCurrentWeapon();
+			if (weapon)
+			{
+				weapon->SetActorHiddenInGame(!bVisible);
+			}
+		}
 	}
 }
 
