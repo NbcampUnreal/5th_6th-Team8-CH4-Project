@@ -20,6 +20,7 @@ class AArmorBase;
 
 class USceneCaptureComponent2D;
 class UWidgetComponent;
+class ADamageTextActor;
 
 UCLASS()
 class CH4TOPDOWNPROJECT_API ARCPlayerCharacter : public ACharacter
@@ -246,5 +247,12 @@ private:
 	void PlayFootstepOnce();
 
 #pragma endregion
+
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<ADamageTextActor> DamageTextClass;
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void Multicast_ShowDamageText(float Damage, FVector Location);
 };
 

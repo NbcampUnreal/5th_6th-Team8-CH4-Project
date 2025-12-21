@@ -110,6 +110,8 @@ void UHealthComponent::HandleTakeDamage(AActor* DamagedActor, float Damage, cons
             }
         }
     }
+
+    OnDamageReceived.Broadcast(ActualDamage, GetOwner()->GetActorLocation());
 }
 
 void UHealthComponent::SetHealth(float NewHealth)

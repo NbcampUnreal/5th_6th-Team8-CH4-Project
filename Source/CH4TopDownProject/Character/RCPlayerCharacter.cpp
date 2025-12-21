@@ -24,6 +24,7 @@
 #include "Components/SceneCaptureComponent2D.h"
 #include "Components/WidgetComponent.h"
 #include "UI/OverheadHealthWidget.h"
+#include "UI/DamageTextActor.h"
 
 ARCPlayerCharacter::ARCPlayerCharacter()
 {
@@ -135,6 +136,14 @@ void ARCPlayerCharacter::BeginPlay()
 		{
 			HPWidget->UpdateHealthBar(HealthComponent->GetCurrentHealth(), HealthComponent->GetMaxHealth());			
 			HealthComponent->OnHealthChanged.AddDynamic(HPWidget, &UOverheadHealthWidget::UpdateHealthBar);
+		}
+	}
+
+	if (HealthComponent)
+	{
+		if (HasAuthority())
+		{
+			HealthComponent->OnDamageReceived.AddDynamic(this, &ARCPlayerCharacter::Multicast_ShowDamageText);
 		}
 	}
 }
@@ -576,4 +585,18 @@ void ARCPlayerCharacter::Multicast_PlayDashSFX_Implementation(const FVector& Loc
 	if (!DashSound) return;
 
 	UGameplayStatics::PlaySoundAtLocation(this, DashSound, Loc);
+}
+
+void ARCPlayerCharacter::Multicast_ShowDamageText_Implementation(float Damage, FVector Location)
+{
+	if (DamageTextClass)
+	{
+		FVector SpawnLocation = Location + FVector(FMath::RandRange(-20.f, 20.f), FMath::RandRange(-20.f, 20.f), 100.f);
+
+		ADamageTextActor* DamageActor = GetWorld()->SpawnActor<ADamageTextActor>(DamageTextClass, SpawnLocation, FRotator::ZeroRotator);
+		if (DamageActor)
+		{
+			DamageActor->InitializeDamage(Damage);
+		}
+	}
 }
