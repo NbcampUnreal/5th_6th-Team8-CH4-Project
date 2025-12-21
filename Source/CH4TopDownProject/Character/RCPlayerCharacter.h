@@ -63,6 +63,13 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UQuickSlotComponent> QuickSlotComponent;
 
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class USpringArmComponent> MinimapSpringArm;
+		
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class USceneCaptureComponent2D> MinimapCapture;
+
 # pragma endregion
 
 # pragma region Input

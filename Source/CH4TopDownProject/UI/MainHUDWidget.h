@@ -13,6 +13,8 @@ class UStaminaComponent;
 class UQuickSlotComponent;
 struct FQuickSlotItemData;
 
+class UMinimapWidget;
+
 UCLASS()
 class CH4TOPDOWNPROJECT_API UMainHUDWidget : public UUserWidget
 {
@@ -52,6 +54,9 @@ private:
     //
     //UPROPERTY(meta = (BindWidget))
     //TObjectPtr<UTextBlock> MaxAmmoText;
+
+    UPROPERTY(meta = (BindWidget))
+    TObjectPtr<UMinimapWidget> WBP_Minimap;
     
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<UHorizontalBox> QuickslotBox;

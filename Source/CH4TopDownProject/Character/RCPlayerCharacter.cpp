@@ -21,6 +21,8 @@
 #include "Interface/Interactable.h"
 #include "Inventory/ItemData/WorldItemBase.h"
 
+#include "Components/SceneCaptureComponent2D.h"
+
 ARCPlayerCharacter::ARCPlayerCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -51,6 +53,20 @@ ARCPlayerCharacter::ARCPlayerCharacter()
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
 	StaminaComponent = CreateDefaultSubobject<UStaminaComponent>(TEXT("StaminaComponent"));
 	QuickSlotComponent = CreateDefaultSubobject<UQuickSlotComponent>(TEXT("QuickSlotComponent"));
+
+
+	MinimapSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("MinimapSpringArm"));
+	MinimapSpringArm->SetupAttachment(RootComponent);
+	MinimapSpringArm->SetUsingAbsoluteRotation(true);
+
+	MinimapSpringArm->TargetArmLength = 2000.0f;
+	MinimapSpringArm->SetRelativeRotation(FRotator(-90.0f, 0.0f, 0.0f));
+	MinimapSpringArm->bDoCollisionTest = false;
+
+	MinimapCapture = CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("MinimapCapture"));
+	MinimapCapture->SetupAttachment(MinimapSpringArm, USpringArmComponent::SocketName);
+	MinimapCapture->ProjectionType = ECameraProjectionMode::Orthographic;
+	MinimapCapture->OrthoWidth = 5000.0f;
 }
 
 void ARCPlayerCharacter::BeginPlay()
@@ -96,6 +112,15 @@ void ARCPlayerCharacter::BeginPlay()
 			DefaultArmorClass,
 			Params
 		);
+	}
+
+	if (!IsLocallyControlled())
+	{
+		if (MinimapCapture)
+		{
+			MinimapCapture->Deactivate();
+			MinimapCapture->SetComponentTickEnabled(false);
+		}
 	}
 }
 
