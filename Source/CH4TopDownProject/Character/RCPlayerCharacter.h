@@ -45,6 +45,7 @@ public:
 	UPROPERTY()
 	TObjectPtr<AActor> IgnoreActor = nullptr;
 
+	ATopDownWeaponBase* GetCurrentWeapon() {return CurrentWeapon;}
 # pragma region Components
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
@@ -210,6 +211,28 @@ protected:
 
 	UFUNCTION()
 	void OnRep_CurrentArmor();
+#pragma endregion
+
+#pragma region SFX
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = "SFX|Walk")
+	TObjectPtr<USoundBase> FootstepSound;
+
+	float FootstepInterval = 0.35f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "SFX|Dash")
+	TObjectPtr<USoundBase> DashSound;
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void Multicast_PlayDashSFX(const FVector& Loc);
+
+private:
+	FTimerHandle FootstepTimerHandle;
+
+	void StartFootstepLoop();
+	void StopFootstepLoop();
+	void PlayFootstepOnce();
+
 #pragma endregion
 };
 
