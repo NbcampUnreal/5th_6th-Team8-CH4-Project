@@ -4,6 +4,8 @@
 #include "GameFramework/PlayerController.h"
 #include "TitlePlayerController.generated.h"
 
+class USoundBase;
+
 UCLASS()
 class CH4TOPDOWNPROJECT_API ATitlePlayerController : public APlayerController
 {
@@ -20,4 +22,8 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = ASUIPlayerController, Meta = (AllowPrivateAccess))
 	TObjectPtr<UUserWidget> UIWidgetInstance;
+
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = "Audio")
+	TObjectPtr<USoundBase> TitleBGM;
 };
