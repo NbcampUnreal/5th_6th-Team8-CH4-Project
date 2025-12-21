@@ -22,6 +22,8 @@
 #include "Inventory/ItemData/WorldItemBase.h"
 
 #include "Components/SceneCaptureComponent2D.h"
+#include "Components/WidgetComponent.h"
+#include "UI/OverheadHealthWidget.h"
 
 ARCPlayerCharacter::ARCPlayerCharacter()
 {
@@ -54,7 +56,6 @@ ARCPlayerCharacter::ARCPlayerCharacter()
 	StaminaComponent = CreateDefaultSubobject<UStaminaComponent>(TEXT("StaminaComponent"));
 	QuickSlotComponent = CreateDefaultSubobject<UQuickSlotComponent>(TEXT("QuickSlotComponent"));
 
-
 	MinimapSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("MinimapSpringArm"));
 	MinimapSpringArm->SetupAttachment(RootComponent);
 	MinimapSpringArm->SetUsingAbsoluteRotation(true);
@@ -67,6 +68,10 @@ ARCPlayerCharacter::ARCPlayerCharacter()
 	MinimapCapture->SetupAttachment(MinimapSpringArm, USpringArmComponent::SocketName);
 	MinimapCapture->ProjectionType = ECameraProjectionMode::Orthographic;
 	MinimapCapture->OrthoWidth = 5000.0f;
+
+	OverheadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverheadWidget"));
+	OverheadWidget->SetupAttachment(GetMesh());
+	OverheadWidget->SetWidgetSpace(EWidgetSpace::Screen);
 }
 
 void ARCPlayerCharacter::BeginPlay()
@@ -120,6 +125,16 @@ void ARCPlayerCharacter::BeginPlay()
 		{
 			MinimapCapture->Deactivate();
 			MinimapCapture->SetComponentTickEnabled(false);
+		}
+	}
+
+	if (OverheadWidget)
+	{
+		UOverheadHealthWidget* HPWidget = Cast<UOverheadHealthWidget>(OverheadWidget->GetUserWidgetObject());
+		if (HPWidget && HealthComponent)
+		{
+			HPWidget->UpdateHealthBar(HealthComponent->GetCurrentHealth(), HealthComponent->GetMaxHealth());			
+			HealthComponent->OnHealthChanged.AddDynamic(HPWidget, &UOverheadHealthWidget::UpdateHealthBar);
 		}
 	}
 }

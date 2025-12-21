@@ -18,6 +18,8 @@ class UQuickSlotComponent;
 
 class AArmorBase;
 
+class USceneCaptureComponent2D;
+class UWidgetComponent;
 
 UCLASS()
 class CH4TOPDOWNPROJECT_API ARCPlayerCharacter : public ACharacter
@@ -65,10 +67,13 @@ private:
 
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class USpringArmComponent> MinimapSpringArm;
+	TObjectPtr<USpringArmComponent> MinimapSpringArm;
 		
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class USceneCaptureComponent2D> MinimapCapture;
+	TObjectPtr<USceneCaptureComponent2D> MinimapCapture;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UWidgetComponent> OverheadWidget;
 
 # pragma endregion
 
