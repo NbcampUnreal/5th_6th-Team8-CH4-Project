@@ -2,9 +2,8 @@
 
 #include "Interface/Barrel.h"
 #include "Net/UnrealNetwork.h"
-#include "Barrel.h"
 #include "Components/SphereComponent.h"
-#include <Kismet/GameplayStatics.h>
+#include "Kismet/GameplayStatics.h"
 
 ABarrel::ABarrel()
 {
