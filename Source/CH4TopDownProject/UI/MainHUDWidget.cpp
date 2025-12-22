@@ -99,6 +99,20 @@ void UMainHUDWidget::UpdateQuickSlotData(const TArray<FQuickSlotItemData>& NewSl
     }
 }
 
+void UMainHUDWidget::ShowNotice(const FString& Message)
+{
+    if (NoticeText)
+    {
+        NoticeText->SetText(FText::FromString(Message));        
+
+        FTimerHandle NoticeTimer;
+        GetWorld()->GetTimerManager().SetTimer(NoticeTimer, [this]()
+            {
+                if (NoticeText) NoticeText->SetVisibility(ESlateVisibility::Hidden);
+            }, 5.0f, false);
+    }
+}
+
 //void UMainHUDWidget::UpdateAmmoCount(int32 CurrentAmmo, int32 MaxAmmo)
 //{
 //    if (CurrentAmmoText)

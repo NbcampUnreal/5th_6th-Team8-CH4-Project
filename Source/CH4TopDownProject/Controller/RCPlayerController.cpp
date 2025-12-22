@@ -41,6 +41,11 @@ void ARCPlayerController::BeginPlay()
 			HealthComp->OnDeath.AddDynamic(this, &ARCPlayerController::HandleDeath);
 		}
 	}
+
+	if (MainHUDWidgetInstance)
+	{
+		MainHUDWidgetInstance->ShowNotice(TEXT("Goal: Survive to the end!"));
+	}
 }
 
 void ARCPlayerController::Client_HandleDeath_Implementation()

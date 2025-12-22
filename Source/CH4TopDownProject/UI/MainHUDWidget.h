@@ -36,6 +36,9 @@ public:
     //UFUNCTION(BlueprintCallable, Category = "HUD")
     //void UpdateAmmoCount(int32 CurrentAmmo, int32 MaxClipAmmo);
 
+    UFUNCTION(BlueprintCallable, Category = "HUD")
+    void ShowNotice(const FString& Message);
+
 private:
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<UProgressBar> HealthBar;
@@ -60,6 +63,9 @@ private:
     
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<UHorizontalBox> QuickslotBox;
+
+    UPROPERTY(meta = (Bindwidget))
+    TObjectPtr<UTextBlock> NoticeText;
 
     UPROPERTY()
     TObjectPtr<UHealthComponent> PlayerHealthComponent;
