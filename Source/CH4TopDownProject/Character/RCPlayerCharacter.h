@@ -22,7 +22,6 @@ class USceneCaptureComponent2D;
 class UWidgetComponent;
 class ADamageTextActor;
 
-class USphereComponent;
 class UCameraComponent;
 
 UCLASS()
@@ -130,12 +129,6 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<AWorldItemBase> CurrentInteractTarget = nullptr;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player")
-	float InteractRadius;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player|Component")
-	USphereComponent* InteractOverlapComponent;
 
 private:
 	void HandleMoveInput(const FInputActionValue& InValue);

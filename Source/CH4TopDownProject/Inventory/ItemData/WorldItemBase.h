@@ -9,6 +9,7 @@
 
 class UWidgetComponent;
 class UBoxComponent;
+class USphereComponent;
 
 UCLASS()
 class CH4TOPDOWNPROJECT_API AWorldItemBase : public AActor, public IInteractable
@@ -30,6 +31,9 @@ protected:
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UBoxComponent> Collision;
 
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<USphereComponent> InteractionCheckCollision;
+
 	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category="Interact")
 	TObjectPtr<UWidgetComponent> InteractWidget;
 
@@ -45,6 +49,8 @@ protected:
 	UPROPERTY(EditAnywhere)
 	float CurrentHP;
 
+	UPROPERTY(EditAnywhere)
+	float CollisionRadius = 300.0f;
 
 	UFUNCTION(BlueprintCallable)
 	virtual void HandleDestroyed();

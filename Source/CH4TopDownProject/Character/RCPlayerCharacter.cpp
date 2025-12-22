@@ -76,10 +76,6 @@ ARCPlayerCharacter::ARCPlayerCharacter()
 	OverheadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverheadWidget"));
 	OverheadWidget->SetupAttachment(GetMesh());
 	OverheadWidget->SetWidgetSpace(EWidgetSpace::Screen);
-
-	InteractOverlapComponent = CreateDefaultSubobject<USphereComponent>(TEXT("InteractOverlapComponent"));
-	InteractOverlapComponent->SetSphereRadius(InteractRadius);
-	InteractOverlapComponent->SetupAttachment(RootComponent);
 }
 
 void ARCPlayerCharacter::BeginPlay()
