@@ -25,6 +25,9 @@ private:
 public:
 	virtual void OnLOSBeginVisible_Implementation() override;
 	virtual void OnLOSEndVisible_Implementation() override;
+	
+	UFUNCTION()
+	void HandleOwnerDeath();
 
 		
 };

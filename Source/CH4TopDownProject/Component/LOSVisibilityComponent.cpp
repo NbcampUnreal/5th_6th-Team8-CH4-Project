@@ -3,6 +3,7 @@
 
 #include "Component/LOSVisibilityComponent.h"
 
+#include "HealthComponent.h"
 #include "Character/RCPlayerCharacter.h"
 #include "Weapon/TopDownWeaponBase.h"
 
@@ -32,6 +33,14 @@ void ULOSVisibilityComponent::BeginPlay()
 				}
 			}
 		}
+
+		if (UHealthComponent* HealthComp = OwnerActor->FindComponentByClass<UHealthComponent>())
+		{
+			HealthComp->OnDeath.AddDynamic(
+				this,
+				&ULOSVisibilityComponent::HandleOwnerDeath
+			);
+		}
 	}
 }
 
@@ -58,6 +67,11 @@ void ULOSVisibilityComponent::OnLOSBeginVisible_Implementation()
 }
 
 void ULOSVisibilityComponent::OnLOSEndVisible_Implementation()
+{
+	SetOwnerVisible(false);
+}
+
+void ULOSVisibilityComponent::HandleOwnerDeath()
 {
 	SetOwnerVisible(false);
 }
