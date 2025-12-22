@@ -62,7 +62,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Data")
 	float Heal; //회복
 };
-};
 
 USTRUCT(BlueprintType)
 struct FEquipmentItemData : public FItemData
