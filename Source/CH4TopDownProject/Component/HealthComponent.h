@@ -28,7 +28,7 @@ protected:
     UFUNCTION(NetMulticast, Reliable)
     void Multicast_SetDeadState();
 
-    void SetHealth(float NewHealth);
+    void SetCurrentHealth(float NewHealth);
 
 public:    
     UPROPERTY(BlueprintAssignable)

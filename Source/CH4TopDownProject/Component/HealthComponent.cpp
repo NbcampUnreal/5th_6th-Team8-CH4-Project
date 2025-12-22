@@ -71,7 +71,7 @@ void UHealthComponent::Heal(float HealAmount)
 
     float NewHealth = FMath::Clamp(CurrentHealth + HealAmount, 0.0f, MaxHealth);
 
-    SetHealth(NewHealth);
+    SetCurrentHealth(NewHealth);
 }
 
 void UHealthComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -94,7 +94,7 @@ void UHealthComponent::HandleTakeDamage(AActor* DamagedActor, float Damage, cons
 
     float NewHealth = FMath::Clamp(CurrentHealth - ActualDamage, 0.0f, MaxHealth);
 
-    SetHealth(NewHealth);
+    SetCurrentHealth(NewHealth);
 
     if (NewHealth <= 0.0f)
     {
@@ -144,7 +144,7 @@ void UHealthComponent::Multicast_SetDeadState_Implementation()
     OwnerPawn->SetActorEnableCollision(false);
 }
 
-void UHealthComponent::SetHealth(float NewHealth)
+void UHealthComponent::SetCurrentHealth(float NewHealth)
 { 
     if (!GetOwner()->HasAuthority())
     {
