@@ -5,6 +5,7 @@
 
 #include "Character/RCPlayerCharacter.h"
 #include "Components/BoxComponent.h"
+#include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
 
 
@@ -25,6 +26,10 @@ AWorldItemBase::AWorldItemBase()
 
 	Collision = CreateDefaultSubobject<UBoxComponent>(TEXT("Collision"));
 	Collision->SetupAttachment(Root);
+
+	InteractionCheckCollision = CreateDefaultSubobject<USphereComponent>(TEXT("Collision"));
+	InteractionCheckCollision->SetSphereRadius(CollisionRadius);
+	InteractionCheckCollision->SetupAttachment(Root);
 
 	InteractWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("InteractWidget"));
 	InteractWidget->SetupAttachment(Root);
