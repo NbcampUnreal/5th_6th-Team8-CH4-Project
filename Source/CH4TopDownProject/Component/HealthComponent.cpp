@@ -97,16 +97,25 @@ void UHealthComponent::HandleTakeDamage(AActor* DamagedActor, float Damage, cons
     SetHealth(NewHealth);
 
     if (NewHealth <= 0.0f)
-    {        
+    {
         OnDeath.Broadcast();
-
+        
         APawn* OwnerPawn = Cast<APawn>(GetOwner());
         if (OwnerPawn)
         {
+            OwnerPawn->SetActorHiddenInGame(true);
+            OwnerPawn->SetActorEnableCollision(false);
+
             ARCPlayerController* PC = Cast<ARCPlayerController>(OwnerPawn->GetController());
             if (PC)
             {
                 PC->Client_HandleDeath();
+                PC->UnPossess();
+            }
+
+            if (OwnerPawn->HasAuthority())
+            {
+                OwnerPawn->Destroy();
             }
         }
     }
