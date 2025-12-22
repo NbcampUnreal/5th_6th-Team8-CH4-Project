@@ -21,6 +21,11 @@
 #include "Interface/Interactable.h"
 #include "Inventory/ItemData/WorldItemBase.h"
 
+#include "Components/SceneCaptureComponent2D.h"
+#include "Components/WidgetComponent.h"
+#include "UI/OverheadHealthWidget.h"
+#include "UI/DamageTextActor.h"
+
 ARCPlayerCharacter::ARCPlayerCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -51,6 +56,23 @@ ARCPlayerCharacter::ARCPlayerCharacter()
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
 	StaminaComponent = CreateDefaultSubobject<UStaminaComponent>(TEXT("StaminaComponent"));
 	QuickSlotComponent = CreateDefaultSubobject<UQuickSlotComponent>(TEXT("QuickSlotComponent"));
+
+	MinimapSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("MinimapSpringArm"));
+	MinimapSpringArm->SetupAttachment(RootComponent);
+	MinimapSpringArm->SetUsingAbsoluteRotation(true);
+
+	MinimapSpringArm->TargetArmLength = 2000.0f;
+	MinimapSpringArm->SetRelativeRotation(FRotator(-90.0f, 0.0f, 0.0f));
+	MinimapSpringArm->bDoCollisionTest = false;
+
+	MinimapCapture = CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("MinimapCapture"));
+	MinimapCapture->SetupAttachment(MinimapSpringArm, USpringArmComponent::SocketName);
+	MinimapCapture->ProjectionType = ECameraProjectionMode::Orthographic;
+	MinimapCapture->OrthoWidth = 5000.0f;
+
+	OverheadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverheadWidget"));
+	OverheadWidget->SetupAttachment(GetMesh());
+	OverheadWidget->SetWidgetSpace(EWidgetSpace::Screen);
 }
 
 void ARCPlayerCharacter::BeginPlay()
@@ -96,6 +118,33 @@ void ARCPlayerCharacter::BeginPlay()
 			DefaultArmorClass,
 			Params
 		);
+	}
+
+	if (!IsLocallyControlled())
+	{
+		if (MinimapCapture)
+		{
+			MinimapCapture->Deactivate();
+			MinimapCapture->SetComponentTickEnabled(false);
+		}
+	}
+
+	if (OverheadWidget)
+	{
+		UOverheadHealthWidget* HPWidget = Cast<UOverheadHealthWidget>(OverheadWidget->GetUserWidgetObject());
+		if (HPWidget && HealthComponent)
+		{
+			HPWidget->UpdateHealthBar(HealthComponent->GetCurrentHealth(), HealthComponent->GetMaxHealth());			
+			HealthComponent->OnHealthChanged.AddDynamic(HPWidget, &UOverheadHealthWidget::UpdateHealthBar);
+		}
+	}
+
+	if (HealthComponent)
+	{
+		if (HasAuthority())
+		{
+			HealthComponent->OnDamageReceived.AddDynamic(this, &ARCPlayerCharacter::Multicast_ShowDamageText);
+		}
 	}
 }
 
@@ -536,4 +585,18 @@ void ARCPlayerCharacter::Multicast_PlayDashSFX_Implementation(const FVector& Loc
 	if (!DashSound) return;
 
 	UGameplayStatics::PlaySoundAtLocation(this, DashSound, Loc);
+}
+
+void ARCPlayerCharacter::Multicast_ShowDamageText_Implementation(float Damage, FVector Location)
+{
+	if (DamageTextClass)
+	{
+		FVector SpawnLocation = Location + FVector(FMath::RandRange(-20.f, 20.f), FMath::RandRange(-20.f, 20.f), 100.f);
+
+		ADamageTextActor* DamageActor = GetWorld()->SpawnActor<ADamageTextActor>(DamageTextClass, SpawnLocation, FRotator::ZeroRotator);
+		if (DamageActor)
+		{
+			DamageActor->InitializeDamage(Damage);
+		}
+	}
 }

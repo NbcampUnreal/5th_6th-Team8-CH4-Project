@@ -18,6 +18,9 @@ class UQuickSlotComponent;
 
 class AArmorBase;
 
+class USceneCaptureComponent2D;
+class UWidgetComponent;
+class ADamageTextActor;
 
 UCLASS()
 class CH4TOPDOWNPROJECT_API ARCPlayerCharacter : public ACharacter
@@ -62,6 +65,16 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UQuickSlotComponent> QuickSlotComponent;
+
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<USpringArmComponent> MinimapSpringArm;
+		
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<USceneCaptureComponent2D> MinimapCapture;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UWidgetComponent> OverheadWidget;
 
 # pragma endregion
 
@@ -234,5 +247,12 @@ private:
 	void PlayFootstepOnce();
 
 #pragma endregion
+
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<ADamageTextActor> DamageTextClass;
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void Multicast_ShowDamageText(float Damage, FVector Location);
 };
 
