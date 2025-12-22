@@ -57,14 +57,12 @@ void URCGameInstance::CreateGameSession()
 	//SessionSettings->bIsDedicated = true;
 	//SessionSettings->bIsLANMatch = false;
 
-
 	SessionSettings->bIsLANMatch = true;
 	SessionSettings->NumPublicConnections = 4;
 	SessionSettings->bAllowJoinInProgress = true;
 	SessionSettings->bAllowJoinViaPresence = true;
 	SessionSettings->bShouldAdvertise = true;
 	SessionSettings->bUsesPresence = true;
-
 	SessionSettings->bIsDedicated = true;
 
 	SessionSettings->Set(FName(TEXT("SessionName")), FString(TEXT("DedicatedServer Session")), EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
