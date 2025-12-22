@@ -17,11 +17,17 @@ void UTitleLayout::NativeConstruct()
 
 void UTitleLayout::OnPlayButtonClicked()
 {
-	ATitlePlayerController* PlayerController = GetOwningPlayer<ATitlePlayerController>();
-	if (IsValid(PlayerController))
+	//ATitlePlayerController* PlayerController = GetOwningPlayer<ATitlePlayerController>();
+	//if (IsValid(PlayerController))
+	//{
+	//	FText ServerIP = ServerIPEditableText->GetText();
+	//	PlayerController->JoinServer(ServerIP.ToString());
+	//}
+
+	ATitlePlayerController* OwningPlayerController = GetOwningPlayer<ATitlePlayerController>();
+	if (IsValid(OwningPlayerController))
 	{
-		FText ServerIP = ServerIPEditableText->GetText();
-		PlayerController->JoinServer(ServerIP.ToString());
+		OwningPlayerController->OnClickFindSession();
 	}
 }
 
