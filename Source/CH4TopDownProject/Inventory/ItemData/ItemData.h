@@ -58,6 +58,10 @@ USTRUCT(BlueprintType)
 struct FConsumableItemData : public FItemData
 {
 	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Data")
+	float Heal; //회복
+};
 };
 
 USTRUCT(BlueprintType)

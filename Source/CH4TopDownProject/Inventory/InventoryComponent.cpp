@@ -141,8 +141,10 @@ void UInventoryComponent::AddItem(FInventorySlot Item)
 	{
 		return;
 	}
+	ItemCountCache[Item.ItemID] += Item.Num;
+
 	if (Item.ItemType == EItemType::Ammo) {
-		ItemCountCache[Item.ItemID] += Item.Num;
+		
 	}
 	if (Item.ItemType == EItemType::Bag) {
 		if (EquipmentBagID.ItemID == NAME_None) {
@@ -217,7 +219,7 @@ void UInventoryComponent::AddItem(FInventorySlot Item)
 		}
 
 	}
-
+	//server
 	DropItem(Item);
 
 	if (GEngine)
@@ -286,7 +288,55 @@ void UInventoryComponent::RemoveItem(int32 Index) {
 		UE_LOG(LogTemp, Warning, TEXT("ItemID %s not found in ItemCountCache"), *ItemID.ToString());
 	}
 
-	Items[Index].ItemID = "";	
+	Items[Index] = FInventorySlot();
+}
+
+int32 UInventoryComponent::UseItem_ID(FName ItemID, int32 Num)
+{
+	//if (!GetOwner()->HasAuthority()) return 0;
+
+	if (Num <= 0) return 0;
+
+	int32 Remaining = Num;
+	int32 Used = 0;
+
+	for (int32 i = 0; i < Items.Num(); i++)
+	{
+		if (Items[i].ItemID != ItemID) continue;
+		if (Remaining <= 0) break;
+
+		const int32 UseNow = FMath::Min(Items[i].Num, Remaining);
+
+		Items[i].Num -= UseNow;
+		Remaining -= UseNow;
+		Used += UseNow;
+
+		if (int32* Count = ItemCountCache.Find(ItemID))
+		{
+			*Count -= UseNow;
+			if (*Count <= 0)
+			{
+				ItemCountCache.Remove(ItemID);
+			}
+		}
+
+		if (Items[i].Num == 0) {
+			Items[i] = FInventorySlot();
+		}
+	}
+	return Used;
+}
+
+int32 UInventoryComponent::CheckItem_ID(FName ItemID)
+{
+	if (ItemID.IsNone()) return 0;
+
+	if (const int32* Count = ItemCountCache.Find(ItemID))
+	{
+		return *Count;
+	}
+
+	return 0;
 }
 
 int32 UInventoryComponent::GetInventorytSize()
