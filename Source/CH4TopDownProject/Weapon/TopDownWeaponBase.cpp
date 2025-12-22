@@ -5,6 +5,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Engine/World.h"
+
 #include "Net/UnrealNetwork.h"
 #include "ObjectPool/ActorObjectPoolSubsystem.h"
 #include "Weapon/BulletBase.h"
@@ -134,7 +135,18 @@ bool ATopDownWeaponBase::CanFire() const
 
 void ATopDownWeaponBase::Server_FireOnce()
 {
-    if (!HasAuthority() || !bWantsToFire || !CanFire())
+    if (!HasAuthority() || !bWantsToFire)
+    {
+        return;
+    }
+
+    if (CurrentAmmoInMag <= 0)
+    {
+        Server_StartReload();
+        return;
+    }
+
+    if (!CanFire())
     {
         return;
     }
@@ -142,6 +154,7 @@ void ATopDownWeaponBase::Server_FireOnce()
     LastFireTime = GetWorld()->GetTimeSeconds();
 
     CurrentAmmoInMag = FMath::Max(0, CurrentAmmoInMag - 1);
+    ForceNetUpdate();
 
     SpawnBullet_Server();
 
@@ -249,7 +262,7 @@ void ATopDownWeaponBase::StartReload()
         Server_StartReload();
         return;
     }
-    Server_StartReload();
+
 }
 
 bool ATopDownWeaponBase::CanReload() const
@@ -280,6 +293,7 @@ void ATopDownWeaponBase::Server_StartReload_Implementation()
     GetWorldTimerManager().ClearTimer(FireTimerHandle);
 
     bIsReloading = true;
+    ForceNetUpdate();
 
     GetWorldTimerManager().SetTimer(
         ReloadTimerHandle,

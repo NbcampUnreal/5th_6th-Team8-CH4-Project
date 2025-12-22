@@ -9,7 +9,7 @@ void ATitlePlayerController::BeginPlay()
 	if (!IsLocalController())
 	{
 		return;
-	}
+	}	
 
 	if (IsValid(UIWidgetClass))
 	{
@@ -24,6 +24,11 @@ void ATitlePlayerController::BeginPlay()
 
 			bShowMouseCursor = true;
 		}
+	}
+
+	if (TitleBGM)
+	{
+		UGameplayStatics::SpawnSound2D(this, TitleBGM);
 	}
 }
 
