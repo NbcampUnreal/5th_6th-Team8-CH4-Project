@@ -4,6 +4,7 @@
 #include "Components/ActorComponent.h"
 #include "QuickSlotComponent.generated.h"
 
+class UInventoryComponent;
 struct FQuickSlotItemData;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnQuickSlotDataChangedSignature, const TArray<FQuickSlotItemData>&, NewSlotData);
@@ -29,13 +30,18 @@ public:
 	UFUNCTION(BlueprintPure, Category = "QuickSlot")
 	const TArray<FQuickSlotItemData>& GetQuickSlotData() const;
 
-	UFUNCTION(BlueprintCallable, Category = "QuickSlot")
-	void SetSlotItem(int32 SlotIndex, FName NewItemID, EItemType NewItemType, int32 NewStackCount);
+	UFUNCTION(Server, Reliable, BlueprintCallable, Category = "QuickSlot")
+	void Server_SetQuickSlot(int32 SlotIndex, FName NewItemID, EItemType NewItemType);
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_UseQuickSlot(int32 SlotIndex);
 
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;	
+	void UpdateSlotCount(FName ItemID, int32 NewCount);
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+private:
+	UInventoryComponent* GetInventoryComponent() const;
 
 protected:	
 	UPROPERTY(ReplicatedUsing = OnRep_QuickSlotData, VisibleAnywhere, Category = "QuickSlot")
