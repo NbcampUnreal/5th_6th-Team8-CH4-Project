@@ -22,6 +22,8 @@ class USceneCaptureComponent2D;
 class UWidgetComponent;
 class ADamageTextActor;
 
+class UCameraComponent;
+
 UCLASS()
 class CH4TOPDOWNPROJECT_API ARCPlayerCharacter : public ACharacter
 {
@@ -44,6 +46,9 @@ public:
 		TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	void StopSprint();
+
+	UFUNCTION(BlueprintCallable)
+	UCameraComponent* GetCamera() { return TopDownCameraComponent; }
 
 	UPROPERTY()
 	TObjectPtr<AActor> IgnoreActor = nullptr;
@@ -124,6 +129,7 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<AWorldItemBase> CurrentInteractTarget = nullptr;
+
 private:
 	void HandleMoveInput(const FInputActionValue& InValue);
 	void HandleDashInput(const FInputActionValue& InValue);

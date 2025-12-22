@@ -23,6 +23,7 @@
 
 #include "Components/SceneCaptureComponent2D.h"
 #include "Components/WidgetComponent.h"
+#include "Components/SphereComponent.h"
 #include "UI/OverheadHealthWidget.h"
 #include "UI/DamageTextActor.h"
 
@@ -36,6 +37,8 @@ ARCPlayerCharacter::ARCPlayerCharacter()
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
+
+	InteractRadius = 300.0f;
 
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 640.f, 0.f);
@@ -396,6 +399,9 @@ void ARCPlayerCharacter::Server_SetSprint_Implementation(bool bIsSprinting)
 
 void ARCPlayerCharacter::SetInteractTarget(AWorldItemBase* InteractTarget)
 {
+	if (!IsLocallyControlled())
+		return;
+
 	if (IsValid(CurrentInteractTarget))
 	{
 		CurrentInteractTarget->SetOutLineEnable(false);
@@ -407,6 +413,9 @@ void ARCPlayerCharacter::SetInteractTarget(AWorldItemBase* InteractTarget)
 
 void ARCPlayerCharacter::ClearInteractTarget(AWorldItemBase* InteractTarget)
 {
+	if (!IsLocallyControlled())
+		return;
+
 	if (CurrentInteractTarget == InteractTarget)
 	{
 		CurrentInteractTarget->SetOutLineEnable(false);
