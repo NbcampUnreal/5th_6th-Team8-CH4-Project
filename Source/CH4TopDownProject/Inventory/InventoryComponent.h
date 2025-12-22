@@ -95,12 +95,21 @@ private:
 public:
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	bool GetItem(AActor* ItemActor);
+	//아이템 획득, items에 추가와 cached에 등록
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void AddItem(FInventorySlot Item);
+	//아이템 drop
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void DropItem(FInventorySlot Item);
+	//slot아이템 통째로 제거
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void RemoveItem(int32 Index);
+	//사용한 아이템 갯수를 리턴
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	int32 UseItem_ID(FName ItemID, int32 Num);
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	int32 CheckItem_ID(FName ItemID);
+
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	const TArray<FInventorySlot>& GetItems() const { return Items; }
