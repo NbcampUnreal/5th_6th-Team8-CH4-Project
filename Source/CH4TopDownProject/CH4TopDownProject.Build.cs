@@ -19,6 +19,8 @@ public class CH4TopDownProject : ModuleRules
 			"Niagara", 
 			"EnhancedInput",
             "UMG",
+
+            "OnlineSubsystem", "OnlineSubsystemSteam", "OnlineSubsystemUtils",
         });
 
         PublicIncludePaths.AddRange(new string[] 
