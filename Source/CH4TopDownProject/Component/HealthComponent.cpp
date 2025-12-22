@@ -101,42 +101,62 @@ void UHealthComponent::HandleTakeDamage(AActor* DamagedActor, float Damage, cons
         OnDeath.Broadcast();
         
         APawn* OwnerPawn = Cast<APawn>(GetOwner());
-        if (OwnerPawn)
+        if (!OwnerPawn)
         {
-            OwnerPawn->SetActorHiddenInGame(true);
-            OwnerPawn->SetActorEnableCollision(false);
+            return;
+        }
 
-            ARCPlayerController* PC = Cast<ARCPlayerController>(OwnerPawn->GetController());
-            if (PC)
-            {
-                PC->Client_HandleDeath();
-                PC->UnPossess();
-            }
+        Multicast_SetDeadState();
 
-            if (OwnerPawn->HasAuthority())
-            {
-                OwnerPawn->Destroy();
-            }
+        ARCPlayerController* PC = Cast<ARCPlayerController>(OwnerPawn->GetController());
+        if (PC)
+        {
+            PC->Client_HandleDeath();
+            PC->UnPossess();
+        }
+
+        if (OwnerPawn->HasAuthority())
+        {
+            GetWorld()->GetTimerManager().SetTimer(
+                DestroyTimerHandle,
+                [OwnerPawn]()
+                {
+                    OwnerPawn->Destroy();
+                },
+                3.0f,
+                false
+            );
         }
     }
 
     OnDamageReceived.Broadcast(ActualDamage, GetOwner()->GetActorLocation());
 }
 
+void UHealthComponent::Multicast_SetDeadState_Implementation()
+{
+    APawn* OwnerPawn = Cast<APawn>(GetOwner());
+    if (!OwnerPawn)
+    {
+        return;
+    }
+
+    OwnerPawn->SetActorHiddenInGame(true);
+    OwnerPawn->SetActorEnableCollision(false);
+}
+
 void UHealthComponent::SetHealth(float NewHealth)
-{    
+{ 
     if (!GetOwner()->HasAuthority())
     {
         return;
     }
 
-    float OldHealth = CurrentHealth;
     CurrentHealth = NewHealth;
 
-    OnRep_CurrentHealth(OldHealth);
+    OnRep_Health();
 }
 
-void UHealthComponent::OnRep_CurrentHealth(float OldHealth)
+void UHealthComponent::OnRep_Health()
 {
     OnHealthChanged.Broadcast(CurrentHealth, MaxHealth);
 }

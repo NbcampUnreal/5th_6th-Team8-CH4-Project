@@ -4,7 +4,7 @@
 #include "Components/ActorComponent.h"
 #include "HealthComponent.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHealthChangeSignature, float, NewHealth, float, MaxHealth);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHealthChangedSignature, float, CurrentHealth, float, MaxHealth);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnDamageReceivedSignature, float, DamageAmount, FVector, HitLocation);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeathSignature);
 
@@ -20,16 +20,19 @@ protected:
 	virtual void BeginPlay() override;    
 
     UFUNCTION()
-    void OnRep_CurrentHealth(float OldHealth);
+    void OnRep_Health();
 
     UFUNCTION()
     void HandleTakeDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
+
+    UFUNCTION(NetMulticast, Reliable)
+    void Multicast_SetDeadState();
 
     void SetHealth(float NewHealth);
 
 public:    
     UPROPERTY(BlueprintAssignable)
-    FOnHealthChangeSignature OnHealthChanged;
+    FOnHealthChangedSignature OnHealthChanged;
 
     UPROPERTY(BlueprintAssignable)
     FOnDamageReceivedSignature OnDamageReceived;
@@ -58,12 +61,14 @@ public:
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
-    UPROPERTY(ReplicatedUsing = OnRep_CurrentHealth, VisibleAnywhere, Category = "Health")
+    UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = "Health")
     float CurrentHealth;
 
-    UPROPERTY(Replicated, EditAnywhere, Category = "Health", meta = (ClampMin = "1.0"))
+    UPROPERTY(ReplicatedUsing = OnRep_Health, EditAnywhere, Category = "Health", meta = (ClampMin = "1.0"))
     float MaxHealth = 100.0f;
 
     UPROPERTY(Replicated, EditAnywhere, Category = "Armor", meta = (ClampMin = "0.0"))
     float Armor = 0.0f;
+
+    FTimerHandle DestroyTimerHandle;
 };
