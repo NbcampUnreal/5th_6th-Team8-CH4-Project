@@ -361,40 +361,14 @@ void ARCPlayerCharacter::HandlePointDamage(
 	AActor* DamageCauser
 )
 {
-	float FinalDamage = Damage;
-
-	const bool bIsHeadshot = IsHeadshotBone(BoneName);
-
-	if (bIsHeadshot)
-	{
-		FinalDamage *= HeadshotMultiplier;
-	}
-
-	if (CurrentArmor)
-	{
-		FinalDamage = CurrentArmor->ModifyDamage(Damage);
-	}
-
 	UE_LOG(LogTemp, Error,
 	       TEXT("[Character][Server][TakePointDamage] Victim=%s Damage=%.1f Causer=%s Bone=%s"),
 	       *GetName(),
-	       FinalDamage,
+	       Damage,
 	       *GetNameSafe(DamageCauser),
 	       *BoneName.ToString()
 	);
 
-	if (bIsHeadshot)
-	{
-		UE_LOG(LogTemp, Error,
-			TEXT("[HEADSHOT CHECK] Bone=%s IsHeadshot=1"),
-			*BoneName.ToString());
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning,
-			TEXT("[HEADSHOT CHECK] Bone=%s IsHeadshot=0"),
-			*BoneName.ToString());
-	}
 }
 
 void ARCPlayerCharacter::Server_SetSprint_Implementation(bool bIsSprinting)
@@ -602,11 +576,6 @@ void ARCPlayerCharacter::OnRep_CurrentArmor()
 			TEXT("ArmorChestSocket")
 		);
 	}
-}
-
-bool ARCPlayerCharacter::IsHeadshotBone(FName InBone) const
-{
-	return !InBone.IsNone() && InBone == HeadBoneName;
 }
 
 void ARCPlayerCharacter::Server_SetAimYaw_Implementation(float NewYaw)
