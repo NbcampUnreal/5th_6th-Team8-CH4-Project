@@ -37,6 +37,9 @@ protected:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category="Interact")
 	TObjectPtr<UWidgetComponent> InteractWidget;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interact")
+	TObjectPtr<UWidgetComponent> InteractCheckWidget;
+
 	UPROPERTY(EditAnywhere)
 	bool bCanInteract = true;
 
@@ -50,7 +53,7 @@ protected:
 	float CurrentHP;
 
 	UPROPERTY(EditAnywhere)
-	float CollisionRadius = 300.0f;
+	float CollisionRadius = 700.0f;
 
 	UFUNCTION(BlueprintCallable)
 	virtual void HandleDestroyed();
@@ -59,10 +62,32 @@ protected:
 	void OnItemDestroyed();
 
 	UFUNCTION(BlueprintCallable)
-	virtual void NotifyActorBeginOverlap(AActor* OtherActor);
+	virtual void OnSphereOverlap(UPrimitiveComponent* OverlappedComp,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex,
+		bool bFromSweep,
+		const FHitResult& SweepResult);
 
 	UFUNCTION(BlueprintCallable)
-	virtual void NotifyActorEndOverlap(AActor* OtherActor);
+	virtual void OnSphereEnd(UPrimitiveComponent* OverlappedComp, 
+		AActor* OtherActor, 
+		UPrimitiveComponent* OtherComp, 
+		int32 OtherBodyIndex);
+
+	UFUNCTION(BlueprintCallable)
+	virtual void OnCheckOverlap(UPrimitiveComponent* OverlappedComp,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex,
+		bool bFromSweep,
+		const FHitResult& SweepResult);
+
+	UFUNCTION(BlueprintCallable)
+	virtual void OnCheckEndOverlap(UPrimitiveComponent* OverlappedComp,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex);
 
 public :
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
@@ -72,7 +97,8 @@ public :
 	virtual void TakeDamage_Implementation(float Damage, AActor* DamageCauser) override;
 
 	virtual void ShowInteractWidget(bool bVisible);
-
+	virtual void ShowInteractCheckWidget(bool bVisible);
 
 	virtual void SetOutLineEnable(bool Enable);
+	virtual void SetPreviewWidgetEnable(bool Enable);
 };

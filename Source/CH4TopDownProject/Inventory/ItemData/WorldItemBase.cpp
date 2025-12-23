@@ -26,17 +26,34 @@ AWorldItemBase::AWorldItemBase()
 
 	Collision = CreateDefaultSubobject<UBoxComponent>(TEXT("Collision"));
 	Collision->SetupAttachment(Root);
+	Collision->OnComponentBeginOverlap.AddDynamic(
+		this,
+		&AWorldItemBase::OnSphereOverlap);
+	Collision->OnComponentEndOverlap.AddDynamic(
+		this,
+		&AWorldItemBase::OnSphereEnd);
 
-	InteractionCheckCollision = CreateDefaultSubobject<USphereComponent>(TEXT("Collision"));
+	InteractionCheckCollision = CreateDefaultSubobject<USphereComponent>(TEXT("InteractionCollision"));
 	InteractionCheckCollision->SetSphereRadius(CollisionRadius);
 	InteractionCheckCollision->SetupAttachment(Root);
+	InteractionCheckCollision->OnComponentBeginOverlap.AddDynamic(
+		this,
+		&AWorldItemBase::OnCheckOverlap);
+	InteractionCheckCollision->OnComponentEndOverlap.AddDynamic(
+		this,
+		&AWorldItemBase::OnCheckEndOverlap);
 
 	InteractWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("InteractWidget"));
 	InteractWidget->SetupAttachment(Root);
-	InteractWidget->SetWidgetSpace(EWidgetSpace::World);
+	InteractWidget->SetWidgetSpace(EWidgetSpace::Screen);
 	InteractWidget->SetDrawAtDesiredSize(true);
 	InteractWidget->SetVisibility(false);
 	
+	InteractCheckWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("InteractCheckWidget"));
+	InteractCheckWidget->SetupAttachment(StaticMesh);
+	InteractCheckWidget->SetWidgetSpace(EWidgetSpace::Screen);
+	InteractCheckWidget->SetDrawAtDesiredSize(true);
+	InteractCheckWidget->SetVisibility(false);
 }
 
 
@@ -59,7 +76,12 @@ void AWorldItemBase::OnItemDestroyed_Implementation()
 	Destroy();
 }
 
-void AWorldItemBase::NotifyActorBeginOverlap(AActor* OtherActor)
+void AWorldItemBase::OnSphereOverlap(UPrimitiveComponent* OverlappedComp,
+	AActor* OtherActor,
+	UPrimitiveComponent* OtherComp,
+	int32 OtherBodyIndex,
+	bool bFromSweep,
+	const FHitResult& SweepResult)
 {
 	if (!bCanInteract) return;
 
@@ -67,37 +89,73 @@ void AWorldItemBase::NotifyActorBeginOverlap(AActor* OtherActor)
 	{
 		ARCPlayerCharacter* Player = Cast<ARCPlayerCharacter>(OtherActor);
 		Player->SetInteractTarget(this);
-		
+
 		GEngine->AddOnScreenDebugMessage(
-			 -1,
-			 2.f,
-			 FColor::Green,
-			 FString::Printf(
-				 TEXT("[WorldItemBase] Begin Overlap : %s"),
-				 *OtherActor->GetName()
-			 )
-		 );
+			-1,
+			2.f,
+			FColor::Green,
+			FString::Printf(
+				TEXT("[WorldItemBase] Begin Overlap : %s"),
+				*OtherActor->GetName()
+			)
+		);
 	}
 }
 
-void AWorldItemBase::NotifyActorEndOverlap(AActor* OtherActor)
+void AWorldItemBase::OnSphereEnd(UPrimitiveComponent* OverlappedComp, 
+	AActor* OtherActor, 
+	UPrimitiveComponent* OtherComp, 
+	int32 OtherBodyIndex)
 {
 	if (!bCanInteract) return;
 
 	if (OtherActor->IsA<ARCPlayerCharacter>())
 	{
 		ARCPlayerCharacter* Player = Cast<ARCPlayerCharacter>(OtherActor);
-		Player->ClearInteractTarget(this);
-		
-		   GEngine->AddOnScreenDebugMessage(
-                -1,
-                2.f,
-                FColor::Green,
-                FString::Printf(
-                    TEXT("[WorldItemBase] End Overlap : %s"),
-                    *OtherActor->GetName()
-                )
-            );
+
+		GEngine->AddOnScreenDebugMessage(
+			-1,
+			2.f,
+			FColor::Green,
+			FString::Printf(
+				TEXT("[WorldItemBase] End Overlap : %s"),
+				*OtherActor->GetName()
+			)
+		);
+	}
+}
+
+void AWorldItemBase::OnCheckOverlap(UPrimitiveComponent* OverlappedComp,
+	AActor* OtherActor,
+	UPrimitiveComponent* OtherComp,
+	int32 OtherBodyIndex,
+	bool bFromSweep,
+	const FHitResult& SweepResult)
+{
+	if (bCanTakeDamage)
+	{
+		return;
+	}
+
+	if (OtherActor->IsA<ARCPlayerCharacter>())
+	{
+		ShowInteractCheckWidget(true);
+	}
+}
+
+void AWorldItemBase::OnCheckEndOverlap(UPrimitiveComponent* OverlappedComp, 
+	AActor* OtherActor, 
+	UPrimitiveComponent* OtherComp, 
+	int32 OtherBodyIndex)
+{
+	if (bCanTakeDamage)
+	{
+		return;
+	}
+
+	if (OtherActor->IsA<ARCPlayerCharacter>())
+	{
+		ShowInteractCheckWidget(false);
 	}
 }
 
@@ -107,6 +165,16 @@ void AWorldItemBase::SetOutLineEnable(bool Enable)
 	
 	StaticMesh->SetRenderCustomDepth(Enable);
 	ShowInteractWidget(Enable);
+}
+
+void AWorldItemBase::SetPreviewWidgetEnable(bool Enable)
+{
+	if (bCanTakeDamage)
+	{
+		return;
+	}
+
+	ShowInteractCheckWidget(Enable);
 }
 
 float AWorldItemBase::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
@@ -141,6 +209,14 @@ void AWorldItemBase::ShowInteractWidget( bool bVisible)
 	if (InteractWidget)
 	{
 		InteractWidget->SetVisibility(bVisible);
+	}
+}
+
+void AWorldItemBase::ShowInteractCheckWidget(bool bVisible)
+{
+	if (InteractCheckWidget)
+	{
+		InteractCheckWidget->SetVisibility(bVisible);
 	}
 }
 
