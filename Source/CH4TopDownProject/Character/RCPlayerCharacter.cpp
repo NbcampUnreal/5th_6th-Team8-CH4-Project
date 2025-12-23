@@ -460,7 +460,7 @@ void ARCPlayerCharacter::HandleFireStarted(const FInputActionValue& InValue)
 		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow, TEXT("Fire Started"));
 	}
 	UE_LOG(LogTemp, Warning, TEXT("HandleFireStarted called"));
-	bIsFireButtonDown = true;
+	bIsFirstButtonDown = true;
 
 	if (CurrentWeapon)
 	{
@@ -474,7 +474,7 @@ void ARCPlayerCharacter::HandleFireStarted(const FInputActionValue& InValue)
 
 void ARCPlayerCharacter::HandleFireStopped(const FInputActionValue& InValue)
 {
-	bIsFireButtonDown = false;
+	bIsFirstButtonDown = false;
 	if (CurrentWeapon)
 	{
 		CurrentWeapon->StopFire();
@@ -547,7 +547,7 @@ void ARCPlayerCharacter::UpdateAim()
 		return;
 
 
-	if (!bIsFireButtonDown)
+	if (!bIsFirstButtonDown)
 		return;
 
 	if (!CurrentWeapon)
