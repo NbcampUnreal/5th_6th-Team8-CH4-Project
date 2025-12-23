@@ -114,10 +114,15 @@ void ARCPlayerCharacter::BeginPlay()
 			);
 		}
 
-		CurrentArmor = GetWorld()->SpawnActor<AArmorBase>(
-			DefaultArmorClass,
-			Params
-		);
+		CurrentArmor = GetWorld()->SpawnActor<AArmorBase>(DefaultArmorClass, Params);
+		if (CurrentArmor && GetMesh())
+		{
+			CurrentArmor->AttachToComponent(
+				GetMesh(),
+				FAttachmentTransformRules::SnapToTargetNotIncludingScale,
+				TEXT("ArmorChestSocket")
+			);
+		}
 	}
 
 	if (!IsLocallyControlled())
@@ -358,6 +363,13 @@ void ARCPlayerCharacter::HandlePointDamage(
 {
 	float FinalDamage = Damage;
 
+	const bool bIsHeadshot = IsHeadshotBone(BoneName);
+
+	if (bIsHeadshot)
+	{
+		FinalDamage *= HeadshotMultiplier;
+	}
+
 	if (CurrentArmor)
 	{
 		FinalDamage = CurrentArmor->ModifyDamage(Damage);
@@ -517,10 +529,6 @@ void ARCPlayerCharacter::HandleReloadInput(const FInputActionValue& InValue)
 	}
 }
 
-void ARCPlayerCharacter::OnRep_CurrentArmor()
-{
-}
-
 void ARCPlayerCharacter::OnRep_CurrentWeapon()
 {
 	UE_LOG(LogTemp, Warning, TEXT("OnRep_CurrentWeapon: %s"),
@@ -532,6 +540,22 @@ void ARCPlayerCharacter::OnRep_CurrentWeapon()
 			GetMesh(),
 			FAttachmentTransformRules::SnapToTargetNotIncludingScale,
 			TEXT("WeaponSocket")
+		);
+	}
+}
+
+void ARCPlayerCharacter::OnRep_CurrentArmor()
+{
+	UE_LOG(LogTemp, Warning, TEXT("OnRep_CurrentArmor: %s"),
+		*GetNameSafe(CurrentArmor));
+
+
+	if (CurrentArmor && GetMesh())
+	{
+		CurrentArmor->AttachToComponent(
+			GetMesh(),
+			FAttachmentTransformRules::SnapToTargetNotIncludingScale,
+			TEXT("ArmorChestSocket")
 		);
 	}
 }
@@ -599,4 +623,9 @@ void ARCPlayerCharacter::Multicast_ShowDamageText_Implementation(float Damage, F
 			DamageActor->InitializeDamage(Damage);
 		}
 	}
+}
+
+bool ARCPlayerCharacter::IsHeadshotBone(FName InBone) const
+{
+	return !InBone.IsNone() && InBone == HeadBoneName;
 }

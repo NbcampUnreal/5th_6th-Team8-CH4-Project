@@ -16,11 +16,12 @@
 	],
 	"Plugins": [
 		{
+			"Name": "SkeletalMeshModelingTools",
+			"Enabled": false
+		},
+		{
 			"Name": "ModelingToolsEditorMode",
-			"Enabled": true,
-			"TargetAllowList": [
-				"Editor"
-			]
+			"Enabled": true
 		}
 	]
 }
