@@ -287,37 +287,30 @@ void ARCPlayerCharacter::Tick(float DeltaTime)
 
 void ARCPlayerCharacter::RotatePlayerToMouseCursor()
 {
-	/*
-	APlayerController* PlayerController = Cast<APlayerController>(GetController());
-	if (IsValid(PlayerController))
-	{
-		FHitResult HitResult;
-		PlayerController->GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, false, HitResult);
-
-		if (HitResult.bBlockingHit) {
-			FRotator NewRot = (HitResult.ImpactPoint - GetActorLocation()).Rotation();
-
-			SetActorRotation(FRotator(0, NewRot.Yaw, 0));
-		}
-	}
-	*/
-
 	if (!IsLocallyControlled()) return;
 
 	APlayerController* PC = Cast<APlayerController>(GetController());
 	if (!PC) return;
 
-	FHitResult Hit;
-	PC->GetHitResultUnderCursor(ECC_Visibility, false, Hit);
+	FVector WorldOrigin;
+	FVector WorldDir;
 
-	if (Hit.bBlockingHit)
-	{
-		const float NewYaw = (Hit.ImpactPoint - GetActorLocation()).Rotation().Yaw;
+	if (!PC->DeprojectMousePositionToWorld(WorldOrigin, WorldDir))
+		return;
 
-		SetActorRotation(FRotator(0.f, NewYaw, 0.f));
+	const float PlaneZ = GetActorLocation().Z;
+	const float T = (PlaneZ - WorldOrigin.Z) / WorldDir.Z;
 
-		Server_SetAimYaw(NewYaw);
-	}
+	if (T <= 0.f)
+		return;
+
+	const FVector TargetPoint = WorldOrigin + WorldDir * T;
+	const FVector Dir = TargetPoint - GetActorLocation();
+
+	const float NewYaw = Dir.Rotation().Yaw;
+
+	SetActorRotation(FRotator(0.f, NewYaw, 0.f));
+	Server_SetAimYaw(NewYaw);
 }
 
 void ARCPlayerCharacter::GetLifetimeReplicatedProps(
@@ -370,6 +363,13 @@ void ARCPlayerCharacter::HandlePointDamage(
 {
 	float FinalDamage = Damage;
 
+	const bool bIsHeadshot = IsHeadshotBone(BoneName);
+
+	if (bIsHeadshot)
+	{
+		FinalDamage *= HeadshotMultiplier;
+	}
+
 	if (CurrentArmor)
 	{
 		FinalDamage = CurrentArmor->ModifyDamage(Damage);
@@ -382,6 +382,19 @@ void ARCPlayerCharacter::HandlePointDamage(
 	       *GetNameSafe(DamageCauser),
 	       *BoneName.ToString()
 	);
+
+	if (bIsHeadshot)
+	{
+		UE_LOG(LogTemp, Error,
+			TEXT("[HEADSHOT CHECK] Bone=%s IsHeadshot=1"),
+			*BoneName.ToString());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning,
+			TEXT("[HEADSHOT CHECK] Bone=%s IsHeadshot=0"),
+			*BoneName.ToString());
+	}
 }
 
 void ARCPlayerCharacter::Server_SetSprint_Implementation(bool bIsSprinting)
@@ -537,10 +550,6 @@ void ARCPlayerCharacter::HandleReloadInput(const FInputActionValue& InValue)
 	}
 }
 
-void ARCPlayerCharacter::OnRep_CurrentArmor()
-{
-}
-
 void ARCPlayerCharacter::UpdateAim()
 {
 	if (!IsLocallyControlled())
@@ -581,6 +590,23 @@ void ARCPlayerCharacter::OnRep_CurrentWeapon()
 			TEXT("WeaponSocket")
 		);
 	}
+}
+
+void ARCPlayerCharacter::OnRep_CurrentArmor()
+{
+	if (CurrentArmor && GetMesh())
+	{
+		CurrentArmor->AttachToComponent(
+			GetMesh(),
+			FAttachmentTransformRules::SnapToTargetNotIncludingScale,
+			TEXT("ArmorChestSocket")
+		);
+	}
+}
+
+bool ARCPlayerCharacter::IsHeadshotBone(FName InBone) const
+{
+	return !InBone.IsNone() && InBone == HeadBoneName;
 }
 
 void ARCPlayerCharacter::Server_SetAimYaw_Implementation(float NewYaw)

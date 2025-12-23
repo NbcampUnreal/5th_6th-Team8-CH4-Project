@@ -55,6 +55,7 @@ public:
 
 	ATopDownWeaponBase* GetCurrentWeapon() {return CurrentWeapon;}
 
+	AArmorBase* GetCurrentArmor() { return CurrentArmor; }
 
 	UFUNCTION(Server, Reliable)
 	void Server_Interact(AWorldItemBase* Target);
