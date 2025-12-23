@@ -113,6 +113,20 @@ void UMainHUDWidget::ShowNotice(const FString& Message)
     }
 }
 
+void UMainHUDWidget::UpdateGameTime(float TimeInSeconds)
+{
+    if (TimerText)
+    {
+        TimeInSeconds = FMath::Max(0.0f, TimeInSeconds);
+
+        int32 Minutes = FMath::FloorToInt(TimeInSeconds / 60.0f);
+        int32 Seconds = FMath::FloorToInt(TimeInSeconds) % 60;
+
+        FString TimeString = FString::Printf(TEXT("%02d:%02d"), Minutes, Seconds);
+        TimerText->SetText(FText::FromString(TimeString));
+    }
+}
+
 //void UMainHUDWidget::UpdateAmmoCount(int32 CurrentAmmo, int32 MaxAmmo)
 //{
 //    if (CurrentAmmoText)
