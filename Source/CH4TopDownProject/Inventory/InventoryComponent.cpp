@@ -36,7 +36,7 @@ void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	//inventory
 	DOREPLIFETIME(UInventoryComponent, Items);
-	DOREPLIFETIME(UInventoryComponent, ItemCountCache);
+	//DOREPLIFETIME(UInventoryComponent, ItemCountCache);
 	//equipment
 	DOREPLIFETIME(UInventoryComponent, EquipmentBagID);
 	DOREPLIFETIME(UInventoryComponent, EquipmentChestID);
@@ -161,6 +161,7 @@ bool UInventoryComponent::GetItem(AActor* ItemActor)
 		if (Item.ItemType == EItemType::Bag) {
 			if (EquipmentBagID.ItemID == NAME_None) {
 				SetEquipmentBagID(Item);
+				
 				return true;
 			}
 		}
@@ -183,9 +184,7 @@ bool UInventoryComponent::GetItem(AActor* ItemActor)
 				}
 			}
 		}
-		else {
-			AddItem(Item);
-		}
+		AddItem(Item);
 
 		return true;
 		}
