@@ -223,9 +223,6 @@ private:
 	void HandleFireStopped(const FInputActionValue& InValue);
 	void HandleReloadInput(const FInputActionValue& InValue);
 
-	void UpdateFireAim();
-
-	bool bIsFireButtonDown = false;
 # pragma endregion
 
 #pragma region Armor
