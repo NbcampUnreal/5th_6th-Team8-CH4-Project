@@ -238,6 +238,9 @@ protected:
 
 	UFUNCTION()
 	void OnRep_CurrentArmor();
+
+	void UpdateAim();
+	bool bIsFirstButtonDown = false;
 #pragma endregion
 
 #pragma region SFX
