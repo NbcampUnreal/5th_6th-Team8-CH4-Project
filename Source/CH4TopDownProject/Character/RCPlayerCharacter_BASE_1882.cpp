@@ -114,15 +114,10 @@ void ARCPlayerCharacter::BeginPlay()
 			);
 		}
 
-		CurrentArmor = GetWorld()->SpawnActor<AArmorBase>(DefaultArmorClass, Params);
-		if (CurrentArmor && GetMesh())
-		{
-			CurrentArmor->AttachToComponent(
-				GetMesh(),
-				FAttachmentTransformRules::SnapToTargetNotIncludingScale,
-				TEXT("ArmorChestSocket")
-			);
-		}
+		CurrentArmor = GetWorld()->SpawnActor<AArmorBase>(
+			DefaultArmorClass,
+			Params
+		);
 	}
 
 	if (!IsLocallyControlled())
@@ -290,30 +285,37 @@ void ARCPlayerCharacter::Tick(float DeltaTime)
 
 void ARCPlayerCharacter::RotatePlayerToMouseCursor()
 {
+	/*
+	APlayerController* PlayerController = Cast<APlayerController>(GetController());
+	if (IsValid(PlayerController))
+	{
+		FHitResult HitResult;
+		PlayerController->GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, false, HitResult);
+
+		if (HitResult.bBlockingHit) {
+			FRotator NewRot = (HitResult.ImpactPoint - GetActorLocation()).Rotation();
+
+			SetActorRotation(FRotator(0, NewRot.Yaw, 0));
+		}
+	}
+	*/
+
 	if (!IsLocallyControlled()) return;
 
 	APlayerController* PC = Cast<APlayerController>(GetController());
 	if (!PC) return;
 
-	FVector WorldOrigin;
-	FVector WorldDir;
+	FHitResult Hit;
+	PC->GetHitResultUnderCursor(ECC_Visibility, false, Hit);
 
-	if (!PC->DeprojectMousePositionToWorld(WorldOrigin, WorldDir))
-		return;
-	
-	const float PlaneZ = GetActorLocation().Z;
-	const float T = (PlaneZ - WorldOrigin.Z) / WorldDir.Z;
+	if (Hit.bBlockingHit)
+	{
+		const float NewYaw = (Hit.ImpactPoint - GetActorLocation()).Rotation().Yaw;
 
-	if (T <= 0.f)
-		return;
+		SetActorRotation(FRotator(0.f, NewYaw, 0.f));
 
-	const FVector TargetPoint = WorldOrigin + WorldDir * T;
-	const FVector Dir = TargetPoint - GetActorLocation();
-
-	const float NewYaw = Dir.Rotation().Yaw;
-
-	SetActorRotation(FRotator(0.f, NewYaw, 0.f));
-	Server_SetAimYaw(NewYaw);
+		Server_SetAimYaw(NewYaw);
+	}
 }
 
 void ARCPlayerCharacter::GetLifetimeReplicatedProps(
@@ -355,13 +357,6 @@ void ARCPlayerCharacter::HandlePointDamage(
 )
 {
 	float FinalDamage = Damage;
-
-	const bool bIsHeadshot = IsHeadshotBone(BoneName);
-
-	if (bIsHeadshot)
-	{
-		FinalDamage *= HeadshotMultiplier;
-	}
 
 	if (CurrentArmor)
 	{
@@ -522,6 +517,10 @@ void ARCPlayerCharacter::HandleReloadInput(const FInputActionValue& InValue)
 	}
 }
 
+void ARCPlayerCharacter::OnRep_CurrentArmor()
+{
+}
+
 void ARCPlayerCharacter::OnRep_CurrentWeapon()
 {
 	UE_LOG(LogTemp, Warning, TEXT("OnRep_CurrentWeapon: %s"),
@@ -533,22 +532,6 @@ void ARCPlayerCharacter::OnRep_CurrentWeapon()
 			GetMesh(),
 			FAttachmentTransformRules::SnapToTargetNotIncludingScale,
 			TEXT("WeaponSocket")
-		);
-	}
-}
-
-void ARCPlayerCharacter::OnRep_CurrentArmor()
-{
-	UE_LOG(LogTemp, Warning, TEXT("OnRep_CurrentArmor: %s"),
-		*GetNameSafe(CurrentArmor));
-
-
-	if (CurrentArmor && GetMesh())
-	{
-		CurrentArmor->AttachToComponent(
-			GetMesh(),
-			FAttachmentTransformRules::SnapToTargetNotIncludingScale,
-			TEXT("ArmorChestSocket")
 		);
 	}
 }
@@ -616,9 +599,4 @@ void ARCPlayerCharacter::Multicast_ShowDamageText_Implementation(float Damage, F
 			DamageActor->InitializeDamage(Damage);
 		}
 	}
-}
-
-bool ARCPlayerCharacter::IsHeadshotBone(FName InBone) const
-{
-	return !InBone.IsNone() && InBone == HeadBoneName;
 }

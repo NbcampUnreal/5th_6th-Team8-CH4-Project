@@ -23,6 +23,7 @@
 
 #include "Components/SceneCaptureComponent2D.h"
 #include "Components/WidgetComponent.h"
+#include "Components/SphereComponent.h"
 #include "UI/OverheadHealthWidget.h"
 #include "UI/DamageTextActor.h"
 
@@ -36,6 +37,8 @@ ARCPlayerCharacter::ARCPlayerCharacter()
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
+
+	
 
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 640.f, 0.f);
@@ -259,10 +262,7 @@ void ARCPlayerCharacter::HandleInteractFInput(const FInputActionValue& InValue)
 	if (!IsValid(CurrentInteractTarget))
 		return;
 
-	if (CurrentInteractTarget->Implements<UInteractable>())
-	{
-		IInteractable::Execute_Interact(CurrentInteractTarget, this);
-	}
+	Server_Interact(CurrentInteractTarget);
 }
 
 void ARCPlayerCharacter::Tick(float DeltaTime)
@@ -271,6 +271,8 @@ void ARCPlayerCharacter::Tick(float DeltaTime)
 
 	RotatePlayerToMouseCursor();
 
+	UpdateAim();
+	
 	if (IsLocallyControlled())
 	{
 		const float Speed2D = GetVelocity().Size2D();
@@ -290,30 +292,37 @@ void ARCPlayerCharacter::Tick(float DeltaTime)
 
 void ARCPlayerCharacter::RotatePlayerToMouseCursor()
 {
+	/*
+	APlayerController* PlayerController = Cast<APlayerController>(GetController());
+	if (IsValid(PlayerController))
+	{
+		FHitResult HitResult;
+		PlayerController->GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, false, HitResult);
+
+		if (HitResult.bBlockingHit) {
+			FRotator NewRot = (HitResult.ImpactPoint - GetActorLocation()).Rotation();
+
+			SetActorRotation(FRotator(0, NewRot.Yaw, 0));
+		}
+	}
+	*/
+
 	if (!IsLocallyControlled()) return;
 
 	APlayerController* PC = Cast<APlayerController>(GetController());
 	if (!PC) return;
 
-	FVector WorldOrigin;
-	FVector WorldDir;
+	FHitResult Hit;
+	PC->GetHitResultUnderCursor(ECC_Visibility, false, Hit);
 
-	if (!PC->DeprojectMousePositionToWorld(WorldOrigin, WorldDir))
-		return;
-	
-	const float PlaneZ = GetActorLocation().Z;
-	const float T = (PlaneZ - WorldOrigin.Z) / WorldDir.Z;
+	if (Hit.bBlockingHit)
+	{
+		const float NewYaw = (Hit.ImpactPoint - GetActorLocation()).Rotation().Yaw;
 
-	if (T <= 0.f)
-		return;
+		SetActorRotation(FRotator(0.f, NewYaw, 0.f));
 
-	const FVector TargetPoint = WorldOrigin + WorldDir * T;
-	const FVector Dir = TargetPoint - GetActorLocation();
-
-	const float NewYaw = Dir.Rotation().Yaw;
-
-	SetActorRotation(FRotator(0.f, NewYaw, 0.f));
-	Server_SetAimYaw(NewYaw);
+		Server_SetAimYaw(NewYaw);
+	}
 }
 
 void ARCPlayerCharacter::GetLifetimeReplicatedProps(
@@ -340,6 +349,16 @@ void ARCPlayerCharacter::StopSprint()
 	}
 
 	Client_StopSprint();
+}
+
+void ARCPlayerCharacter::Server_Interact_Implementation(AWorldItemBase* Target)
+{
+	if (!IsValid(Target)) return;
+
+	if (Target->Implements<UInteractable>())
+	{
+		IInteractable::Execute_Interact(Target, this);
+	}
 }
 
 void ARCPlayerCharacter::HandlePointDamage(
@@ -401,6 +420,9 @@ void ARCPlayerCharacter::Server_SetSprint_Implementation(bool bIsSprinting)
 
 void ARCPlayerCharacter::SetInteractTarget(AWorldItemBase* InteractTarget)
 {
+	if (!IsLocallyControlled())
+		return;
+
 	if (IsValid(CurrentInteractTarget))
 	{
 		CurrentInteractTarget->SetOutLineEnable(false);
@@ -412,6 +434,9 @@ void ARCPlayerCharacter::SetInteractTarget(AWorldItemBase* InteractTarget)
 
 void ARCPlayerCharacter::ClearInteractTarget(AWorldItemBase* InteractTarget)
 {
+	if (!IsLocallyControlled())
+		return;
+
 	if (CurrentInteractTarget == InteractTarget)
 	{
 		CurrentInteractTarget->SetOutLineEnable(false);
@@ -447,6 +472,7 @@ void ARCPlayerCharacter::HandleFireStarted(const FInputActionValue& InValue)
 		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow, TEXT("Fire Started"));
 	}
 	UE_LOG(LogTemp, Warning, TEXT("HandleFireStarted called"));
+	bIsFireButtonDown = true;
 
 	if (CurrentWeapon)
 	{
@@ -460,6 +486,7 @@ void ARCPlayerCharacter::HandleFireStarted(const FInputActionValue& InValue)
 
 void ARCPlayerCharacter::HandleFireStopped(const FInputActionValue& InValue)
 {
+	bIsFireButtonDown = false;
 	if (CurrentWeapon)
 	{
 		CurrentWeapon->StopFire();
@@ -522,6 +549,40 @@ void ARCPlayerCharacter::HandleReloadInput(const FInputActionValue& InValue)
 	}
 }
 
+<<<<<<< HEAD
+void ARCPlayerCharacter::OnRep_CurrentArmor()
+{
+}
+
+void ARCPlayerCharacter::UpdateAim()
+{
+	if (!IsLocallyControlled())
+		return;
+
+
+	if (!bIsFireButtonDown)
+		return;
+
+	if (!CurrentWeapon)
+		return;
+
+	APlayerController* PC = Cast<APlayerController>(GetController());
+	if (!PC)
+		return;
+
+	FHitResult Hit;
+	if (!PC->GetHitResultUnderCursor(ECC_Visibility, false, Hit))
+		return;
+
+	FVector Target = Hit.ImpactPoint;
+	Target.Z += 80.f; 
+
+	CurrentWeapon->Server_UpdateAim(Target);
+
+}
+
+=======
+>>>>>>> Item
 void ARCPlayerCharacter::OnRep_CurrentWeapon()
 {
 	UE_LOG(LogTemp, Warning, TEXT("OnRep_CurrentWeapon: %s"),
