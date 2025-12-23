@@ -257,10 +257,7 @@ void ARCPlayerCharacter::HandleInteractFInput(const FInputActionValue& InValue)
 	if (!IsValid(CurrentInteractTarget))
 		return;
 
-	if (CurrentInteractTarget->Implements<UInteractable>())
-	{
-		IInteractable::Execute_Interact(CurrentInteractTarget, this);
-	}
+	Server_Interact(CurrentInteractTarget);
 }
 
 void ARCPlayerCharacter::Tick(float DeltaTime)
@@ -269,6 +266,8 @@ void ARCPlayerCharacter::Tick(float DeltaTime)
 
 	RotatePlayerToMouseCursor();
 
+	UpdateAim();
+	
 	if (IsLocallyControlled())
 	{
 		const float Speed2D = GetVelocity().Size2D();
@@ -345,6 +344,16 @@ void ARCPlayerCharacter::StopSprint()
 	}
 
 	Client_StopSprint();
+}
+
+void ARCPlayerCharacter::Server_Interact_Implementation(AWorldItemBase* Target)
+{
+	if (!IsValid(Target)) return;
+
+	if (Target->Implements<UInteractable>())
+	{
+		IInteractable::Execute_Interact(Target, this);
+	}
 }
 
 void ARCPlayerCharacter::HandlePointDamage(
@@ -451,6 +460,7 @@ void ARCPlayerCharacter::HandleFireStarted(const FInputActionValue& InValue)
 		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow, TEXT("Fire Started"));
 	}
 	UE_LOG(LogTemp, Warning, TEXT("HandleFireStarted called"));
+	bIsFirstButtonDown = true;
 
 	if (CurrentWeapon)
 	{
@@ -464,6 +474,7 @@ void ARCPlayerCharacter::HandleFireStarted(const FInputActionValue& InValue)
 
 void ARCPlayerCharacter::HandleFireStopped(const FInputActionValue& InValue)
 {
+	bIsFirstButtonDown = false;
 	if (CurrentWeapon)
 	{
 		CurrentWeapon->StopFire();
@@ -528,6 +539,33 @@ void ARCPlayerCharacter::HandleReloadInput(const FInputActionValue& InValue)
 
 void ARCPlayerCharacter::OnRep_CurrentArmor()
 {
+}
+
+void ARCPlayerCharacter::UpdateAim()
+{
+	if (!IsLocallyControlled())
+		return;
+
+
+	if (!bIsFirstButtonDown)
+		return;
+
+	if (!CurrentWeapon)
+		return;
+
+	APlayerController* PC = Cast<APlayerController>(GetController());
+	if (!PC)
+		return;
+
+	FHitResult Hit;
+	if (!PC->GetHitResultUnderCursor(ECC_Visibility, false, Hit))
+		return;
+
+	FVector Target = Hit.ImpactPoint;
+	Target.Z += 80.f; 
+
+	CurrentWeapon->Server_UpdateAim(Target);
+
 }
 
 void ARCPlayerCharacter::OnRep_CurrentWeapon()

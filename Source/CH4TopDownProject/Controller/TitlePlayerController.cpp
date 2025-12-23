@@ -70,7 +70,10 @@ void ATitlePlayerController::OnClickFindSession()
 		return;
 	}
 
-	OnlineSessionInterface->AddOnFindSessionsCompleteDelegate_Handle(FindSessionCompleteDelegate);
+	if (FindSessionsCompleteDelegateHandle.IsValid() == false)
+	{
+		FindSessionsCompleteDelegateHandle = OnlineSessionInterface->AddOnFindSessionsCompleteDelegate_Handle(FindSessionCompleteDelegate);
+	}
 
 	SessionSearch = MakeShareable(new FOnlineSessionSearch());
 	SessionSearch->MaxSearchResults = 10000;

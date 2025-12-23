@@ -31,6 +31,7 @@ public:
 
 private:
 	FOnFindSessionsCompleteDelegate FindSessionCompleteDelegate;
+	FDelegateHandle FindSessionsCompleteDelegateHandle;
 	void OnFindSessionComplete(bool bWasSuccessful);
 
 #pragma endregion
