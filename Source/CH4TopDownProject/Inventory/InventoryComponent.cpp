@@ -36,6 +36,7 @@ void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	//inventory
 	DOREPLIFETIME(UInventoryComponent, Items);
+	DOREPLIFETIME(UInventoryComponent, ItemCountCache);
 	//equipment
 	DOREPLIFETIME(UInventoryComponent, EquipmentBagID);
 	DOREPLIFETIME(UInventoryComponent, EquipmentChestID);
@@ -155,123 +156,142 @@ AActor* UInventoryComponent::SpawnItemOnGround(TSubclassOf<AActor> SpawnActor)
 bool UInventoryComponent::GetItem(AActor* ItemActor)
 {
 	if (UBaseItemComponent* ItemComp = ItemActor->FindComponentByClass<UBaseItemComponent>()) {
-		AddItem(ItemComp->GetItemData());
+		FInventorySlot Item = ItemComp->GetItemData();
+
+		if (Item.ItemType == EItemType::Bag) {
+			if (EquipmentBagID.ItemID == NAME_None) {
+				SetEquipmentBagID(Item);
+				return true;
+			}
+		}
+		else if (Item.ItemType == EItemType::Equipment_Body) {
+			if (EquipmentChestID.ItemID == NAME_None) {
+				SetEquipmentChestID(Item);
+				return true;
+			}
+		}
+		else if (Item.ItemType == EItemType::Equipment_Head) {
+			if (EquipmentHeadID.ItemID == NAME_None) {
+				SetEquipmentHeadID(Item);
+				return true;
+			}
+		}
+		else if (Item.ItemType == EItemType::Weapon) {
+			for (int i = 0; i < 2; i++) {
+				if (!WeaponActors[i]) {
+					RequestSetWeapon(i, Item);
+				}
+			}
+		}
+		else {
+			AddItem(Item);
+		}
+
 		return true;
-	}
+		}
 	return false;
 }
 
 void UInventoryComponent::AddItem(FInventorySlot Item)
 {
-	if (Item.ItemID == NAME_None)
+	if (!GetOwner()->HasAuthority())
 	{
+		Server_AddItem(Item);
 		return;
 	}
-	ItemCountCache[Item.ItemID] += Item.Num;
+	Server_AddItem_Implementation(Item);
+}
 
-	if (Item.ItemType == EItemType::Ammo) {
-		
-	}
-	if (Item.ItemType == EItemType::Bag) {
-		if (EquipmentBagID.ItemID == NAME_None) {
-			SetEquipmentBagID(Item);
-			return;
-		}
-	}
-	if (Item.ItemType == EItemType::Equipment_Body) {
-
-	}
-	if (Item.ItemType == EItemType::Equipment_Head) {
-
-	}
-	if (Item.ItemType == EItemType::Weapon) {
-		
-	}
+void UInventoryComponent::Server_AddItem_Implementation(FInventorySlot Item)
+{
+	if (!GetOwner() || !GetOwner()->HasAuthority())
+		return;
 
 	UDataTable* itemdatatable = GetDataTableByItemType(Item.ItemType);
+	if (!itemdatatable)
+		return;
 	const FItemData* ItemRow = itemdatatable->FindRow<FItemData>(Item.ItemID, TEXT(""));
 	if (!ItemRow) {
-		UE_LOG(LogTemp, Warning, TEXT("ItemID not found in DataTable: %s"), *Item.ItemID.ToString());
+		//UE_LOG(LogTemp, Warning, TEXT("ItemID not found in DataTable: %s"), *Item.ItemID.ToString());
 		return;
 	}
-	for (int32 i = 0; i < Items.Num(); i++)
+
+	int32 RemainNum = Item.Num;
+
+	for (int32 i = 0; i < Items.Num() && RemainNum > 0; ++i)
 	{
 		if (Items[i].ItemID == Item.ItemID)
-		{			
-			Items[i].Num += Item.Num;
+		{
+			int32 Addable = ItemRow->MaxNum - Items[i].Num;
+			if (Addable <= 0) continue;
 
-			bool IsRemain = false;
-			if (ItemRow->MaxNum < Items[i].Num) {
-				Item.Num = Items[i].Num - ItemRow->MaxNum;
-				Items[i].Num = ItemRow->MaxNum;
-				IsRemain = true;
-			}
-			
-			if (GEngine){
-				FString Msg = FString::Printf(
-					TEXT("Stack Item [ %s ] -> Num : %d"),
-					*Item.ItemID.ToString(),
-					Items[i].Num
-				);				
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, Msg);
-			}
-			if (IsRemain) break;
-			else return;
+			int32 Added = FMath::Min(Addable, RemainNum);
+			Items[i].Num += Added;
+			RemainNum -= Added;
 		}
 	}
 
-	for (int32 i = 0; i < Items.Num(); i++)
+	for (int32 i = 0; i < Items.Num() && RemainNum > 0; ++i)
 	{
 		if (Items[i].ItemID == NAME_None)
 		{
-			Items[i] = Item;
+			int32 Added = FMath::Min(ItemRow->MaxNum, RemainNum);
 
-			if (GEngine){
-				FString Msg = FString::Printf(
-					TEXT("New Item [ %s ] stored in Slot %d"),
-					*Item.ItemID.ToString(),
-					i
-				);
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, Msg);
-			}
-			bool IsRemain = false;
-			if (ItemRow->MaxNum < Items[i].Num) {
-				Item.Num = Items[i].Num - ItemRow->MaxNum;
-				Items[i].Num = ItemRow->MaxNum;
-				IsRemain = true;
-			}
-			if (IsRemain) break;
-			else return;
+			Items[i].ItemID = Item.ItemID;
+			Items[i].ItemType = Item.ItemType;
+			Items[i].Num = Added;
+
+			RemainNum -= Added;
 		}
-
 	}
-	//server
-	DropItem(Item);
 
-	if (GEngine)
+	int32 StoredNum = Item.Num - RemainNum;
+	if (StoredNum > 0)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("Inventory is Full"));
+		ItemCountCache.FindOrAdd(Item.ItemID) += StoredNum;
+	}
+
+	if (RemainNum > 0)
+	{
+		FInventorySlot DropSlot = Item;
+		DropSlot.Num = RemainNum;
+
+		DropItem_Internal(DropSlot);
 	}
 }
 
 void UInventoryComponent::DropItem(FInventorySlot Item)
 {	
+	if (!GetOwner()->HasAuthority())
+	{
+		Server_DropItem(Item);
+		return;
+	}	
+	DropItem_Internal(Item);
+}
 
+void UInventoryComponent::Server_DropItem_Implementation(FInventorySlot Item)
+{
+	DropItem_Internal(Item);
+}
+
+void UInventoryComponent::DropItem_Internal(FInventorySlot Item)
+{
 	FName ItemID = Item.ItemID;
 
 	UDataTable* itemdatatable = GetDataTableByItemType(Item.ItemType);
 
-	if (!itemdatatable)	{
+	if (!itemdatatable) {
 		UE_LOG(LogTemp, Warning, TEXT("ItemDataTable is NULL"));
 		return;
 	}
 
 	const FItemData* ItemRow = itemdatatable->FindRow<FItemData>(ItemID, TEXT(""));
-	if (!ItemRow)	{
+	if (!ItemRow) {
 		UE_LOG(LogTemp, Warning, TEXT("ItemID not found in DataTable: %s"), *ItemID.ToString());
 		return;
 	}
-	if (!ItemRow->ItemActorClass)	{
+	if (!ItemRow->ItemActorClass) {
 		UE_LOG(LogTemp, Warning, TEXT("ItemActorClass is NULL for item: %s"), *ItemID.ToString());
 		return;
 	}
@@ -297,6 +317,16 @@ void UInventoryComponent::DropItem(FInventorySlot Item)
 }
 
 void UInventoryComponent::RemoveItem(int32 Index) {
+	if (!GetOwner()->HasAuthority())
+	{
+		Server_RemoveItem(Index);
+	}
+
+	Server_RemoveItem_Implementation(Index);
+}
+
+void UInventoryComponent::Server_RemoveItem_Implementation(int32 Index)
+{
 	const FName ItemID = Items[Index].ItemID;
 	const int32 Num = Items[Index].Num;
 
@@ -319,9 +349,24 @@ void UInventoryComponent::RemoveItem(int32 Index) {
 
 int32 UInventoryComponent::UseItem_ID(FName ItemID, int32 Num)
 {
-	//if (!GetOwner()->HasAuthority()) return 0;
+	 if (!GetOwner()->HasAuthority())
+	 {
+		 Server_UseItem_ID(ItemID, Num);
+		 return 0; // 클라는 즉시 결과를 모른다
+	 }
 
-	if (Num <= 0) return 0;
+	 UseItem_ID_Internal(ItemID, Num);
+	 return 0;
+}
+
+void UInventoryComponent::Server_UseItem_ID_Implementation(FName ItemID, int32 Num)
+{
+	UseItem_ID_Internal(ItemID, Num);
+}
+
+void UInventoryComponent::UseItem_ID_Internal(FName ItemID, int32 Num)
+{
+	if (Num <= 0) return;
 
 	int32 Remaining = Num;
 	int32 Used = 0;
@@ -360,7 +405,7 @@ int32 UInventoryComponent::UseItem_ID(FName ItemID, int32 Num)
 			HealthComp->Heal(ItemRow->Heal);
 		}
 	}
-	return Used;
+	return;
 }
 
 int32 UInventoryComponent::CheckItem_ID(FName ItemID)
@@ -371,7 +416,6 @@ int32 UInventoryComponent::CheckItem_ID(FName ItemID)
 	{
 		return *Count;
 	}
-
 	return 0;
 }
 
@@ -455,43 +499,130 @@ EItemType UInventoryComponent::GetDataTypeByItemID(FName ItemID) const
 
 void UInventoryComponent::OnRep_EquipmentBag()
 {
+	OnInventoryUpdated.Broadcast();
 }
 
 void UInventoryComponent::OnRep_EquipmentChest()
 {
+	OnInventoryUpdated.Broadcast();
 }
 
 void UInventoryComponent::OnRep_EquipmentHead()
 {
+	OnInventoryUpdated.Broadcast();
 }
 
 void UInventoryComponent::SetEquipmentBagID(FInventorySlot NewID) {
-	int32 curInventorySize = GetInventorytSize();
-	EquipmentBagID = NewID; 
-	int32 nextInventorySize = GetInventorytSize();
-	if (curInventorySize > nextInventorySize) {
-		for (int32 i = curInventorySize - 1; i >= nextInventorySize; --i)
+	if (!GetOwner()->HasAuthority())
+	{
+		ServerSetEquipmentBagID(NewID);
+		return;
+	}
+
+	ServerSetEquipmentBagID_Implementation(NewID);
+}
+
+void UInventoryComponent::SetEquipmentChestID(FInventorySlot NewID) { 
+	if (!GetOwner()->HasAuthority())
+	{
+		ServerSetEquipmentChestID(NewID);
+		return;
+	}
+
+	ServerSetEquipmentChestID_Implementation(NewID);
+}
+
+void UInventoryComponent::SetEquipmentHeadID(FInventorySlot NewID) { 
+	if (!GetOwner()->HasAuthority())
+	{
+		ServerSetEquipmentHeadID(NewID);
+		return;
+	}
+
+	ServerSetEquipmentHeadID_Implementation(NewID);
+}
+
+void UInventoryComponent::ServerSetEquipmentBagID_Implementation(FInventorySlot NewID)
+{
+	if (!GetOwner() || !GetOwner()->HasAuthority())
+		return;
+
+	int32 CurInventorySize = GetInventorytSize();
+	EquipmentBagID = NewID;
+	int32 NextInventorySize = GetInventorytSize();
+	if (CurInventorySize > NextInventorySize) {
+		for (int32 i = CurInventorySize - 1; i >= NextInventorySize; --i)
 		{
-			DropItem(Items[i]);
-			RemoveItem(i);
+			if (!Items.IsValidIndex(i))
+				continue;
+
+			DropItem_Internal(Items[i]);
+
+			const FName ItemID = Items[i].ItemID;
+			const int32 Num = Items[i].Num;
+
+			if (int32* Count = ItemCountCache.Find(ItemID))
+			{
+				*Count -= Num;
+				if (*Count <= 0)
+				{
+					ItemCountCache.Remove(ItemID);
+				}
+			}
 		}
 	}
-	Items.SetNum(nextInventorySize);
+	Items.SetNum(NextInventorySize);
+}
+
+void UInventoryComponent::ServerSetEquipmentChestID_Implementation(FInventorySlot NewID)
+{
+	if (!GetOwner() || !GetOwner()->HasAuthority())
+		return;
+	EquipmentChestID = NewID;
+}
+
+void UInventoryComponent::ServerSetEquipmentHeadID_Implementation(FInventorySlot NewID)
+{
+	if (!GetOwner() || !GetOwner()->HasAuthority())
+		return;
+	EquipmentHeadID = NewID;
 }
 
 int32 UInventoryComponent::GetBonusHealth()
-{
-	int32 BonusHealth =
-		EquipmentItemDataTable->FindRow<FEquipmentItemData>(EquipmentChestID.ItemID, TEXT(""))->BonusHealth
-		+ EquipmentItemDataTable->FindRow<FEquipmentItemData>(EquipmentHeadID.ItemID, TEXT(""))->BonusHealth;
+{	
+	if (!EquipmentItemDataTable)
+		return 0;
+
+	int32 BonusHealth = 0;
+
+	if (FEquipmentItemData* ItemData = 
+		EquipmentItemDataTable->FindRow<FEquipmentItemData>(EquipmentChestID.ItemID, TEXT(""))) {
+		BonusHealth += ItemData->BonusHealth;
+	}
+	if (FEquipmentItemData* ItemData =
+		EquipmentItemDataTable->FindRow<FEquipmentItemData>(EquipmentHeadID.ItemID, TEXT(""))) {
+		BonusHealth += ItemData->BonusHealth;
+	}
+
 	return BonusHealth;
 }
 
 int32 UInventoryComponent::GetDeffence()
 {
-	int32 Deffence =
-		EquipmentItemDataTable->FindRow<FEquipmentItemData>(EquipmentChestID.ItemID, TEXT(""))->Deffence
-		+ EquipmentItemDataTable->FindRow<FEquipmentItemData>(EquipmentHeadID.ItemID, TEXT(""))->Deffence;
+	if (!EquipmentItemDataTable)
+		return 0;
+
+	int32 Deffence = 0;
+
+	if (FEquipmentItemData* ItemData =
+		EquipmentItemDataTable->FindRow<FEquipmentItemData>(EquipmentChestID.ItemID, TEXT(""))) {
+		Deffence += ItemData->Deffence;
+	}
+	if (FEquipmentItemData* ItemData =
+		EquipmentItemDataTable->FindRow<FEquipmentItemData>(EquipmentHeadID.ItemID, TEXT(""))) {
+		Deffence += ItemData->Deffence;
+	}
+
 	return Deffence;
 }
 

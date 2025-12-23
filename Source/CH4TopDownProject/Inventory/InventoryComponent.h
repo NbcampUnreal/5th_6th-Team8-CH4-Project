@@ -76,7 +76,9 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
 	int32 DefaultInventorySize = 4; 	
 
-	TMap<FName, int32> ItemCountCache;	
+	
+	TMap<FName, int32> ItemCountCache;
+	//지금은 이렇게 하지만 tmap은 replicated에 사용하지 않는게 좋다. 데이터 꼬인다
 protected:
 	UFUNCTION()
 	void OnRep_Items();
@@ -111,18 +113,27 @@ public:
 	//아이템 획득, items에 추가와 cached에 등록
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void AddItem(FInventorySlot Item);
+	UFUNCTION(Server, Reliable)
+	void Server_AddItem(FInventorySlot Item);
 	//아이템 drop
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void DropItem(FInventorySlot Item);
+	UFUNCTION(Server, Reliable)
+	void Server_DropItem(FInventorySlot Item);
+	void DropItem_Internal(FInventorySlot Item);
 	//slot아이템 통째로 제거
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void RemoveItem(int32 Index);
+	UFUNCTION(Server, Reliable)
+	void Server_RemoveItem(int32 Index);
 	//사용한 아이템 갯수를 리턴
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	int32 UseItem_ID(FName ItemID, int32 Num);
+	UFUNCTION(Server, Reliable)
+	void Server_UseItem_ID(FName ItemID, int32 Num);
+	void UseItem_ID_Internal(FName ItemID, int32 Num);
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	int32 CheckItem_ID(FName ItemID);
-
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	const TArray<FInventorySlot>& GetItems() const { return Items; }
@@ -166,9 +177,17 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
 	void SetEquipmentBagID(FInventorySlot NewID);
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
-	void SetEquipmentChestID(FInventorySlot NewID) { EquipmentChestID = NewID; }
+	void SetEquipmentChestID(FInventorySlot NewID);
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
-	void SetEquipmentHeadID(FInventorySlot NewID) { EquipmentHeadID = NewID; }
+	void SetEquipmentHeadID(FInventorySlot NewID);
+
+	//ServerSetter
+	UFUNCTION(Server, Reliable)
+	void ServerSetEquipmentBagID(FInventorySlot NewID);
+	UFUNCTION(Server, Reliable)
+	void ServerSetEquipmentChestID(FInventorySlot NewID);
+	UFUNCTION(Server, Reliable)
+	void ServerSetEquipmentHeadID(FInventorySlot NewID);
 
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
 	int32 GetBonusHealth();
