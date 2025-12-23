@@ -263,18 +263,6 @@ private:
 
 #pragma endregion
 
-#pragma region HeadShot
-	protected:
-		UPROPERTY(EditDefaultsOnly, Category = "Damage|Headshot")
-		FName HeadBoneName = TEXT("tete"); 
-
-		UPROPERTY(EditDefaultsOnly, Category = "Damage|Headshot")
-		float HeadshotMultiplier = 2.0f;
-
-private:
-	bool IsHeadshotBone(FName InBone) const;
-#pragma endregion
-
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<ADamageTextActor> DamageTextClass;
