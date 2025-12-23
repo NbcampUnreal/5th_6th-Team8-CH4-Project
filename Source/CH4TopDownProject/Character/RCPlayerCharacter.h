@@ -157,7 +157,8 @@ private:
 # pragma region Ablilty
 
 private:
-	const float DefaultMaxWalkSpeed = 500.0f;
+	const float DefaultMaxWalkSpeed = 500.0f; 
+
 	const float SprintMaxWalkSpeed = 1000.0f;
 	const float DashMaxWalkSpeed = 3000.0f;
 
