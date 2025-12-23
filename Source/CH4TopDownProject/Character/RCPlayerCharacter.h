@@ -158,6 +158,7 @@ private:
 
 private:
 	const float DefaultMaxWalkSpeed = 500.0f;
+	const float DegalutTest = 100.f;
 	const float SprintMaxWalkSpeed = 1000.0f;
 	const float DashMaxWalkSpeed = 3000.0f;
 
@@ -261,18 +262,6 @@ private:
 	void StopFootstepLoop();
 	void PlayFootstepOnce();
 
-#pragma endregion
-
-#pragma region HeadShot
-	protected:
-		UPROPERTY(EditDefaultsOnly, Category = "Damage|Headshot")
-		FName HeadBoneName = TEXT("tete"); 
-
-		UPROPERTY(EditDefaultsOnly, Category = "Damage|Headshot")
-		float HeadshotMultiplier = 2.0f;
-
-private:
-	bool IsHeadshotBone(FName InBone) const;
 #pragma endregion
 
 protected:
