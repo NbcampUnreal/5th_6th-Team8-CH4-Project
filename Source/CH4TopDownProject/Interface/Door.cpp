@@ -2,28 +2,30 @@
 
 #include "Interface/Door.h"
 #include "Components/TimelineComponent.h"
+#include "Net/UnrealNetwork.h"
 
 ADoor::ADoor()
 {
-	//Å¸ÀÓ¶óÀÎ
+	//Å¸ï¿½Ó¶ï¿½ï¿½ï¿½
 	DoorTimeline = CreateDefaultSubobject<UTimelineComponent>("DoorTimeline");
 
-	//Ã³À½Àº ¹®ÀÌ ´ÝÈù »óÅÂ
+	//Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	bDoorOpen = false;
+	AActor::SetReplicateMovement(true);
 }
 
 void ADoor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//Å¸ÀÓ¶óÀÎ
+	//Å¸ï¿½Ó¶ï¿½ï¿½ï¿½
 	UpdateFunctionFloat.BindDynamic(this, &ADoor::DoorOpenTimeLineFunc);
 	if (DoorTimelineCurveFloat)
 	{
 		DoorTimeline->AddInterpFloat(DoorTimelineCurveFloat, UpdateFunctionFloat);
 	}
 
-	//½ÃÀÛºÎÅÍ ¿­¸° ¹®ÀÎ°¡
+	//ï¿½ï¿½ï¿½Ûºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î°ï¿½
 	if (bDoorOpen)
 	{
 		float MinValue, MAxValue;
@@ -35,28 +37,45 @@ void ADoor::BeginPlay()
 
 void ADoor::Interact_Implementation(AActor* Interactor)
 {
-	if (bDoorOpen)
+	if (!HasAuthority())
 	{
-		DoorTimeline->Reverse();
-		bDoorOpen = false;
-
-		StaticMesh->SetCollisionEnabled(ECollisionEnabled::Type::QueryAndPhysics);
-	}
-	else
-	{
-		//¹®À» ¿­¾î¶ó
-		DoorTimeline->Play();
-		bDoorOpen = true;
-
-		//¹®À» ¿­¸é ´õÀÌ»ó ¸·È÷Áö ¾ÊÀ½
-		StaticMesh->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
+		Server_ToggleDoor();
+		return;
 	}
 
+	Server_ToggleDoor();
+}
+
+void ADoor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ADoor, bDoorOpen);
 }
 
 void ADoor::DoorOpenTimeLineFunc(float Output)
 {
-	//¹®¿­¸² ¿¬ÃâÀ» À§ÇÑ È¸Àü°ª º¯°æ
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	const FRotator Value = FRotator(0, Output, 0);
 	StaticMesh->SetRelativeRotation(Value);
 }
+
+void ADoor::Server_ToggleDoor_Implementation()
+{
+	bDoorOpen = !bDoorOpen;
+	OnRep_DoorState();
+}
+
+void ADoor::OnRep_DoorState()
+{
+	if (bDoorOpen)
+	{
+		DoorTimeline->Play();
+		StaticMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+	else
+	{
+		DoorTimeline->Reverse();
+		StaticMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	}
+}
+

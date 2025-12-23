@@ -54,6 +54,10 @@ public:
 	TObjectPtr<AActor> IgnoreActor = nullptr;
 
 	ATopDownWeaponBase* GetCurrentWeapon() {return CurrentWeapon;}
+
+
+	UFUNCTION(Server, Reliable)
+	void Server_Interact(AWorldItemBase* Target);
 # pragma region Components
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)

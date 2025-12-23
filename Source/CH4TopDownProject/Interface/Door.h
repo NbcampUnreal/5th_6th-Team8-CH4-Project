@@ -20,6 +20,9 @@ protected:
 
 public:
 	virtual void Interact_Implementation(AActor* Interactor) override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	
 
 protected:
 	UFUNCTION()
@@ -38,6 +41,14 @@ private:
 	UTimelineComponent* DoorTimeline;
 
 	//문열림 여부
-	UPROPERTY(EditAnywhere, Category = "Door Action", meta = (AllowPrivateAccess = true))
-	bool bDoorOpen;
+	UPROPERTY(ReplicatedUsing = OnRep_DoorState)
+	bool bDoorOpen= false;
+
+	
+	UFUNCTION(Server, Reliable)
+	void Server_ToggleDoor();
+
+	UFUNCTION()
+	void OnRep_DoorState();
 };
+
