@@ -9,10 +9,14 @@
 #include "Inventory/UI/InventoryUI.h"
 #include "Inventory/ItemData/ItemData.h"
 #include "Inventory/ItemData/BaseItemComponent.h"
+#include "Character/RCPlayerCharacter.h"
+#include "Component/HealthComponent.h"
+#include "Net/UnrealNetwork.h"
 
 UInventoryComponent::UInventoryComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+	SetIsReplicatedByDefault(true);
 }
 
 
@@ -22,8 +26,23 @@ void UInventoryComponent::BeginPlay()
 	Super::BeginPlay();
 
 	Items.SetNum(GetInventorytSize());
+	WeaponActors.SetNum(2);
 
 	Open_CloseInventoryUI();	
+}
+
+void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	//inventory
+	DOREPLIFETIME(UInventoryComponent, Items);
+	//equipment
+	DOREPLIFETIME(UInventoryComponent, EquipmentBagID);
+	DOREPLIFETIME(UInventoryComponent, EquipmentChestID);
+	DOREPLIFETIME(UInventoryComponent, EquipmentHeadID);
+	//weapon
+	DOREPLIFETIME(UInventoryComponent, WeaponActors);
+	DOREPLIFETIME(UInventoryComponent, CurrentWeaponIndex);
 }
 
 void UInventoryComponent::Open_CloseInventoryUI()
@@ -51,6 +70,13 @@ void UInventoryComponent::Open_CloseInventoryUI()
 			InventoryWidget->AddToViewport();
 		}
 	}
+}
+
+#pragma region Inventory
+
+void UInventoryComponent::OnRep_Items()
+{
+	OnInventoryUpdated.Broadcast();
 }
 
 AActor* UInventoryComponent::SpawnItemOnGround(TSubclassOf<AActor> SpawnActor)
@@ -240,7 +266,7 @@ void UInventoryComponent::DropItem(FInventorySlot Item)
 		return;
 	}
 
-	const FItemData* ItemRow = ItemDataTable->FindRow<FItemData>(ItemID, TEXT(""));
+	const FItemData* ItemRow = itemdatatable->FindRow<FItemData>(ItemID, TEXT(""));
 	if (!ItemRow)	{
 		UE_LOG(LogTemp, Warning, TEXT("ItemID not found in DataTable: %s"), *ItemID.ToString());
 		return;
@@ -324,6 +350,16 @@ int32 UInventoryComponent::UseItem_ID(FName ItemID, int32 Num)
 			Items[i] = FInventorySlot();
 		}
 	}
+	EItemType ItemType = GetDataTypeByItemID(ItemID);
+	if (ItemType == EItemType::Consumable) {
+		UDataTable* itemdatatable = GetDataTableByItemType(ItemType);
+		const FConsumableItemData* ItemRow = itemdatatable->FindRow<FConsumableItemData>(ItemID, TEXT(""));
+		for (int i = 0; i < Used; i++) {
+			UHealthComponent* HealthComp =
+				Cast<UHealthComponent>(GetOwner()->GetComponentByClass(UHealthComponent::StaticClass()));
+			HealthComp->Heal(ItemRow->Heal);
+		}
+	}
 	return Used;
 }
 
@@ -361,8 +397,6 @@ int32 UInventoryComponent::GetInventorytSize()
 	return ItemRow->ContainerSize + DefaultInventorySize;
 }
 
-
-
 UDataTable* UInventoryComponent::GetDataTableByItemType(EItemType ItemType) const
 {
 	switch (ItemType)
@@ -383,6 +417,52 @@ UDataTable* UInventoryComponent::GetDataTableByItemType(EItemType ItemType) cons
 	default:
 		return nullptr;
 	}
+}
+
+EItemType UInventoryComponent::GetDataTypeByItemID(FName ItemID) const
+{
+	if (ItemID.IsNone())
+	{
+		return EItemType::None;
+	}
+
+	const FString ItemIDStr = ItemID.ToString();
+	if (ItemIDStr.Len() == 0)
+	{
+		return EItemType::None;
+	}
+
+	const TCHAR FirstChar = ItemIDStr[0];
+
+	if (!FChar::IsDigit(FirstChar))
+	{
+		return EItemType::None;
+	}
+
+	const int32 TypeIndex = FirstChar - '0';
+
+	if (TypeIndex < 0 || TypeIndex > static_cast<int32>(EItemType::Weapon))
+	{
+		return EItemType::None;
+	}
+
+	return static_cast<EItemType>(TypeIndex);
+}
+
+#pragma endregion
+
+#pragma region Equipment
+
+void UInventoryComponent::OnRep_EquipmentBag()
+{
+}
+
+void UInventoryComponent::OnRep_EquipmentChest()
+{
+}
+
+void UInventoryComponent::OnRep_EquipmentHead()
+{
 }
 
 void UInventoryComponent::SetEquipmentBagID(FInventorySlot NewID) {
@@ -415,43 +495,107 @@ int32 UInventoryComponent::GetDeffence()
 	return Deffence;
 }
 
+#pragma endregion
 
-//무기 장착
-//EquipWeapon(GetEquipmentWeapon1ID()) or EquipWeapon(GetEquipmentWeapon2ID()) 
-void UInventoryComponent::EquipWeapon(FInventorySlot NewWeapon)
+#pragma region Weapon
+
+void UInventoryComponent::RequestSetWeapon(
+	int32 Index, const FInventorySlot& NewWeapon)
 {
+	if (!GetOwner()->HasAuthority())
+	{
+		ServerSetWeapon(Index, NewWeapon);
+	}
+}
 
-	TSubclassOf<AActor> NewWeaponClass = 
-		EquipmentItemDataTable->FindRow<FEquipmentItemData>(NewWeapon.ItemID, TEXT(""))->ItemActorClass;
-	if (!NewWeaponClass) return;
+void UInventoryComponent::RequestEquipWeapon(int32 Index)
+{
+	if (!GetOwner()->HasAuthority())
+	{
+		ServerEquipWeapon(Index);
+	}
+}
+
+void UInventoryComponent::ServerSetWeapon_Implementation(int32 Index, FInventorySlot NewWeapon)
+{
+	if (!WeaponActors.IsValidIndex(Index)) return;
+	if (!WeqponItemDataTable) return;
+
+	const FEquipmentItemData* Row =
+		WeqponItemDataTable->FindRow<FEquipmentItemData>(
+			NewWeapon.ItemID, TEXT(""));
+
+	if (!Row || !Row->ItemActorClass) return;
 
 	// 기존 무기 제거
-	UnequipWeapon();
-
-	UWorld* World = GetWorld();
-	if (!World) return;
+	ClearWeaponSlot(Index);
 
 	FActorSpawnParameters Params;
 	Params.Owner = GetOwner();
 	Params.Instigator = Cast<APawn>(GetOwner());
 
-	EquippedWeaponActor = World->SpawnActor<AActor>(NewWeaponClass, Params);
+	AActor* NewWeaponActor =
+		GetWorld()->SpawnActor<AActor>(Row->ItemActorClass, Params);
 
-	// 소켓 부착
-	EquippedWeaponActor->AttachToComponent(
+	if (NewWeaponActor)
+	{
+		NewWeaponActor->SetReplicates(true);
+		NewWeaponActor->SetActorHiddenInGame(true);
+		WeaponActors[Index] = NewWeaponActor;
+	}
+}
+
+void UInventoryComponent::ServerEquipWeapon_Implementation(int32 Index)
+{
+	if (Index != INDEX_NONE)
+	{
+		if (!WeaponActors.IsValidIndex(Index)) return;
+		if (!WeaponActors[Index]) return;
+	}
+
+	CurrentWeaponIndex = Index;
+
+	// 서버도 즉시 반영
+	OnRep_CurrentWeaponIndex();
+}
+
+void UInventoryComponent::OnRep_CurrentWeaponIndex()
+{
+	for (AActor* Weapon : WeaponActors)
+	{
+		if (Weapon)
+		{
+			Weapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+			Weapon->SetActorHiddenInGame(true);
+		}
+	}
+
+	if (!WeaponActors.IsValidIndex(CurrentWeaponIndex)) return;
+
+	AActor* Weapon = WeaponActors[CurrentWeaponIndex];
+	if (!Weapon) return;
+
+	Weapon->SetActorHiddenInGame(false);
+	Weapon->AttachToComponent(
 		GetOwner()->GetRootComponent(),
 		FAttachmentTransformRules::SnapToTargetNotIncludingScale,
 		TEXT("WeaponSocket")
 	);
 }
 
-void UInventoryComponent::UnequipWeapon()
+void UInventoryComponent::ClearWeaponSlot(int32 Index)
 {
-	if (EquippedWeaponActor)
+	if (!WeaponActors.IsValidIndex(Index)) return;
+
+	AActor* Weapon = WeaponActors[Index];
+	if (!Weapon) return;
+
+	if (CurrentWeaponIndex == Index)
 	{
-		EquippedWeaponActor->Destroy();
-		EquippedWeaponActor = nullptr;
+		CurrentWeaponIndex = INDEX_NONE;
 	}
+
+	Weapon->Destroy();
+	WeaponActors[Index] = nullptr;
 }
-
-
+#pragma endregion
