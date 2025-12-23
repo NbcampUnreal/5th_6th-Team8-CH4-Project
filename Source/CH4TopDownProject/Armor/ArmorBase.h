@@ -18,17 +18,9 @@ public:
 
     float ModifyDamage(float InDamage) const;
 
-    UFUNCTION(BlueprintCallable, Category = "Armor")
-    void SetWearOffset(const FTransform& InOffset);
 protected:
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Armor", meta = (AllowPrivateAccess = "true"))
-    TObjectPtr<USceneComponent> Root;
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Armor", meta = (AllowPrivateAccess = "true"))
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Armor")
     TObjectPtr<UStaticMeshComponent> ArmorMesh;
-
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Armor", meta = (AllowPrivateAccess = "true"))
-    FTransform WearOffset;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Armor", meta = (ClampMin = "1", ClampMax = "3"))
     int32 ArmorLevel = 1;
