@@ -54,6 +54,10 @@ public:
 	TObjectPtr<AActor> IgnoreActor = nullptr;
 
 	ATopDownWeaponBase* GetCurrentWeapon() {return CurrentWeapon;}
+
+
+	UFUNCTION(Server, Reliable)
+	void Server_Interact(AWorldItemBase* Target);
 # pragma region Components
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
@@ -218,6 +222,10 @@ private:
 	void HandleFireStarted(const FInputActionValue& InValue);
 	void HandleFireStopped(const FInputActionValue& InValue);
 	void HandleReloadInput(const FInputActionValue& InValue);
+
+	void UpdateFireAim();
+
+	bool bIsFireButtonDown = false;
 # pragma endregion
 
 #pragma region Armor

@@ -125,14 +125,13 @@ void UStaminaComponent::SetStamina(float NewStamina)
 	{
 		return;
 	}
-
-	float OldStamina = CurrentStamina;
+	
 	CurrentStamina = NewStamina;
 
-	OnRep_CurrentStamina(OldStamina);
+	OnRep_CurrentStamina();
 }
 
-void UStaminaComponent::OnRep_CurrentStamina(float OldStamina)
+void UStaminaComponent::OnRep_CurrentStamina()
 {
 	OnStaminaChanged.Broadcast(CurrentStamina, MaxStamina);
 }

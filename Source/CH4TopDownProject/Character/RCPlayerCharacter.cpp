@@ -38,7 +38,7 @@ ARCPlayerCharacter::ARCPlayerCharacter()
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
-	InteractRadius = 300.0f;
+	
 
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 640.f, 0.f);
@@ -257,10 +257,7 @@ void ARCPlayerCharacter::HandleInteractFInput(const FInputActionValue& InValue)
 	if (!IsValid(CurrentInteractTarget))
 		return;
 
-	if (CurrentInteractTarget->Implements<UInteractable>())
-	{
-		IInteractable::Execute_Interact(CurrentInteractTarget, this);
-	}
+	Server_Interact(CurrentInteractTarget);
 }
 
 void ARCPlayerCharacter::Tick(float DeltaTime)
@@ -345,6 +342,16 @@ void ARCPlayerCharacter::StopSprint()
 	}
 
 	Client_StopSprint();
+}
+
+void ARCPlayerCharacter::Server_Interact_Implementation(AWorldItemBase* Target)
+{
+	if (!IsValid(Target)) return;
+
+	if (Target->Implements<UInteractable>())
+	{
+		IInteractable::Execute_Interact(Target, this);
+	}
 }
 
 void ARCPlayerCharacter::HandlePointDamage(

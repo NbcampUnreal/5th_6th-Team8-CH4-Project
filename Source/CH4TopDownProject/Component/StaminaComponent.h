@@ -4,7 +4,7 @@
 #include "Components/ActorComponent.h"
 #include "StaminaComponent.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnStaminaChangeSignature, float, NewStamina, float, MaxStamina);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnStaminaChangedSignature, float, CurrentStamina, float, MaxStamina);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class CH4TOPDOWNPROJECT_API UStaminaComponent : public UActorComponent
@@ -20,13 +20,13 @@ protected:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	UFUNCTION()
-	void OnRep_CurrentStamina(float OldStamina);
+	void OnRep_CurrentStamina();
 
 	void SetStamina(float NewStamina);
 
 public:	
 	UPROPERTY(BlueprintAssignable)
-	FOnStaminaChangeSignature OnStaminaChanged;
+	FOnStaminaChangedSignature OnStaminaChanged;
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
