@@ -55,6 +55,7 @@ public:
 
 	ATopDownWeaponBase* GetCurrentWeapon() {return CurrentWeapon;}
 
+	AArmorBase* GetCurrentArmor() { return CurrentArmor; }
 
 	UFUNCTION(Server, Reliable)
 	void Server_Interact(AWorldItemBase* Target);
@@ -223,9 +224,6 @@ private:
 	void HandleFireStopped(const FInputActionValue& InValue);
 	void HandleReloadInput(const FInputActionValue& InValue);
 
-	void UpdateFireAim();
-
-	bool bIsFireButtonDown = false;
 # pragma endregion
 
 #pragma region Armor
@@ -238,6 +236,9 @@ protected:
 
 	UFUNCTION()
 	void OnRep_CurrentArmor();
+
+	void UpdateAim();
+	bool bIsFirstButtonDown = false;
 #pragma endregion
 
 #pragma region SFX
@@ -260,6 +261,18 @@ private:
 	void StopFootstepLoop();
 	void PlayFootstepOnce();
 
+#pragma endregion
+
+#pragma region HeadShot
+	protected:
+		UPROPERTY(EditDefaultsOnly, Category = "Damage|Headshot")
+		FName HeadBoneName = TEXT("tete"); 
+
+		UPROPERTY(EditDefaultsOnly, Category = "Damage|Headshot")
+		float HeadshotMultiplier = 2.0f;
+
+private:
+	bool IsHeadshotBone(FName InBone) const;
 #pragma endregion
 
 protected:
