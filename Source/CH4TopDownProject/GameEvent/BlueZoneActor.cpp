@@ -9,6 +9,9 @@ ABlueZoneActor::ABlueZoneActor()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	VisualMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Static Mesh"));
+	VisualMesh->SetupAttachment(RootComponent);
+
 	bReplicates = true;
 	bAlwaysRelevant = true;
 
@@ -46,7 +49,10 @@ void ABlueZoneActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	DrawDebugBlueZone();
+	//DrawDebugBlueZone();
+
+	float Scale = CurrentRadius / 50.0f;
+	VisualMesh->SetWorldScale3D(FVector(Scale, Scale, Scale));
 }
 
 void ABlueZoneActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

@@ -38,6 +38,9 @@ public:
 	void ActivateBlueZone();
 
 protected:	
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UStaticMeshComponent> VisualMesh;
+
 	UPROPERTY(EditAnywhere, Category = "BlueZone")
 	float WaitTime = 30.0f;
 
