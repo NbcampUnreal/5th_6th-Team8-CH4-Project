@@ -17,6 +17,32 @@ class CH4TOPDOWNPROJECT_API ARCGameModeBase : public AGameModeBase
 protected:
 	virtual void BeginPlay() override;
 
+	void InitGame();
+
+#pragma region Settings
+
+protected:
+	const int32 GameStartDelay = 10;
+
+#pragma endregion
+
+#pragma region Player
+
+protected:
+	const int32 MaxPlayer = 2;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TArray<TObjectPtr<class ARCPlayerController>> AlivePlayerControllers;
+
+
+protected:
+	virtual void PostLogin(APlayerController* NewPlayer) override;
+
+	void OnPlayerDeath(APlayerController* Controller);
+#pragma endregion
+
+#pragma region Object pooling
+protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Pool")
 	TSubclassOf<AActor> BP_Bullet_Pistol_Class;
 
@@ -28,4 +54,8 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Pool")
 	TSubclassOf<AActor> BP_Bullet_Shotgun_Class;
+
+protected:
+	void InitPool();
+#pragma endregion
 };
