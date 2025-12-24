@@ -12,7 +12,7 @@ void ARCGameModeBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	InitGame();
+	//InitGame();
 	InitPool();
 }
 
@@ -120,6 +120,8 @@ void ARCGameModeBase::Logout(AController* ExitingPlayer)
 
 void ARCGameModeBase::OnPlayerDeath(ARCPlayerController* Controller)
 {
+	UE_LOG(LogTemp, Error, TEXT("on player death"));
+
 	AlivePlayerControllers.Remove(Controller);
 	DeadPlayerControllers.Add(Controller);
 

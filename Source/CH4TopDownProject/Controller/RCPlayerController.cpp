@@ -60,6 +60,7 @@ void ARCPlayerController::BeginPlay()
 
 void ARCPlayerController::Client_HandleDeath_Implementation()
 {
+	OnCharacterDead();
 	HandleDeath();
 }
 
