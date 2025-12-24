@@ -39,6 +39,9 @@ public:
     UFUNCTION(BlueprintCallable, Category = "HUD")
     void ShowNotice(const FString& Message);
 
+    UFUNCTION(BlueprintCallable, Category = "HUD")
+    void UpdateGameTime(float TimeInSeconds);
+
 private:
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<UProgressBar> HealthBar;
@@ -66,6 +69,9 @@ private:
 
     UPROPERTY(meta = (Bindwidget))
     TObjectPtr<UTextBlock> NoticeText;
+
+    UPROPERTY(meta = (Bindwidget))
+    TObjectPtr<UTextBlock> TimerText;
 
     UPROPERTY()
     TObjectPtr<UHealthComponent> PlayerHealthComponent;
