@@ -20,7 +20,7 @@ ABulletBase::ABulletBase()
 
     Collision = CreateDefaultSubobject<USphereComponent>(TEXT("Collision"));
     Collision->InitSphereRadius(8.f);
-    Collision->SetCollisionProfileName(TEXT("Projectile"));
+    Collision->SetCollisionProfileName(TEXT("Bullet"));
     Collision->SetNotifyRigidBodyCollision(true);
     Collision->OnComponentHit.AddDynamic(this, &ABulletBase::OnHit);
     RootComponent = Collision;
