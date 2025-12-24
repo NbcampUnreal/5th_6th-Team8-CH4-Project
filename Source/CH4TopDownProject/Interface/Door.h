@@ -28,6 +28,10 @@ protected:
 	UFUNCTION()
 	virtual void DoorOpenTimeLineFunc(float Output);
 
+	//문열림 여부
+	UPROPERTY(ReplicatedUsing = OnRep_DoorState, EditAnywhere, BlueprintReadWrite)
+	bool bDoorOpen = false;
+
 private:
 	//문열림 연출 실행
 	FOnTimelineFloat UpdateFunctionFloat;
@@ -39,11 +43,6 @@ private:
 	//문열림 연출용 Timeline
 	UPROPERTY(EditDefaultsOnly, Category = "Door Action", meta = (AllowPrivateAccess = true))
 	UTimelineComponent* DoorTimeline;
-
-	//문열림 여부
-	UPROPERTY(ReplicatedUsing = OnRep_DoorState)
-	bool bDoorOpen= false;
-
 	
 	UFUNCTION(Server, Reliable)
 	void Server_ToggleDoor();

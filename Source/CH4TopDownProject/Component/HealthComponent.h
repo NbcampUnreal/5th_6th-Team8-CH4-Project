@@ -19,6 +19,8 @@ public:
 protected:
 	virtual void BeginPlay() override;    
 
+    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
     UFUNCTION()
     void OnRep_Health();
 
@@ -57,8 +59,6 @@ public:
 
     UFUNCTION(BlueprintCallable)
     void Heal(float HealAmount);
-        
-    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
     UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = "Health")
