@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -23,6 +23,8 @@ class UWidgetComponent;
 class ADamageTextActor;
 
 class UCameraComponent;
+
+class UInventoryComponent;
 
 UCLASS()
 class CH4TOPDOWNPROJECT_API ARCPlayerCharacter : public ACharacter
@@ -226,7 +228,9 @@ private:
 	void HandleFireStarted(const FInputActionValue& InValue);
 	void HandleFireStopped(const FInputActionValue& InValue);
 	void HandleReloadInput(const FInputActionValue& InValue);
-
+public:
+	//server only, not client
+	void SetCurrentWeapon(AActor* weapon);
 # pragma endregion
 
 #pragma region Armor
@@ -242,6 +246,9 @@ protected:
 
 	void UpdateAim();
 	bool bIsFirstButtonDown = false;
+public:
+	//server only, not client
+	void SetArmor(AActor* Armor);
 #pragma endregion
 
 #pragma region SFX

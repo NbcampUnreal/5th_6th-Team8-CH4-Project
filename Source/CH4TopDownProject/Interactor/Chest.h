@@ -23,5 +23,7 @@ public:
 	TMap<FName,int32> ItemList;
 
 	virtual void Interact_Implementation(AActor* Interactor) override;
+
+	void SetItem(const TMap<FName, int32>& ItemMap);
 	
 };

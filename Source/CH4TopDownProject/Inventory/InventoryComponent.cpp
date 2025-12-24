@@ -155,6 +155,32 @@ AActor* UInventoryComponent::SpawnItemOnGround(TSubclassOf<AActor> SpawnActor)
 
 bool UInventoryComponent::GetItem(AActor* ItemActor)
 {
+	if (!ItemActor) {
+		FVector st = GetOwner()->GetActorLocation();
+		FVector ed = st + (GetOwner()->GetActorForwardVector() * 300.f);
+		FHitResult Hit;	
+		FCollisionQueryParams Params;
+		Params.AddIgnoredActor(GetOwner());
+		if (bool bHit = GetWorld()->LineTraceSingleByChannel(
+			Hit, 
+			st, ed, 
+			ECC_Visibility, 
+			Params)
+			) {
+			ItemActor = Hit.GetActor();
+			DrawDebugLine(
+				GetWorld(),
+				st,
+				ed,
+				bHit ? FColor::Red : FColor::Green,
+				false,
+				1.f,
+				0,
+				1.f
+			);
+		}		
+		else return false;
+	}
 	if (UBaseItemComponent* ItemComp = ItemActor->FindComponentByClass<UBaseItemComponent>()) {
 		FInventorySlot Item = ItemComp->GetItemData();
 
@@ -181,6 +207,7 @@ bool UInventoryComponent::GetItem(AActor* ItemActor)
 			for (int i = 0; i < 2; i++) {
 				if (!WeaponActors[i]) {
 					RequestSetWeapon(i, Item);
+					return true;
 				}
 			}
 		}
@@ -460,7 +487,8 @@ UDataTable* UInventoryComponent::GetDataTableByItemType(EItemType ItemType) cons
 
 	case EItemType::Ammo:
 		return AmmoItemDataTable;
-
+	case EItemType::Weapon:
+		return  WeaponItemDataTable;
 	default:
 		return nullptr;
 	}
@@ -653,10 +681,10 @@ void UInventoryComponent::RequestEquipWeapon(int32 Index)
 void UInventoryComponent::ServerSetWeapon_Implementation(int32 Index, FInventorySlot NewWeapon)
 {
 	if (!WeaponActors.IsValidIndex(Index)) return;
-	if (!WeqponItemDataTable) return;
+	if (!WeaponItemDataTable) return;
 
-	const FEquipmentItemData* Row =
-		WeqponItemDataTable->FindRow<FEquipmentItemData>(
+	const FWeaponItemData* Row =
+		WeaponItemDataTable->FindRow<FWeaponItemData>(
 			NewWeapon.ItemID, TEXT(""));
 
 	if (!Row || !Row->ItemActorClass) return;
@@ -688,9 +716,13 @@ void UInventoryComponent::ServerEquipWeapon_Implementation(int32 Index)
 	}
 
 	CurrentWeaponIndex = Index;
+	
+	if (!WeaponActors.IsValidIndex(CurrentWeaponIndex)) return;
 
-	// 서버도 즉시 반영
-	OnRep_CurrentWeaponIndex();
+	AActor* Weapon = WeaponActors[CurrentWeaponIndex];
+	if (!Weapon) return;
+
+	Cast<ARCPlayerCharacter>(GetOwner())->SetCurrentWeapon(Weapon);
 }
 
 void UInventoryComponent::OnRep_CurrentWeaponIndex()
@@ -703,18 +735,12 @@ void UInventoryComponent::OnRep_CurrentWeaponIndex()
 			Weapon->SetActorHiddenInGame(true);
 		}
 	}
+	WeaponActors[CurrentWeaponIndex]->SetActorHiddenInGame(false);
+}
 
-	if (!WeaponActors.IsValidIndex(CurrentWeaponIndex)) return;
-
-	AActor* Weapon = WeaponActors[CurrentWeaponIndex];
-	if (!Weapon) return;
-
-	Weapon->SetActorHiddenInGame(false);
-	Weapon->AttachToComponent(
-		GetOwner()->GetRootComponent(),
-		FAttachmentTransformRules::SnapToTargetNotIncludingScale,
-		TEXT("WeaponSocket")
-	);
+void UInventoryComponent::OnRep_WeaponActors()
+{
+	OnInventoryUpdated.Broadcast();
 }
 
 void UInventoryComponent::ClearWeaponSlot(int32 Index)
@@ -732,6 +758,16 @@ void UInventoryComponent::ClearWeaponSlot(int32 Index)
 	Weapon->Destroy();
 	WeaponActors[Index] = nullptr;
 }
+
+FInventorySlot UInventoryComponent::Get_Weapon(int32 index)const
+{
+	if(WeaponActors[index]){
+	if (UBaseItemComponent* ItemComp = WeaponActors[index]->FindComponentByClass<UBaseItemComponent>())
+		return ItemComp->GetItemData();
+	}
+	return FInventorySlot();
+}
+
 AActor* UInventoryComponent::Get_CurrentWeapon()
 {
 	return WeaponActors[CurrentWeaponIndex];

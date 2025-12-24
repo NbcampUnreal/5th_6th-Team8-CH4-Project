@@ -58,4 +58,5 @@ protected:
 
 public:
 	void OnCharacterDead();
+	
 };

@@ -97,7 +97,7 @@ public:
 	UDataTable* EquipmentItemDataTable;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory|Data")
-	UDataTable* WeqponItemDataTable;
+	UDataTable* WeaponItemDataTable;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory|Data")
 	UDataTable* AmmoItemDataTable;
@@ -201,7 +201,7 @@ public:
 private:
 
 	// 실제 장착된 무기 액터
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing = OnRep_WeaponActors)
 	TArray<AActor*> WeaponActors; // Size = 2
 
 	// 현재 사용 중인 무기 슬롯 인덱스
@@ -211,6 +211,8 @@ private:
 protected:
 	UFUNCTION()
 	void OnRep_CurrentWeaponIndex();
+	UFUNCTION()
+	void OnRep_WeaponActors();
 public:
 
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
@@ -227,7 +229,10 @@ public:
 
 	void ClearWeaponSlot(int32 Index);
 
+	UFUNCTION(BlueprintCallable, Category = "Equipment")
 	AActor* Get_CurrentWeapon();
+	UFUNCTION(BlueprintCallable, Category = "Equipment")
+	FInventorySlot Get_Weapon (int32 index) const;
 #pragma endregion
 
 };
