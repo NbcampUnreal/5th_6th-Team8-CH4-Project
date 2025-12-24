@@ -54,6 +54,11 @@ public:
 	TObjectPtr<AActor> IgnoreActor = nullptr;
 
 	ATopDownWeaponBase* GetCurrentWeapon() {return CurrentWeapon;}
+
+	AArmorBase* GetCurrentArmor() { return CurrentArmor; }
+
+	UFUNCTION(Server, Reliable)
+	void Server_Interact(AWorldItemBase* Target);
 # pragma region Components
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
@@ -153,6 +158,7 @@ private:
 
 private:
 	const float DefaultMaxWalkSpeed = 500.0f;
+	const float DegalutTest = 100.f;
 	const float SprintMaxWalkSpeed = 1000.0f;
 	const float DashMaxWalkSpeed = 3000.0f;
 
@@ -219,9 +225,6 @@ private:
 	void HandleFireStopped(const FInputActionValue& InValue);
 	void HandleReloadInput(const FInputActionValue& InValue);
 
-	void UpdateFireAim();
-
-	bool bIsFireButtonDown = false;
 # pragma endregion
 
 #pragma region Armor
@@ -234,6 +237,9 @@ protected:
 
 	UFUNCTION()
 	void OnRep_CurrentArmor();
+
+	void UpdateAim();
+	bool bIsFirstButtonDown = false;
 #pragma endregion
 
 #pragma region SFX

@@ -14,7 +14,7 @@ class CH4TOPDOWNPROJECT_API ARCPlayerController : public APlayerController
 {
 	GENERATED_BODY()
 
-public:
+protected:
 	virtual void BeginPlay() override;
 
 //	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -26,6 +26,7 @@ public:
 //	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 //	TSubclassOf<UUserWidget> NotificationTextUIClass;
 
+public:
 	UFUNCTION(Client, Reliable)
 	void Client_HandleDeath();
 
@@ -37,6 +38,8 @@ protected:
 	void HandleVictory();
 
 	void ShowGameResultLayout(TSubclassOf<UGameResultLayout> TargetGameResultLayout);
+
+	void UpdateHUDTime();
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
@@ -50,6 +53,8 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UGameResultLayout> LoserLayoutClass;
+
+	FTimerHandle HUDTimerHandle;
 
 public:
 	void OnCharacterDead();

@@ -1,4 +1,4 @@
-#include "Component/QuickSlotComponent.h"
+﻿#include "Component/QuickSlotComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "GameFramework/Character.h"
 #include "Inventory/ItemData/ItemData.h"
@@ -57,7 +57,7 @@ void UQuickSlotComponent::Server_SetQuickSlot_Implementation(int32 SlotIndex, FN
 
     if (UInventoryComponent* Inventory = GetInventoryComponent())
     {
-        // Slot.StackCount = Inventory->GetItemCount(NewItemID);
+        Slot.StackCount = Inventory->CheckItem_ID(NewItemID);
     }
 
     OnRep_QuickSlotData();
@@ -88,11 +88,11 @@ void UQuickSlotComponent::Server_UseQuickSlot_Implementation(int32 SlotIndex)
         WeaponSlot.ItemID = Slot.ItemID;
         WeaponSlot.ItemType = Slot.ItemType;
 
-        Inventory->EquipWeapon(WeaponSlot);
+        Inventory->RequestEquipWeapon(SlotIndex);
     }
     else if (Slot.ItemType == EItemType::Consumable)
     {
-        // Inventory->Server_UseConsumable(Slot.ItemID);
+        Inventory->UseItem_ID(Slot.ItemID,1);
     }
 }
 

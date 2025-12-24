@@ -20,10 +20,17 @@ protected:
 
 public:
 	virtual void Interact_Implementation(AActor* Interactor) override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	
 
 protected:
 	UFUNCTION()
 	virtual void DoorOpenTimeLineFunc(float Output);
+
+	//문열림 여부
+	UPROPERTY(ReplicatedUsing = OnRep_DoorState, EditAnywhere, BlueprintReadWrite)
+	bool bDoorOpen = false;
 
 private:
 	//문열림 연출 실행
@@ -36,8 +43,11 @@ private:
 	//문열림 연출용 Timeline
 	UPROPERTY(EditDefaultsOnly, Category = "Door Action", meta = (AllowPrivateAccess = true))
 	UTimelineComponent* DoorTimeline;
+	
+	UFUNCTION(Server, Reliable)
+	void Server_ToggleDoor();
 
-	//문열림 여부
-	UPROPERTY(EditAnywhere, Category = "Door Action", meta = (AllowPrivateAccess = true))
-	bool bDoorOpen;
+	UFUNCTION()
+	void OnRep_DoorState();
 };
+

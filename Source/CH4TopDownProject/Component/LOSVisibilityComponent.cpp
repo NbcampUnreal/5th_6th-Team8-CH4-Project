@@ -6,7 +6,7 @@
 #include "HealthComponent.h"
 #include "Character/RCPlayerCharacter.h"
 #include "Weapon/TopDownWeaponBase.h"
-
+#include "Armor/ArmorBase.h"
 
 ULOSVisibilityComponent::ULOSVisibilityComponent()
 {
@@ -56,6 +56,12 @@ void ULOSVisibilityComponent::SetOwnerVisible(bool bVisible) const
 			if (weapon)
 			{
 				weapon->SetActorHiddenInGame(!bVisible);
+			}
+
+			AArmorBase* armor = Player->GetCurrentArmor();
+			if (armor)
+			{
+				armor->SetActorHiddenInGame(!bVisible);
 			}
 		}
 	}

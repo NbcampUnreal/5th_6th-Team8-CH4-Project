@@ -6,11 +6,15 @@ AArmorBase::AArmorBase()
     PrimaryActorTick.bCanEverTick = false;
     bReplicates = true;
 
-    ArmorMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ArmorMesh"));
-    SetRootComponent(ArmorMesh);
+    Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
+    SetRootComponent(Root);
 
+    ArmorMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ArmorMesh"));
+    ArmorMesh->SetupAttachment(Root);
     ArmorMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     ArmorMesh->SetIsReplicated(true);
+
+    ArmorMesh->SetRelativeTransform(WearOffset);
 }
 
 void AArmorBase::GetLifetimeReplicatedProps(
@@ -39,4 +43,14 @@ float AArmorBase::ModifyDamage(float InDamage) const
     );
 
     return ReducedDamage;
+}
+
+void AArmorBase::SetWearOffset(const FTransform& InOffset)
+{
+    WearOffset = InOffset;
+
+    if (ArmorMesh)
+    {
+        ArmorMesh->SetRelativeTransform(WearOffset);
+    }
 }

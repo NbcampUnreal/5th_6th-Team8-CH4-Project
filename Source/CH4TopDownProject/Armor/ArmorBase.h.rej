@@ -1,0 +1,9 @@
+diff a/Source/CH4TopDownProject/Armor/ArmorBase.h b/Source/CH4TopDownProject/Armor/ArmorBase.h	(rejected hunks)
+@@ -18,6 +18,7 @@
+ 
+     float ModifyDamage(float InDamage) const;
+ 
++    UFUNCTION(BlueprintCallable, Category = "Armor")
+     void SetWearOffset(const FTransform& InOffset);
+ protected:
+     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Armor", meta = (AllowPrivateAccess = "true"))
