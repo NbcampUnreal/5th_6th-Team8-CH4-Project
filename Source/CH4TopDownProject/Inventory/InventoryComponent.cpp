@@ -296,6 +296,10 @@ void UInventoryComponent::DropItem_Internal(FInventorySlot Item)
 	}
 
 	AActor* DroppedItem = SpawnItemOnGround(ItemRow->ItemActorClass);
+	if (!DroppedItem) {
+		UE_LOG(LogTemp, Error, TEXT("Failed to spawn dropped item"));
+		return;
+	}
 	UBaseItemComponent* ItemComp = DroppedItem->FindComponentByClass<UBaseItemComponent>();
 	if (!ItemComp)
 	{
