@@ -117,6 +117,8 @@ void UHealthComponent::HandleTakeDamage(AActor* DamagedActor, float Damage, cons
 
         if (OwnerPawn->HasAuthority())
         {
+            PC->OnCharacterDead();
+
             GetWorld()->GetTimerManager().SetTimer(
                 DestroyTimerHandle,
                 [OwnerPawn]()

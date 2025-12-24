@@ -62,7 +62,7 @@ void ARCGameModeBase::OnMainTimerElapsed()
 	}
 	case EMatchState::Ending: 
 	{
-		UE_LOG(LogTemp, Error, TEXT("%d seconds until RestartServer"), CurGameStateChangeDelay);
+		UE_LOG(LogTemp, Error, TEXT(":%d seconds until RestartServer"), CurGameStateChangeDelay);
 		--CurGameStateChangeDelay;
 		
 		if (CurGameStateChangeDelay <= 0)
