@@ -45,6 +45,22 @@ float AArmorBase::ModifyDamage(float InDamage) const
     return ReducedDamage;
 }
 
+void AArmorBase::BeginPlay()
+{
+    Super::BeginPlay();
+
+    this->SetActorHiddenInGame(true);
+
+    APlayerController* PC = Cast<APlayerController>(GetInstigatorController());
+    if (PC)
+    {
+        if (PC->IsLocalController())
+        {
+            this->SetActorHiddenInGame(false);
+        }
+    }
+}
+
 void AArmorBase::SetWearOffset(const FTransform& InOffset)
 {
     WearOffset = InOffset;
