@@ -42,6 +42,18 @@ void ATopDownWeaponBase::BeginPlay()
 	{
 		CurrentAmmoInMag = WeaponStats.MagazineSize;
 		bIsReloading = false;
+		return;
+	}
+
+	this->SetActorHiddenInGame(true);
+
+	APlayerController* PC = Cast<APlayerController>(GetInstigatorController());
+	if (PC)
+	{
+		if (PC->IsLocalController())
+		{
+			this->SetActorHiddenInGame(false);
+		}
 	}
 }
 
@@ -69,8 +81,8 @@ void ATopDownWeaponBase::StartFire()
 		return;
 
 	FVector TargetPos = Hit.ImpactPoint;
-	TargetPos.Z += 80.f; 
-	
+	TargetPos.Z += 80.f;
+
 	if (!HasAuthority())
 	{
 		Server_StartFire(TargetPos);
@@ -97,7 +109,7 @@ void ATopDownWeaponBase::StopFire()
 void ATopDownWeaponBase::Server_StartFire_Implementation(const FVector_NetQuantize& TargetWorldPos)
 {
 	CachedTargetWorldPos = TargetWorldPos;
-	
+
 	if (bIsReloading)
 	{
 		bWantsToFire = true;
@@ -243,7 +255,7 @@ void ATopDownWeaponBase::SpawnBullet_Server()
 		InstCtrl = OwnerPawn->GetController();
 	}
 
-	Bullet->InitBullet(Dir, WeaponStats.BulletSpeed, WeaponStats.Damage, InstCtrl,WeaponStats.MaxRange);
+	Bullet->InitBullet(Dir, WeaponStats.BulletSpeed, WeaponStats.Damage, InstCtrl, WeaponStats.MaxRange);
 }
 
 void ATopDownWeaponBase::Multicast_PlayFireFX_Implementation(const FVector& Loc, const FRotator& Rot)
