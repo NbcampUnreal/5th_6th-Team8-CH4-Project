@@ -121,14 +121,6 @@ void ARCPlayerController::OnCharacterDead()
 }
 
 
-void ARCPlayerController::Client_ReturnToTitle_Implementation()
-{
-	if (IsLocalController() == true)
-	{
-		UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("Title")), true);
-	}
-}
-
 void ARCPlayerController::UpdateHUDTime()
 {	
 	if (AGameStateBase* GS = GetWorld()->GetGameState())
