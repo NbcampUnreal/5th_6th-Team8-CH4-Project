@@ -22,14 +22,22 @@ protected:
 #pragma region Settings
 
 protected:
-	const int32 GameStartDelay = 10;
+	const int32 GameStateChangeDelay = 10;
+	int32 CurGameStateChangeDelay = 10;
+
+private:
+	UFUNCTION()
+	void OnMainTimerElapsed();
+
+public:
+	FTimerHandle MainTimerHandle;
 
 #pragma endregion
 
 #pragma region Player
 
 protected:
-	const int32 MaxPlayer = 2;
+	const int32 MaxPlayerCount = 2;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TArray<TObjectPtr<class ARCPlayerController>> AlivePlayerControllers;
@@ -38,7 +46,7 @@ protected:
 protected:
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 
-	void OnPlayerDeath(APlayerController* Controller);
+	void OnPlayerDeath(ARCPlayerController* Controller);
 #pragma endregion
 
 #pragma region Object pooling

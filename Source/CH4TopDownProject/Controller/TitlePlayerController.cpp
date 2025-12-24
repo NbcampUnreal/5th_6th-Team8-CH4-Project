@@ -121,7 +121,7 @@ void ATitlePlayerController::OnFindSessionComplete(bool bWasSuccessful)
 
 		if (GEngine)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Cyan, FString::Printf(TEXT("%s Session: %s(%s)- %s"), *User, *SessionName, *Id, (bSessionStart ? TEXT("Started") : TEXT("Waitting"))));
+			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Cyan, FString::Printf(TEXT("%s Session: %s(%s)- %s"), *User, *SessionName, *Id, (bSessionStart ? TEXT("Started") : TEXT("Waiting"))));
 		}
 	}
 

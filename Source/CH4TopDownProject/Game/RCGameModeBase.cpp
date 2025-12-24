@@ -4,6 +4,7 @@
 #include "Kismet/GameplayStatics.h"
 
 #include "Game/RCGameInstance.h"
+#include "Game/RCGameStateBase.h"
 
 #include "Controller/RCPlayerController.h"
 
@@ -22,6 +23,67 @@ void ARCGameModeBase::InitGame()
 	{
 		GI->ManageSession(true);
 	}
+
+	GetWorld()->GetTimerManager().SetTimer(MainTimerHandle, this, &ThisClass::OnMainTimerElapsed, 1.f, true);
+}
+
+void ARCGameModeBase::OnMainTimerElapsed()
+{
+	ARCGameStateBase* RCGameState = GetGameState<ARCGameStateBase>();
+	if (IsValid(RCGameState) == false)
+	{
+		return;
+	}
+
+	RCGameState->AlivePlayerControllerCount = AlivePlayerControllers.Num();
+
+	switch (RCGameState->MatchState)
+	{
+	case EMatchState::None: { break; }
+	case EMatchState::Waiting:
+	{
+		if (AlivePlayerControllers.Num() < MaxPlayerCount)
+		{
+
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Ready To Game :%d"), CurGameStateChangeDelay);
+			--CurGameStateChangeDelay;
+		}
+
+		if (CurGameStateChangeDelay <= 0)
+		{
+			ARCGameStateBase* RCGameState = GetGameState<ARCGameStateBase>();
+			if (IsValid(RCGameState))
+			{
+				RCGameState->MatchState = EMatchState::Playing;
+			}
+		}
+		break;
+	}
+	case EMatchState::Playing:
+	{ 
+
+
+		break; 
+	}
+	case EMatchState::Ending: 
+	{ 
+		--CurGameStateChangeDelay;
+		if (CurGameStateChangeDelay <= 0)
+		{
+			ARCGameStateBase* RCGameState = GetGameState<ARCGameStateBase>();
+			if (IsValid(RCGameState))
+			{
+				RCGameState->MatchState = EMatchState::Playing;
+			}
+		}
+		break; 
+	}
+	case EMatchState::End: { break; }
+	default: { break; }
+	}
 }
 
 void ARCGameModeBase::PostLogin(APlayerController* NewPlayer)
@@ -33,24 +95,34 @@ void ARCGameModeBase::PostLogin(APlayerController* NewPlayer)
 	{
 		AlivePlayerControllers.Add(NewPlayerController);
 
-		if (AlivePlayerControllers.Num() >= MaxPlayer) {
+		if (AlivePlayerControllers.Num() >= MaxPlayerCount) {
 			UE_LOG(LogTemp, Error, TEXT("Player is full. This Session will be closed..."));
 
-			URCGameInstance* GI = GetWorld()->GetGameInstance<URCGameInstance>();
-			if (GI)
+			URCGameInstance* RCGameInstance = GetWorld()->GetGameInstance<URCGameInstance>();
+			if (IsValid(RCGameInstance))
 			{
-				GI->ManageSession(false);
+				RCGameInstance->ManageSession(false);
 			}
 		}
 	}
 }
 
-void ARCGameModeBase::OnPlayerDeath(APlayerController* Controller)
+void ARCGameModeBase::OnPlayerDeath(ARCPlayerController* Controller)
 {
 	// remove controller from AlivePlayerControllers
+	AlivePlayerControllers.Remove(Controller);
 
 	// left one player 
 	// init game
+	if (AlivePlayerControllers.Num() <= 1)
+	{
+		ARCGameStateBase* RCGameState = GetGameState<ARCGameStateBase>();
+		if (IsValid(RCGameState))
+		{
+			RCGameState->MatchState = EMatchState::Ending;
+			CurGameStateChangeDelay = GameStateChangeDelay;
+		}
+	}
 }
 
 void ARCGameModeBase::InitPool()
