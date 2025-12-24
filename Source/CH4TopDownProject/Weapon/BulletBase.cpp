@@ -8,6 +8,7 @@
 #include "Engine/World.h"
 #include "ObjectPool/ActorObjectPoolSubsystem.h"
 #include "Net/UnrealNetwork.h"
+#include "Character/RCPlayerCharacter.h"
 
 ABulletBase::ABulletBase()
 {
@@ -157,14 +158,6 @@ void ABulletBase::OnHit(
     if (!HasAuthority())
         return;
 
-    UE_LOG(LogTemp, Warning,
-        TEXT("[Bullet][Server][OnHit] Self=%s HitActor=%s Comp=%s HasAuthority=%d"),
-        *GetName(),
-        *GetNameSafe(OtherActor),
-        *GetNameSafe(OtherComp),
-        HasAuthority()
-    );
-
     APawn* InstPawn = InstigatorController.IsValid() ? InstigatorController->GetPawn() : nullptr;
 
     if (!OtherActor || OtherActor == InstPawn)
@@ -173,21 +166,17 @@ void ABulletBase::OnHit(
         return;
     }
 
-    UE_LOG(LogTemp, Warning, TEXT("[Bullet][Server][ApplyDamage] Target=%s Damage=%.1f"),
-        *GetNameSafe(OtherActor), Damage);
-
     const FVector ShotDir = (Movement ? Movement->Velocity.GetSafeNormal() : GetActorForwardVector());
 
-    UE_LOG(LogTemp, Warning,
-        TEXT("[Bullet][Server][ApplyDamage] Target=%s Damage=%.1f Instigator=%s"),
-        *GetNameSafe(OtherActor),
-        Damage,
-        *GetNameSafe(InstigatorController.IsValid() ? InstigatorController->GetPawn() : nullptr)
-    );
+    float FinalDamage = Damage;
 
+    if (Hit.BoneName == HeadBoneName)
+    {
+		FinalDamage *= HeadshotMultiplier;
+    }
     UGameplayStatics::ApplyPointDamage(
         OtherActor,
-        Damage,
+        FinalDamage,
         ShotDir,
         Hit,
         InstigatorController.Get(),

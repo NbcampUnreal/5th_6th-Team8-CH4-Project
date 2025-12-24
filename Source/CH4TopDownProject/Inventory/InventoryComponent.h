@@ -25,6 +25,7 @@ struct FInventorySlot // 아이템슬롯 == 아이템 한칸에 들어갈 정보
 	int32 Num;
 };
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInventoryUpdated);
 
 UCLASS(Blueprintable, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class CH4TOPDOWNPROJECT_API UInventoryComponent : public UActorComponent
@@ -38,8 +39,14 @@ public:
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
+	virtual void GetLifetimeReplicatedProps(
+		TArray<FLifetimeProperty>& OutLifetimeProps
+	) const override;
 #pragma region UI
 private:
+
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInventoryUpdated);
+
 	UPROPERTY(EditDefaultsOnly, Category = "Inventory|UI")
 	TSubclassOf<UInventoryUI> InventoryWidgetClass;
 
@@ -48,6 +55,9 @@ private:
 
 	
 public:
+	UPROPERTY(BlueprintAssignable, Category = "Inventory|Event")
+	FOnInventoryUpdated OnInventoryUpdated;
+
 	UPROPERTY(BlueprintReadOnly, Category = "Inventory|UI")
 	UInventoryUI* InventoryWidget;
 
@@ -60,14 +70,18 @@ public:
 
 #pragma region Inventory
 private: 
-	UPROPERTY(EditAnywhere, Category = "Inventory")
+	UPROPERTY(ReplicatedUsing = OnRep_Items, EditAnywhere, Category = "Inventory")
 	TArray<FInventorySlot> Items;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
 	int32 DefaultInventorySize = 4; 	
 
-	TMap<FName, int32> ItemCountCache;	
-
+	
+	TMap<FName, int32> ItemCountCache;
+	//지금은 이렇게 하지만 tmap은 replicated에 사용하지 않는게 좋다. 데이터 꼬인다
+protected:
+	UFUNCTION()
+	void OnRep_Items();
 public:	
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory|Data")
@@ -91,6 +105,7 @@ public:
 private:
 	AActor* SpawnItemOnGround(TSubclassOf<AActor> SpawnActor);
 	UDataTable* GetDataTableByItemType(EItemType ItemType)const;
+	EItemType GetDataTypeByItemID(FName ItemID)const;
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
@@ -98,18 +113,27 @@ public:
 	//아이템 획득, items에 추가와 cached에 등록
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void AddItem(FInventorySlot Item);
+	UFUNCTION(Server, Reliable)
+	void Server_AddItem(FInventorySlot Item);
 	//아이템 drop
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void DropItem(FInventorySlot Item);
+	UFUNCTION(Server, Reliable)
+	void Server_DropItem(FInventorySlot Item);
+	void DropItem_Internal(FInventorySlot Item);
 	//slot아이템 통째로 제거
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void RemoveItem(int32 Index);
+	UFUNCTION(Server, Reliable)
+	void Server_RemoveItem(int32 Index);
 	//사용한 아이템 갯수를 리턴
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	int32 UseItem_ID(FName ItemID, int32 Num);
+	UFUNCTION(Server, Reliable)
+	void Server_UseItem_ID(FName ItemID, int32 Num);
+	void UseItem_ID_Internal(FName ItemID, int32 Num);
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	int32 CheckItem_ID(FName ItemID);
-
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	const TArray<FInventorySlot>& GetItems() const { return Items; }
@@ -124,14 +148,21 @@ public:
 
 private:
 
-	UPROPERTY(EditDefaultsOnly, Category = "Equpment")
+	UPROPERTY(ReplicatedUsing = OnRep_EquipmentBag, EditDefaultsOnly, Category = "Equipment")
 	FInventorySlot EquipmentBagID;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Equpment")
+	UPROPERTY(ReplicatedUsing = OnRep_EquipmentChest, EditDefaultsOnly, Category = "Equipment")
 	FInventorySlot EquipmentChestID;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Equpment")
+	UPROPERTY(ReplicatedUsing = OnRep_EquipmentHead, EditDefaultsOnly, Category = "Equipment")
 	FInventorySlot EquipmentHeadID;
+protected:
+		UFUNCTION()
+		void OnRep_EquipmentBag();
+		UFUNCTION()
+		void OnRep_EquipmentChest();
+		UFUNCTION()
+		void OnRep_EquipmentHead();
 public:
 
 	// Getter
@@ -146,9 +177,17 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
 	void SetEquipmentBagID(FInventorySlot NewID);
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
-	void SetEquipmentChestID(FInventorySlot NewID) { EquipmentChestID = NewID; }
+	void SetEquipmentChestID(FInventorySlot NewID);
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
-	void SetEquipmentHeadID(FInventorySlot NewID) { EquipmentHeadID = NewID; }
+	void SetEquipmentHeadID(FInventorySlot NewID);
+
+	//ServerSetter
+	UFUNCTION(Server, Reliable)
+	void ServerSetEquipmentBagID(FInventorySlot NewID);
+	UFUNCTION(Server, Reliable)
+	void ServerSetEquipmentChestID(FInventorySlot NewID);
+	UFUNCTION(Server, Reliable)
+	void ServerSetEquipmentHeadID(FInventorySlot NewID);
 
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
 	int32 GetBonusHealth();
@@ -161,43 +200,32 @@ public:
 
 private:
 
-	UPROPERTY(EditDefaultsOnly, Category = "Equpment")
-	FInventorySlot EquipmentWeapon1ID;
+	// 실제 장착된 무기 액터
+	UPROPERTY(Replicated)
+	TArray<AActor*> WeaponActors; // Size = 2
 
-	UPROPERTY(EditDefaultsOnly, Category = "Equpment")
-	FInventorySlot EquipmentWeapon2ID;
+	// 현재 사용 중인 무기 슬롯 인덱스
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentWeaponIndex)
+	int32 CurrentWeaponIndex = INDEX_NONE;
 
-	UPROPERTY(Transient)
-	AActor* EquippedWeaponActor = nullptr;
-
+protected:
+	UFUNCTION()
+	void OnRep_CurrentWeaponIndex();
 public:
 
-	// Getter
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
-	FInventorySlot GetEquipmentWeapon1ID() const { return EquipmentWeapon1ID; }
-	UFUNCTION(BlueprintCallable, Category = "Equipment")
-	FInventorySlot GetEquipmentWeapon2ID() const { return EquipmentWeapon2ID; }
-
-	// Setter
-	UFUNCTION(BlueprintCallable, Category = "Equipment")
-	void SetEquipmentWeapon1(FInventorySlot NewID) { EquipmentWeapon1ID = NewID; }
-	UFUNCTION(BlueprintCallable, Category = "Equipment")
-	void SetEquipmentWeapon2(FInventorySlot NewID) { EquipmentWeapon2ID = NewID; }
-	// Getter (Actor)
-	UFUNCTION(BlueprintCallable, Category = "Equipment")
-	AActor* GetWeaponActor() const { return EquippedWeaponActor; }
-
-
-	// Equip
-	UFUNCTION(BlueprintCallable, Category = "Equipment")
-	void EquipWeapon(FInventorySlot NewWeapon);
-	// Unequip
-	UFUNCTION(BlueprintCallable, Category = "Equipment")
-	void UnequipWeapon();
+	void RequestSetWeapon(int32 Index, const FInventorySlot& NewWeapon);
 
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
-	int32 GetUseableAmmoNum(FName UseAmmoID) const {
-		return ItemCountCache[UseAmmoID];	}
+	void RequestEquipWeapon(int32 Index);
+
+	UFUNCTION(Server, Reliable)
+	void ServerSetWeapon(int32 Index, FInventorySlot NewWeapon);
+
+	UFUNCTION(Server, Reliable)
+	void ServerEquipWeapon(int32 Index);
+
+	void ClearWeaponSlot(int32 Index);
 #pragma endregion
 
 };

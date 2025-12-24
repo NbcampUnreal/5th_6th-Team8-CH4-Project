@@ -6,6 +6,7 @@
 #include "UI/MainHUDWidget.h"
 #include "Component/HealthComponent.h"
 #include "UI/GameResultLayout.h"
+#include "GameFramework/GameStateBase.h"
 
 //#include "Game/RCGameModeBase.h"
 
@@ -45,6 +46,14 @@ void ARCPlayerController::BeginPlay()
 	if (MainHUDWidgetInstance)
 	{
 		MainHUDWidgetInstance->ShowNotice(TEXT("Goal: Survive to the end!"));
+				
+		GetWorld()->GetTimerManager().SetTimer(
+			HUDTimerHandle, 
+			this, 
+			&ARCPlayerController::UpdateHUDTime, 
+			1.0f, 
+			true
+		);
 	}
 }
 
@@ -107,4 +116,13 @@ void ARCPlayerController::OnCharacterDead()
 	//{
 	//	GameMode->OnCharacterDead(this);
 	//}
+}
+
+void ARCPlayerController::UpdateHUDTime()
+{	
+	if (AGameStateBase* GS = GetWorld()->GetGameState())
+	{
+		float ServerTime = GS->GetServerWorldTimeSeconds();
+		MainHUDWidgetInstance->UpdateGameTime(ServerTime);
+	}
 }
