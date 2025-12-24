@@ -296,6 +296,10 @@ void UInventoryComponent::DropItem_Internal(FInventorySlot Item)
 	}
 
 	AActor* DroppedItem = SpawnItemOnGround(ItemRow->ItemActorClass);
+	if (!DroppedItem) {
+		UE_LOG(LogTemp, Error, TEXT("Failed to spawn dropped item"));
+		return;
+	}
 	UBaseItemComponent* ItemComp = DroppedItem->FindComponentByClass<UBaseItemComponent>();
 	if (!ItemComp)
 	{
@@ -727,5 +731,9 @@ void UInventoryComponent::ClearWeaponSlot(int32 Index)
 
 	Weapon->Destroy();
 	WeaponActors[Index] = nullptr;
+}
+AActor* UInventoryComponent::Get_CurrentWeapon()
+{
+	return WeaponActors[CurrentWeaponIndex];
 }
 #pragma endregion

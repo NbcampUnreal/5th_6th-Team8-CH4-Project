@@ -8,13 +8,13 @@
 UENUM(BlueprintType)
 enum class EItemType : uint8
 {
-	None,
-	Bag,
-	Consumable,
-	Equipment_Head,
-	Equipment_Body,
-	Ammo,
-	Weapon
+	None,//0
+	Bag,//1
+	Consumable,//2
+	Equipment_Head,//3
+	Equipment_Body,//4
+	Ammo,//5
+	Weapon//6
 }; 
 
 
