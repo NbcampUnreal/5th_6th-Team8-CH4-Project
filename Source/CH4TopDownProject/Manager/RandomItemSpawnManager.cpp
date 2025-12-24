@@ -17,6 +17,7 @@ void ARandomItemSpawnManager::BeginPlay()
 {
 	Super::BeginPlay();
 
+	if (!HasAuthority()) return;
 
 	TArray<FWeaponAmmoSet*> AmmoSetRows;
 	WeaponAmmoTableDT->GetAllRows(TEXT("WeaponAmmo"), AmmoSetRows);
@@ -145,7 +146,7 @@ EItemType ARandomItemSpawnManager::GetRandomNonWeaponType() const
 	TArray<EItemType> Types = {
 		EItemType::Bag,
 		EItemType::Consumable,
-		EItemType::Equipment_Head,
+		//EItemType::Equipment_Head,
 		EItemType::Equipment_Body,
 		EItemType::Ammo,
 	};
