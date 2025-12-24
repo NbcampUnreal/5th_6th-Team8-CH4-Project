@@ -34,6 +34,9 @@ protected:
 
 	void DrawDebugBlueZone();
 
+public:
+	void ActivateBlueZone();
+
 protected:	
 	UPROPERTY(EditAnywhere, Category = "BlueZone")
 	float WaitTime = 30.0f;

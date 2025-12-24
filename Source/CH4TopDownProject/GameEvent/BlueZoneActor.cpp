@@ -21,6 +21,7 @@ void ABlueZoneActor::BeginPlay()
 
 	CurrentRadius = BlueZoneRadius;
 
+	// Will be erased
 	if (HasAuthority())
 	{
 		GetWorld()->GetTimerManager().SetTimer(
@@ -147,4 +148,30 @@ void ABlueZoneActor::DrawDebugBlueZone()
 		FVector(0, 1, 0),
 		false
 	);
+}
+
+void ABlueZoneActor::ActivateBlueZone()
+{
+	if (HasAuthority())
+	{
+		return;
+	}
+
+	GetWorld()->GetTimerManager().SetTimer(
+		BlueZoneDamageHandle,
+		this,
+		&ABlueZoneActor::ApplyBlueZoneDamage,
+		DamageInterval,
+		true
+	);
+
+	GetWorld()->GetTimerManager().SetTimer(
+		ShrinkTimerHandle,
+		this,
+		&ABlueZoneActor::StartShrink,
+		WaitTime,
+		false
+	);
+
+	UE_LOG(LogTemp, Warning, TEXT("Activate Blue Zone!"));
 }
