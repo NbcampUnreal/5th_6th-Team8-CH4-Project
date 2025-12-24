@@ -3,6 +3,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Kismet/GameplayStatics.h"
 #include "Controller/RCPlayerController.h"
+#include "Game/RCGameStateBase.h"
 
 UHealthComponent::UHealthComponent()
     : CurrentHealth(100.0f)    
@@ -85,6 +86,17 @@ void UHealthComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 
 void UHealthComponent::HandleTakeDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser)
 {
+    ARCGameStateBase* RCGameState = GetWorld()->GetGameState<ARCGameStateBase>();
+    if (IsValid(RCGameState) == false)
+    {
+        return;
+    }
+
+    if (RCGameState->MatchState != EMatchState::Playing)
+    {
+        return;
+    }
+
     if (Damage <= 0.0f || CurrentHealth <= 0.0f)
     {
         return;
@@ -117,6 +129,8 @@ void UHealthComponent::HandleTakeDamage(AActor* DamagedActor, float Damage, cons
 
         if (OwnerPawn->HasAuthority())
         {
+            PC->OnCharacterDead();
+
             GetWorld()->GetTimerManager().SetTimer(
                 DestroyTimerHandle,
                 [OwnerPawn]()

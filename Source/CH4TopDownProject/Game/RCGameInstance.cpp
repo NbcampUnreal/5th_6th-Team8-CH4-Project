@@ -82,20 +82,19 @@ void URCGameInstance::OnCreateSessionComplete(FName SessionName, bool bWasSucces
 	}
 }
 
-void URCGameInstance::ManageSession(bool bIsSessionStarted)
+void URCGameInstance::ManageSession(const bool bIsSessionStarted)
 {
 	FNamedOnlineSession* Session = OnlineSessionInterface->GetNamedSession(FName(TEXT("DedicatedServer Session")));
 	
 	if (Session)
 	{
-		if (bIsSessionStarted == true)
-		{
-			UE_LOG(LogTemp, Error, TEXT("%s Session is closing..."), *Session->SessionName.ToString());
+		FOnlineSessionSettings& Settings = Session->SessionSettings;
+		Settings.Set(FName(TEXT("SessionStart")), bIsSessionStarted, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 
-			FOnlineSessionSettings& Settings = Session->SessionSettings;
-			Settings.Set(FName(TEXT("SessionStart")), bIsSessionStarted, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
+		OnlineSessionInterface->UpdateSession(Session->SessionName, Settings);
 
-			OnlineSessionInterface->UpdateSession(Session->SessionName, Settings);
-		}
+		bool NewIsSessionStarted = bIsSessionStarted;
+		Settings.Get(FName("SessionStart"), NewIsSessionStarted);
+		UE_LOG(LogTemp, Error, TEXT("%s Session is %s"), *Session->SessionName.ToString(), NewIsSessionStarted ? TEXT("Closed...") : TEXT("Open..."));
 	}
 }

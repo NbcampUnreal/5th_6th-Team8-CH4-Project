@@ -12,17 +12,13 @@ void ARCGameModeBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//InitGame();
+	InitGameLv();
 	InitPool();
 }
 
-void ARCGameModeBase::InitGame()
+void ARCGameModeBase::InitGameLv()
 {
-	URCGameInstance* GI = GetWorld()->GetGameInstance<URCGameInstance>();
-	if (GI)
-	{
-		GI->ManageSession(false);
-	}
+	CurGameStateChangeDelay = GAME_START_DELAY;
 
 	GetWorld()->GetTimerManager().SetTimer(MainTimerHandle, this, &ThisClass::OnMainTimerElapsed, 1.f, true);
 }
@@ -44,11 +40,11 @@ void ARCGameModeBase::OnMainTimerElapsed()
 	{
 		if (AlivePlayerControllers.Num() < MaxPlayerCount)
 		{
-
+			UE_LOG(LogTemp, Error, TEXT("session is waiting.."));
 		}
 		else
 		{
-			UE_LOG(LogTemp, Error, TEXT("Ready To Game :%d"), CurGameStateChangeDelay);
+			UE_LOG(LogTemp, Error, TEXT("%d seconds until StartGame"), CurGameStateChangeDelay);
 			--CurGameStateChangeDelay;
 		}
 
@@ -65,13 +61,43 @@ void ARCGameModeBase::OnMainTimerElapsed()
 		break; 
 	}
 	case EMatchState::Ending: 
-	{ 
+	{
+		UE_LOG(LogTemp, Error, TEXT("%d seconds until RestartServer"), CurGameStateChangeDelay);
+		--CurGameStateChangeDelay;
+		
+		if (CurGameStateChangeDelay <= 0)
+		{
+			//플레이어 정리
+			for (auto AliveController : AlivePlayerControllers)
+			{
+				AliveController->ClientRPCReturnToTitle();
+			}
+			for (auto DeadController : DeadPlayerControllers)
+			{
+				DeadController->ClientRPCReturnToTitle();
+			}
+			
+			CurGameStateChangeDelay = GAME_CLEAN_DELAY;
+			RCGameState->MatchState = EMatchState::Cleaning;
+		}
+		break; 
+	}
+	case EMatchState::Cleaning: 
+	{
 		--CurGameStateChangeDelay;
 		if (CurGameStateChangeDelay <= 0)
 		{
+			MainTimerHandle.Invalidate();
+			URCGameInstance* GI = GetWorld()->GetGameInstance<URCGameInstance>();
+			if (GI)
+			{
+				GI->ManageSession(false);
+			}
+
 			FName CurrentLevelName = FName(UGameplayStatics::GetCurrentLevelName(this));
-			UGameplayStatics::OpenLevel(this, CurrentLevelName, true, FString(TEXT("listen")));
+			GetWorld()->ServerTravel(CurrentLevelName.ToString(), true);
 		}
+
 		break; 
 	}
 	case EMatchState::End: { break; }
@@ -120,8 +146,6 @@ void ARCGameModeBase::Logout(AController* ExitingPlayer)
 
 void ARCGameModeBase::OnPlayerDeath(ARCPlayerController* Controller)
 {
-	UE_LOG(LogTemp, Error, TEXT("on player death"));
-
 	AlivePlayerControllers.Remove(Controller);
 	DeadPlayerControllers.Add(Controller);
 
@@ -131,7 +155,7 @@ void ARCGameModeBase::OnPlayerDeath(ARCPlayerController* Controller)
 		if (IsValid(RCGameState))
 		{
 			RCGameState->MatchState = EMatchState::Ending;
-			CurGameStateChangeDelay = GameStateChangeDelay;
+			CurGameStateChangeDelay = GAME_ENDING_DELAY;
 		}
 	}
 }
