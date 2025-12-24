@@ -135,7 +135,8 @@ private:
 	void Server_FireOnce();
 	bool CanFire() const;
 
-	void SpawnBullet_Server();
+	virtual FVector ComputeBulletDirection_Server(const FVector& SpawnLoc) const;
+	virtual void SpawnBullet_Server();
 
 	bool CanReload() const;
 	void FinishReload_Server();

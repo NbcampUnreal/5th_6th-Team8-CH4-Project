@@ -19,9 +19,10 @@ public:
 
 	void InitBullet(
 		const FVector& Dir,
-		float Speed,
+		float InSpeed,
 		float InDamage,
-		AController* InInstigatorController
+		AController* InInstigatorController,
+		float InMaxRange
 	);
 
 	void ReturnToPool();
@@ -67,7 +68,6 @@ private:
 	float Damage = 0.f;
 	TWeakObjectPtr<AController> InstigatorController;
 
-	void StartLifeTimer();
 	void StopLifeTimer();
 
 private:

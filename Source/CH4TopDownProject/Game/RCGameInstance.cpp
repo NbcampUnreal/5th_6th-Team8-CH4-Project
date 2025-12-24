@@ -85,14 +85,17 @@ void URCGameInstance::OnCreateSessionComplete(FName SessionName, bool bWasSucces
 void URCGameInstance::ManageSession(bool bIsSessionStarted)
 {
 	FNamedOnlineSession* Session = OnlineSessionInterface->GetNamedSession(FName(TEXT("DedicatedServer Session")));
-	UE_LOG(LogTemp, Error, TEXT("%s Session is closing..."), *Session->SessionName.ToString());
-
+	
 	if (Session)
 	{
-		FOnlineSessionSettings& Settings = Session->SessionSettings;
+		if (bIsSessionStarted == true)
+		{
+			UE_LOG(LogTemp, Error, TEXT("%s Session is closing..."), *Session->SessionName.ToString());
 
+			FOnlineSessionSettings& Settings = Session->SessionSettings;
+			Settings.Set(FName(TEXT("SessionStart")), bIsSessionStarted, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 
-		Settings.Set(FName(TEXT("SessionStart")), bIsSessionStarted, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
-		OnlineSessionInterface->UpdateSession(Session->SessionName, Settings);
+			OnlineSessionInterface->UpdateSession(Session->SessionName, Settings);
+		}
 	}
 }

@@ -20,3 +20,9 @@ void AChest::Interact_Implementation(AActor* Interactor)
 
 	
 }
+
+void AChest::SetItem(const TMap<FName, int32>& ItemMap)
+{
+	ItemList = ItemMap;
+	
+}

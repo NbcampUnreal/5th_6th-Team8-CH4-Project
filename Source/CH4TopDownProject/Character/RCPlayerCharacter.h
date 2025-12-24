@@ -59,6 +59,8 @@ public:
 
 	AArmorBase* GetCurrentArmor() { return CurrentArmor; }
 
+	virtual  void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 	UFUNCTION(Server, Reliable)
 	void Server_Interact(AWorldItemBase* Target);
 # pragma region Components

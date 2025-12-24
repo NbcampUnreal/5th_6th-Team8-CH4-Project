@@ -42,6 +42,18 @@ void ATopDownWeaponBase::BeginPlay()
 	{
 		CurrentAmmoInMag = WeaponStats.MagazineSize;
 		bIsReloading = false;
+		return;
+	}
+
+	this->SetActorHiddenInGame(true);
+
+	APlayerController* PC = Cast<APlayerController>(GetInstigatorController());
+	if (PC)
+	{
+		if (PC->IsLocalController())
+		{
+			this->SetActorHiddenInGame(false);
+		}
 	}
 }
 
@@ -69,8 +81,8 @@ void ATopDownWeaponBase::StartFire()
 		return;
 
 	FVector TargetPos = Hit.ImpactPoint;
-	TargetPos.Z += 80.f; 
-	
+	TargetPos.Z += 80.f;
+
 	if (!HasAuthority())
 	{
 		Server_StartFire(TargetPos);
@@ -97,7 +109,7 @@ void ATopDownWeaponBase::StopFire()
 void ATopDownWeaponBase::Server_StartFire_Implementation(const FVector_NetQuantize& TargetWorldPos)
 {
 	CachedTargetWorldPos = TargetWorldPos;
-	
+
 	if (bIsReloading)
 	{
 		bWantsToFire = true;
@@ -169,6 +181,21 @@ void ATopDownWeaponBase::Server_FireOnce()
 	}
 }
 
+FVector ATopDownWeaponBase::ComputeBulletDirection_Server(const FVector& SpawnLoc) const
+{
+	FVector FlatTarget = CachedTargetWorldPos;
+	FlatTarget.Z = SpawnLoc.Z;
+
+	FVector Dir = (FlatTarget - SpawnLoc).GetSafeNormal();
+
+	Dir = FMath::VRandCone(
+		Dir,
+		FMath::DegreesToRadians(WeaponStats.Spread)
+	);
+
+	return Dir;
+}
+
 void ATopDownWeaponBase::SpawnBullet_Server()
 {
 	UE_LOG(LogTemp, Warning,
@@ -193,16 +220,7 @@ void ATopDownWeaponBase::SpawnBullet_Server()
 	}
 
 	const FVector SpawnLoc = Muzzle->GetComponentLocation() + Muzzle->GetForwardVector() * MuzzleOffset;
-	FVector FlatTarget = CachedTargetWorldPos;
-	FlatTarget.Z = SpawnLoc.Z;        
-
-	FVector Dir = (FlatTarget - SpawnLoc).GetSafeNormal();
-
-	Dir = FMath::VRandCone(
-		Dir,
-		FMath::DegreesToRadians(WeaponStats.Spread)
-	);
-
+	const FVector Dir = ComputeBulletDirection_Server(SpawnLoc);
 
 	AActor* PooledActor = Pool->SpawnFromPool(
 		BulletClass,
@@ -237,7 +255,7 @@ void ATopDownWeaponBase::SpawnBullet_Server()
 		InstCtrl = OwnerPawn->GetController();
 	}
 
-	Bullet->InitBullet(Dir, WeaponStats.BulletSpeed, WeaponStats.Damage, InstCtrl);
+	Bullet->InitBullet(Dir, WeaponStats.BulletSpeed, WeaponStats.Damage, InstCtrl, WeaponStats.MaxRange);
 }
 
 void ATopDownWeaponBase::Multicast_PlayFireFX_Implementation(const FVector& Loc, const FRotator& Rot)

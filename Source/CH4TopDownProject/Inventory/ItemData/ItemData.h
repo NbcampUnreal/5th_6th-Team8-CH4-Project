@@ -91,3 +91,66 @@ struct FAmmoItemData : public FItemData
 {
 	GENERATED_BODY()
 };
+
+USTRUCT(BlueprintType)
+struct FWeaponAmmoSet : public FTableRowBase
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere)
+	FName WeaponID;
+
+	UPROPERTY(EditAnywhere)
+	FName AmmoID;
+	
+	UPROPERTY(EditAnywhere)
+	float Weight;
+};
+
+USTRUCT(BlueprintType)
+struct FWeightedItem : public FTableRowBase
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere)
+	FName ItemID;
+
+	UPROPERTY(EditAnywhere)
+	int32 MinCount;
+
+	UPROPERTY(EditAnywhere)
+	int32 MaxCount;
+
+	UPROPERTY(EditAnywhere)
+	float Weight;
+};
+
+USTRUCT(BlueprintType)
+struct FWeightedItemArray : public FTableRowBase
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere)
+	TArray<FWeightedItem> Items;
+};
+
+USTRUCT(BlueprintType)
+struct FWeightedItemRow : public FTableRowBase
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	EItemType ItemType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FName ItemID;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	int32 MinCount;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	int32 MaxCount;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float Weight;
+};

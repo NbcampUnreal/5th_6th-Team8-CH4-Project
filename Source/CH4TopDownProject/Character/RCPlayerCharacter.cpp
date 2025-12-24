@@ -339,6 +339,24 @@ void ARCPlayerCharacter::StopSprint()
 	Client_StopSprint();
 }
 
+void ARCPlayerCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (HasAuthority())
+	{
+		if (CurrentWeapon)
+		{
+			CurrentWeapon->Destroy();
+		}
+
+		if (CurrentArmor)
+		{
+			CurrentArmor->Destroy();
+		}
+	}
+	
+	Super::EndPlay(EndPlayReason);
+}
+
 void ARCPlayerCharacter::Server_Interact_Implementation(AWorldItemBase* Target)
 {
 	if (!IsValid(Target)) return;
