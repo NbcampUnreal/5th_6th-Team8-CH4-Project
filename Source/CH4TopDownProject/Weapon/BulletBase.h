@@ -55,6 +55,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Bullet")
 	float LifeTime = 3.f;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Damage|Headshot")
+	FName HeadBoneName = TEXT("tete");
+
+	UPROPERTY(EditDefaultsOnly, Category = "Damage|Headshot")
+	float HeadshotMultiplier = 2.0f;
+
 private:
 	FTimerHandle LifeTimer;
 
