@@ -226,6 +226,8 @@ public:
 	void ServerEquipWeapon(int32 Index);
 
 	void ClearWeaponSlot(int32 Index);
+
+	AActor* Get_CurrentWeapon();
 #pragma endregion
 
 };

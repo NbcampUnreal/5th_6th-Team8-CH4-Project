@@ -732,4 +732,8 @@ void UInventoryComponent::ClearWeaponSlot(int32 Index)
 	Weapon->Destroy();
 	WeaponActors[Index] = nullptr;
 }
+AActor* UInventoryComponent::Get_CurrentWeapon()
+{
+	return WeaponActors[CurrentWeaponIndex];
+}
 #pragma endregion
