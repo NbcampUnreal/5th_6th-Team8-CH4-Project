@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "RCPlayerCharacter.h"
 
@@ -524,6 +524,11 @@ void ARCPlayerCharacter::HandleReloadInput(const FInputActionValue& InValue)
 	}
 }
 
+void ARCPlayerCharacter::SetCurrentWeapon(AActor* weapon)
+{
+	CurrentWeapon = Cast<ATopDownWeaponBase>(weapon);
+}
+
 void ARCPlayerCharacter::UpdateAim()
 {
 	if (!IsLocallyControlled())
@@ -549,6 +554,10 @@ void ARCPlayerCharacter::UpdateAim()
 
 	CurrentWeapon->Server_UpdateAim(Target);
 
+}
+
+void ARCPlayerCharacter::SetArmor(AActor* Armor)
+{
 }
 
 void ARCPlayerCharacter::OnRep_CurrentWeapon()
