@@ -58,4 +58,7 @@ protected:
 
 public:
 	void OnCharacterDead();
+	
+	UFUNCTION(Client, Reliable)
+	void Client_ReturnToTitle();
 };

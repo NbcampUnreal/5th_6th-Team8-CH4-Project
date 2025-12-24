@@ -41,11 +41,14 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TArray<TObjectPtr<class ARCPlayerController>> AlivePlayerControllers;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TArray<TObjectPtr<class ARCPlayerController>> DeadPlayerControllers;
 
 
 protected:
 	virtual void PostLogin(APlayerController* NewPlayer) override;
-
+	virtual void Logout(AController* ExitingPlayer) override;
+public:
 	void OnPlayerDeath(ARCPlayerController* Controller);
 #pragma endregion
 

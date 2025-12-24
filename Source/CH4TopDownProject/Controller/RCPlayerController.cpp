@@ -7,6 +7,7 @@
 #include "Component/HealthComponent.h"
 #include "UI/GameResultLayout.h"
 #include "GameFramework/GameStateBase.h"
+#include <Game/RCGameModeBase.h>
 
 //#include "Game/RCGameModeBase.h"
 
@@ -109,13 +110,23 @@ void ARCPlayerController::ShowGameResultLayout(TSubclassOf<UGameResultLayout> Ta
 //	DOREPLIFETIME(ThisClass, NotificationText);
 //}
 
+
 void ARCPlayerController::OnCharacterDead()
 {
-	//ARCGameModeBase* GameMode = Cast<ARCGameModeBase>(UGameplayStatics::GetGameMode(this));
-	//if (HasAuthority() == true && IsValid(GameMode) == true)
-	//{
-	//	GameMode->OnCharacterDead(this);
-	//}
+	ARCGameModeBase* GameMode = Cast<ARCGameModeBase>(UGameplayStatics::GetGameMode(this));
+	if (HasAuthority() == true && IsValid(GameMode) == true)
+	{
+		GameMode->OnPlayerDeath(this);
+	}
+}
+
+
+void ARCPlayerController::Client_ReturnToTitle_Implementation()
+{
+	if (IsLocalController() == true)
+	{
+		UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("Title")), true);
+	}
 }
 
 void ARCPlayerController::UpdateHUDTime()

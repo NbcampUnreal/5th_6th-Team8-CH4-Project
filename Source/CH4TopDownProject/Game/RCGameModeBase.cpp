@@ -21,7 +21,7 @@ void ARCGameModeBase::InitGame()
 	URCGameInstance* GI = GetWorld()->GetGameInstance<URCGameInstance>();
 	if (GI)
 	{
-		GI->ManageSession(true);
+		GI->ManageSession(false);
 	}
 
 	GetWorld()->GetTimerManager().SetTimer(MainTimerHandle, this, &ThisClass::OnMainTimerElapsed, 1.f, true);
@@ -54,11 +54,7 @@ void ARCGameModeBase::OnMainTimerElapsed()
 
 		if (CurGameStateChangeDelay <= 0)
 		{
-			ARCGameStateBase* RCGameState = GetGameState<ARCGameStateBase>();
-			if (IsValid(RCGameState))
-			{
-				RCGameState->MatchState = EMatchState::Playing;
-			}
+			RCGameState->MatchState = EMatchState::Playing;
 		}
 		break;
 	}
@@ -73,11 +69,8 @@ void ARCGameModeBase::OnMainTimerElapsed()
 		--CurGameStateChangeDelay;
 		if (CurGameStateChangeDelay <= 0)
 		{
-			ARCGameStateBase* RCGameState = GetGameState<ARCGameStateBase>();
-			if (IsValid(RCGameState))
-			{
-				RCGameState->MatchState = EMatchState::Playing;
-			}
+			FName CurrentLevelName = FName(UGameplayStatics::GetCurrentLevelName(this));
+			UGameplayStatics::OpenLevel(this, CurrentLevelName, true, FString(TEXT("listen")));
 		}
 		break; 
 	}
@@ -101,19 +94,35 @@ void ARCGameModeBase::PostLogin(APlayerController* NewPlayer)
 			URCGameInstance* RCGameInstance = GetWorld()->GetGameInstance<URCGameInstance>();
 			if (IsValid(RCGameInstance))
 			{
-				RCGameInstance->ManageSession(false);
+				RCGameInstance->ManageSession(true);
 			}
+		}
+	}
+}
+
+void ARCGameModeBase::Logout(AController* ExitingPlayer)
+{
+	Super::Logout(ExitingPlayer);
+
+	ARCPlayerController* ExitingRCPlayerController = Cast<ARCPlayerController>(ExitingPlayer);
+	if (IsValid(ExitingPlayer))
+	{
+		if (AlivePlayerControllers.Find(ExitingRCPlayerController) != INDEX_NONE)
+		{
+			AlivePlayerControllers.Remove(ExitingRCPlayerController);
+		}
+		else
+		{
+			DeadPlayerControllers.Remove(ExitingRCPlayerController);
 		}
 	}
 }
 
 void ARCGameModeBase::OnPlayerDeath(ARCPlayerController* Controller)
 {
-	// remove controller from AlivePlayerControllers
 	AlivePlayerControllers.Remove(Controller);
+	DeadPlayerControllers.Add(Controller);
 
-	// left one player 
-	// init game
 	if (AlivePlayerControllers.Num() <= 1)
 	{
 		ARCGameStateBase* RCGameState = GetGameState<ARCGameStateBase>();
