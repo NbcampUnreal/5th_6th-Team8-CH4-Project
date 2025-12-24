@@ -3,6 +3,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Kismet/GameplayStatics.h"
 #include "Controller/RCPlayerController.h"
+#include "GameEvent/BlueZoneActor.h"
 
 UHealthComponent::UHealthComponent()
     : CurrentHealth(100.0f)    
@@ -95,6 +96,19 @@ void UHealthComponent::HandleTakeDamage(AActor* DamagedActor, float Damage, cons
     float NewHealth = FMath::Clamp(CurrentHealth - ActualDamage, 0.0f, MaxHealth);
 
     SetCurrentHealth(NewHealth);
+
+    if (DamageCauser && DamageCauser->IsA(ABlueZoneActor::StaticClass()))
+    {
+        APawn* OwnerPawn = Cast<APawn>(GetOwner());
+        if (OwnerPawn)
+        {
+            ARCPlayerController* PC = Cast<ARCPlayerController>(OwnerPawn->GetController());
+            if (PC)
+            {
+                PC->Client_PlayBlueZoneHitEffect();
+            }
+        }
+    }
 
     if (NewHealth <= 0.0f)
     {
