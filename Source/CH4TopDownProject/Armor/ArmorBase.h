@@ -17,6 +17,7 @@ public:
     ) const override;
 
     float ModifyDamage(float InDamage) const;
+    virtual void BeginPlay() override;
 
     UFUNCTION(BlueprintCallable, Category = "Armor")
     void SetWearOffset(const FTransform& InOffset);

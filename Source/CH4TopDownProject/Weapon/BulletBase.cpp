@@ -44,6 +44,7 @@ ABulletBase::ABulletBase()
     Collision->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
     Collision->SetCollisionObjectType(ECC_WorldDynamic);
     Collision->SetCollisionResponseToAllChannels(ECR_Block);
+    Collision->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);
     Collision->SetNotifyRigidBodyCollision(true);
 }
 
@@ -56,7 +57,8 @@ void ABulletBase::InitBullet(
     const FVector& InDir,
     float InSpeed, 
     float InDamage,
-    AController* InInstigatorController
+    AController* InInstigatorController,
+    float InMaxRange
 )
 {
     if (!HasAuthority())
@@ -91,30 +93,41 @@ void ABulletBase::InitBullet(
         Movement->Activate(true);
     }
 
-    StartLifeTimer();
-}
+    const float ComputedLifeTime =
+        (InSpeed > 0.f && InMaxRange > 0.f)
+        ? (InMaxRange / InSpeed)
+        : LifeTime;
 
-void ABulletBase::StartLifeTimer()
-{
     StopLifeTimer();
 
+    //StartLifeTimer
     if (HasAuthority() && GetWorld())
     {
         GetWorld()->GetTimerManager().SetTimer(
             LifeTimer,
             this,
             &ABulletBase::ReturnToPool,
-            LifeTime,
+            ComputedLifeTime,
             false
         );
-        UE_LOG(LogTemp, Warning, TEXT("[Bullet][Server][LifeTimerStart] %s LifeTime=%.2f"),
-            *GetName(), LifeTime);
+
+        UE_LOG(LogTemp, Verbose,
+            TEXT("[Bullet] LifeTime=%.2f (MaxRange=%.1f Speed=%.1f)"),
+            ComputedLifeTime, InMaxRange, InSpeed);
     }
 }
 
 void ABulletBase::ReturnToPool_FromLifeTime()
 {
     ReturnToPool_Internal(TEXT("LifeTimeExpired"));
+}
+
+void ABulletBase::StopLifeTimer()
+{
+    if (UWorld* W = GetWorld())
+    {
+        W->GetTimerManager().ClearTimer(LifeTimer);
+    }
 }
 
 void ABulletBase::ReturnToPool_Internal(const TCHAR* Reason)
@@ -134,14 +147,6 @@ void ABulletBase::ReturnToPool_Internal(const TCHAR* Reason)
     }
 }
 
-void ABulletBase::StopLifeTimer()
-{
-    if (UWorld* W = GetWorld())
-    {
-        W->GetTimerManager().ClearTimer(LifeTimer);
-    }
-}
-
 void ABulletBase::ReturnToPool()
 {
     ReturnToPool_Internal(TEXT("UnknownCaller"));
@@ -155,6 +160,15 @@ void ABulletBase::OnHit(
     const FHitResult& Hit
 )
 {
+    UE_LOG(LogTemp, Warning,
+        TEXT("[Bullet][Server][OnHit] Bullet=%s OtherActor=%s OtherComp=%s Owner=%s Instigator=%s"),
+        *GetNameSafe(this),
+        *GetNameSafe(OtherActor),
+        *GetNameSafe(OtherComp),
+        *GetNameSafe(GetOwner()),
+        *GetNameSafe(GetInstigator())
+    );
+
     if (!HasAuthority())
         return;
 
