@@ -21,7 +21,7 @@ void ASpawnManager::SpawnCharacter(AActor* OtherActor)
 	}
 	else
 	{
-		SpawnCount - (SpawnPointList.Num() - 1);
+		SpawnCount = SpawnCount - (SpawnPointList.Num() - 1);
 	}
 }
 
@@ -29,6 +29,10 @@ void ASpawnManager::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ASpawnPoint::StaticClass(), SpawnPointList);
+	if (HasAuthority)
+	{
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), ASpawnPoint::StaticClass(), SpawnPointList);
+	}
+	
 }
 

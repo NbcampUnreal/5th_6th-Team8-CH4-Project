@@ -20,6 +20,6 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-public:
 	TArray<AActor*> SpawnPointList;
+	int SpawnCount = 0;
 };
