@@ -8,6 +8,8 @@
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
 
+#include "Kismet/GameplayStatics.h"
+#include "Particles/ParticleSystemComponent.h"
 
 // Sets default values
 AWorldItemBase::AWorldItemBase()
@@ -73,7 +75,28 @@ void AWorldItemBase::HandleDestroyed()
 
 void AWorldItemBase::OnItemDestroyed_Implementation()
 {
-	Destroy();
+	if (HasAuthority())
+	{
+		Multicast_OnDeathEmitter();
+		Destroy();
+	}
+}
+
+void AWorldItemBase::Multicast_OnDeathEmitter_Implementation()
+{
+	UParticleSystemComponent* Particle = nullptr;
+
+	if (DestroyParticle)
+	{
+		Particle = UGameplayStatics::SpawnEmitterAtLocation(
+			GetWorld(),
+			DestroyParticle,
+			GetActorLocation(),
+			GetActorRotation(),
+			true,
+			EPSCPoolMethod::AutoRelease
+			);
+	}
 }
 
 void AWorldItemBase::OnSphereOverlap(UPrimitiveComponent* OverlappedComp,
