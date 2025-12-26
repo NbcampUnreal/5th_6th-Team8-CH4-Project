@@ -129,7 +129,7 @@ void ATopDownWeaponBase::Server_StartFire_Implementation(const FVector_NetQuanti
 		FireTimerHandle,
 		this,
 		&ATopDownWeaponBase::Server_FireOnce,
-		WeaponStats.FireInterval,
+		GetAttackInterval(),
 		true
 	);
 }
@@ -150,12 +150,21 @@ bool ATopDownWeaponBase::CanFire() const
 	{
 		return false;
 	}
-	if (CurrentAmmoInMag <= 0)
+	if (WeaponType != EWeaponType::Melee)
 	{
-		return false;
+		if (CurrentAmmoInMag <= 0)
+		{
+			return false;
+		}
 	}
 
-	return (GetWorld()->GetTimeSeconds() - LastFireTime) >= WeaponStats.FireInterval;
+	const float Interval = GetAttackInterval();
+	return (GetWorld()->GetTimeSeconds() - LastFireTime) >= Interval;
+}
+
+void ATopDownWeaponBase::Server_AttackOnce()
+{
+	SpawnBullet_Server();
 }
 
 void ATopDownWeaponBase::Server_FireOnce()
@@ -167,15 +176,18 @@ void ATopDownWeaponBase::Server_FireOnce()
 
 	LastFireTime = GetWorld()->GetTimeSeconds();
 
-	CurrentAmmoInMag = FMath::Max(0, CurrentAmmoInMag - 1);
+	if (WeaponType != EWeaponType::Melee)
+	{
+		CurrentAmmoInMag = FMath::Max(0, CurrentAmmoInMag - 1);
+	}
 
-	SpawnBullet_Server();
+	Server_AttackOnce();
 
 	const FVector Loc = Muzzle ? Muzzle->GetComponentLocation() : GetActorLocation();
 	const FRotator Rot = Muzzle ? Muzzle->GetComponentRotation() : GetActorRotation();
 	Multicast_PlayFireFX(Loc, Rot);
 
-	if (CurrentAmmoInMag <= 0)
+	if (WeaponType != EWeaponType::Melee && CurrentAmmoInMag <= 0)
 	{
 		Server_StartReload();
 	}
@@ -292,6 +304,10 @@ void ATopDownWeaponBase::StartReload()
 bool ATopDownWeaponBase::CanReload() const
 {
 	if (!HasAuthority())
+	{
+		return false;
+	}
+	if (WeaponType == EWeaponType::Melee)
 	{
 		return false;
 	}

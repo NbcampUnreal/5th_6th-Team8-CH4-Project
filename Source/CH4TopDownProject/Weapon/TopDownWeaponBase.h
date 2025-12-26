@@ -17,6 +17,7 @@ enum class EWeaponType : uint8
 	Rifle,
 	Sniper,
 	Shotgun,
+	Melee
 };
 
 USTRUCT(BlueprintType)
@@ -125,6 +126,11 @@ protected:
 	UPROPERTY()
 	FVector_NetQuantize CachedTargetWorldPos;
 
+	
+	virtual void Server_AttackOnce();
+	virtual void SpawnBullet_Server();
+
+	virtual float GetAttackInterval() const { return WeaponStats.FireInterval;}
 private:
 	FTimerHandle FireTimerHandle;
 	FTimerHandle ReloadTimerHandle;
@@ -136,7 +142,6 @@ private:
 	bool CanFire() const;
 
 	virtual FVector ComputeBulletDirection_Server(const FVector& SpawnLoc) const;
-	virtual void SpawnBullet_Server();
 
 	bool CanReload() const;
 	void FinishReload_Server();
