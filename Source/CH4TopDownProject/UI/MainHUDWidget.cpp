@@ -6,6 +6,7 @@
 #include "Component/StaminaComponent.h"
 #include "Component/QuickSlotComponent.h"
 #include "UI/QuickSlotItemData.h"
+#include "Game/RCGameStateBase.h"
 
 void UMainHUDWidget::NativeConstruct()
 {
@@ -50,6 +51,15 @@ void UMainHUDWidget::NativeConstruct()
     PlayerQuickSlotComponent->OnQuickSlotDataChanged.AddDynamic(this, &UMainHUDWidget::UpdateQuickSlotData);
     
     UpdateQuickSlotData(PlayerQuickSlotComponent->GetQuickSlotData());
+
+
+    if (ARCGameStateBase* RCGameStateBase = GetWorld()->GetGameState<ARCGameStateBase>())
+    {
+        RCGameStateBase->OnAlivePlayersChanged.AddDynamic(this, &UMainHUDWidget::UpdateAlivePlayerCount);
+
+        UpdateAlivePlayerCount(RCGameStateBase->AlivePlayerControllerCount);
+        //UpdateAlivePlayerCount(1);
+    }
 }
 
 void UMainHUDWidget::UpdateHealth(float CurrentHealth, float MaxHealth)
@@ -96,6 +106,16 @@ void UMainHUDWidget::UpdateQuickSlotData(const TArray<FQuickSlotItemData>& NewSl
         {
             UE_LOG(LogTemp, Display, TEXT("Slot %d: ItemID=%s, StackCount=%d"), i + 1, *Data.ItemID.ToString(), Data.StackCount);
         }
+    }
+}
+
+void UMainHUDWidget::UpdateAlivePlayerCount(int32 AlivePlayerCount)
+{
+    if (AlivePlayerCountText)
+    {
+        UE_LOG(LogTemp, Error, TEXT("UpdateAlivePlayerCount :%d"), AlivePlayerCount);
+        FString AlivePlayerCountString = FString::Printf(TEXT("%d생존"), AlivePlayerCount);
+        AlivePlayerCountText->SetText(FText::FromString(AlivePlayerCountString));
     }
 }
 

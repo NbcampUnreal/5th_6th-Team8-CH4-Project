@@ -45,6 +45,8 @@ void ARCGameModeBase::OnMainTimerElapsed()
 		else
 		{
 			UE_LOG(LogTemp, Error, TEXT("%d seconds until StartGame"), CurGameStateChangeDelay);
+
+			RCGameState->ReplicatedGameModeDelay = CurGameStateChangeDelay;
 			--CurGameStateChangeDelay;
 		}
 
@@ -88,10 +90,10 @@ void ARCGameModeBase::OnMainTimerElapsed()
 		if (CurGameStateChangeDelay <= 0)
 		{
 			MainTimerHandle.Invalidate();
-			URCGameInstance* GI = GetWorld()->GetGameInstance<URCGameInstance>();
-			if (GI)
+			URCGameInstance* RCGameInstance = GetWorld()->GetGameInstance<URCGameInstance>();
+			if (RCGameInstance)
 			{
-				GI->ManageSession(false);
+				RCGameInstance->ManageSession(false);
 			}
 
 			FName CurrentLevelName = FName(UGameplayStatics::GetCurrentLevelName(this));
@@ -113,6 +115,12 @@ void ARCGameModeBase::PostLogin(APlayerController* NewPlayer)
 	if (NewPlayerController != nullptr)
 	{
 		AlivePlayerControllers.Add(NewPlayerController);
+		ARCGameStateBase* RCGameState = GetGameState<ARCGameStateBase>();
+		if (IsValid(RCGameState) == false)
+		{
+			return;
+		}
+		RCGameState->AlivePlayerControllerCount = AlivePlayerControllers.Num();
 
 		if (AlivePlayerControllers.Num() >= MaxPlayerCount) {
 			UE_LOG(LogTemp, Error, TEXT("Player is full. This Session will be closed..."));
