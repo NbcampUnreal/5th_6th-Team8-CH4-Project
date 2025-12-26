@@ -37,6 +37,8 @@ protected:
 public:
 	void ActivateBlueZone();
 
+	float GetCurrentRadius() const { return CurrentRadius; }
+
 protected:	
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UStaticMeshComponent> VisualMesh;

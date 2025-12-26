@@ -5,6 +5,7 @@
 #include "MinimapWidget.generated.h"
 
 class UImage;
+class ABlueZoneActor;
 
 UCLASS()
 class CH4TOPDOWNPROJECT_API UMinimapWidget : public UUserWidget
@@ -18,6 +19,15 @@ protected:
 private:
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<UImage> MinimapImage;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> BlueZoneMaskImage;
+
+	UPROPERTY()
+	TObjectPtr<ABlueZoneActor> BlueZoneActor;
+
+	UPROPERTY()
+	TObjectPtr<UMaterialInstanceDynamic> BlueZoneMID;
 
     //UPROPERTY(meta = (BindWidget))
     //TObjectPtr<UImage> PlayerIcon;
