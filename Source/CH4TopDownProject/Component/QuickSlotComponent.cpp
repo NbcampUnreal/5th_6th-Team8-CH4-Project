@@ -33,12 +33,22 @@ void UQuickSlotComponent::Server_SetQuickSlot_Implementation(int32 SlotIndex, FN
     {
         return;
     }
+    UInventoryComponent* Inventory = GetInventoryComponent();
+    if (Inventory)return;
+    FQuickSlotItemData& Slot = QuickSlotData[SlotIndex];
+    Slot.ItemID = NewItemID;
+    Slot.ItemType = NewItemType;
 
+    if (Inventory)
+    {
+        Slot.StackCount = Inventory->CheckItem_ID(NewItemID);
+    }
     // 1, 2 -> Weapon
     if (SlotIndex <= 1)
     {
         if (NewItemType != EItemType::Weapon && NewItemType != EItemType::None)
         {
+
             return;
         }
     }
@@ -49,15 +59,6 @@ void UQuickSlotComponent::Server_SetQuickSlot_Implementation(int32 SlotIndex, FN
         {
             return;
         }
-    }
-        
-    FQuickSlotItemData& Slot = QuickSlotData[SlotIndex];
-    Slot.ItemID = NewItemID;
-    Slot.ItemType = NewItemType;
-
-    if (UInventoryComponent* Inventory = GetInventoryComponent())
-    {
-        Slot.StackCount = Inventory->CheckItem_ID(NewItemID);
     }
 
     OnRep_QuickSlotData();

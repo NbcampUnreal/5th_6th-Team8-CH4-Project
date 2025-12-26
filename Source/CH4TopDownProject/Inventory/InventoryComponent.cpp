@@ -7,11 +7,14 @@
 #include "Engine/World.h" 
 #include "GameFramework/Actor.h"
 #include "Inventory/UI/InventoryUI.h"
+#include "Inventory/UI/ContainerWidget.h"
 #include "Inventory/ItemData/ItemData.h"
 #include "Inventory/ItemData/BaseItemComponent.h"
+#include "Interactor/Chest.h"
 #include "Character/RCPlayerCharacter.h"
 #include "Component/HealthComponent.h"
 #include "Net/UnrealNetwork.h"
+
 
 UInventoryComponent::UInventoryComponent()
 {
@@ -28,7 +31,7 @@ void UInventoryComponent::BeginPlay()
 	Items.SetNum(GetInventorytSize());
 	WeaponActors.SetNum(2);
 
-	Open_CloseInventoryUI();	
+	OpenInventoryUI();	
 }
 
 void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -46,7 +49,7 @@ void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	DOREPLIFETIME(UInventoryComponent, CurrentWeaponIndex);
 }
 
-void UInventoryComponent::Open_CloseInventoryUI()
+void UInventoryComponent::OpenInventoryUI()
 {
 	APlayerController* PlayerController =
 		Cast<APlayerController>(GetOwner()->GetInstigatorController());
@@ -58,7 +61,6 @@ void UInventoryComponent::Open_CloseInventoryUI()
 	{
 		InventoryWidget->RemoveFromParent();
 		InventoryWidget = nullptr;
-		return;
 	}
 
 	if (InventoryWidgetClass)
@@ -70,6 +72,54 @@ void UInventoryComponent::Open_CloseInventoryUI()
 			InventoryWidget->OwnerInventoryComponent = this;
 			InventoryWidget->AddToViewport();
 		}
+	}
+}
+
+void UInventoryComponent::OpenChestUI(AChest* Chest)
+{
+	OpenInventoryUI();
+
+	APlayerController* PlayerController =
+		Cast<APlayerController>(GetOwner()->GetInstigatorController());
+
+	if (!PlayerController)
+		return;
+
+	if (ContainerWidget)
+	{
+		ContainerWidget->RemoveFromParent();
+		ContainerWidget = nullptr;
+	}
+
+	if (ContainerWidgetClass)
+	{
+		ContainerWidget = CreateWidget<UContainerWidget>(PlayerController, ContainerWidgetClass);
+
+		if (ContainerWidget)
+		{
+			ContainerWidget->OwnerChest = Chest;
+			ContainerWidget->ChestItemEntryToInventorySlot(Chest->ItemListArray);
+			ContainerWidget->AddToViewport();
+		}
+	}
+}
+
+void UInventoryComponent::CloseInventoryUI()
+{
+	if (InventoryWidget)
+	{
+		InventoryWidget->RemoveFromParent();
+		InventoryWidget = nullptr;
+	}
+	CloseChestUI();
+}
+
+void UInventoryComponent::CloseChestUI()
+{
+	if (ContainerWidget)
+	{
+		ContainerWidget->RemoveFromParent();
+		ContainerWidget = nullptr;
 	}
 }
 

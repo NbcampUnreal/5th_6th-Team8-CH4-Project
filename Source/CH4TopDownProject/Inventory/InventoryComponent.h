@@ -9,6 +9,8 @@
 #include "InventoryComponent.generated.h"
 
 class UInventoryUI;
+class UContainerWidget;
+class AChest;
 
 struct FItemData;
 
@@ -51,7 +53,7 @@ private:
 	TSubclassOf<UInventoryUI> InventoryWidgetClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Inventory|UI")
-	TSubclassOf<UInventoryUI> ContainerWidgetClass;
+	TSubclassOf<UContainerWidget> ContainerWidgetClass;
 
 	
 public:
@@ -62,10 +64,16 @@ public:
 	UInventoryUI* InventoryWidget;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Inventory|UI")
-	UInventoryUI* ContainerWidget;
+	UContainerWidget* ContainerWidget;
 public:
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
-	void Open_CloseInventoryUI();
+	void OpenInventoryUI();
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	void OpenChestUI(AChest* Chest);
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	void CloseInventoryUI();
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	void CloseChestUI();
 #pragma endregion
 
 #pragma region Inventory
