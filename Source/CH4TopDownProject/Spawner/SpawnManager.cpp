@@ -29,7 +29,7 @@ void ASpawnManager::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	if (HasAuthority)
+	if (HasAuthority())
 	{
 		UGameplayStatics::GetAllActorsOfClass(GetWorld(), ASpawnPoint::StaticClass(), SpawnPointList);
 	}
