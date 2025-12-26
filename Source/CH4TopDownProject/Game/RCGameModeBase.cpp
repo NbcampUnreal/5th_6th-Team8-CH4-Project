@@ -46,25 +46,27 @@ void ARCGameModeBase::OnMainTimerElapsed()
 		{
 			UE_LOG(LogTemp, Error, TEXT("%d seconds until StartGame"), CurGameStateChangeDelay);
 
-			RCGameState->ReplicatedGameModeDelay = CurGameStateChangeDelay;
+			//RCGameState->ReplicatedGameModeDelay = CurGameStateChangeDelay;
 			--CurGameStateChangeDelay;
 		}
 
-		if (CurGameStateChangeDelay <= 0)
+		if (CurGameStateChangeDelay < 0)
 		{
 			RCGameState->MatchState = EMatchState::Playing;
+			RCGameState->ShowNoti();
 		}
 		break;
 	}
 	case EMatchState::Playing:
 	{ 
-
+		
 
 		break; 
 	}
 	case EMatchState::Ending: 
 	{
 		UE_LOG(LogTemp, Error, TEXT("%d seconds until RestartServer"), CurGameStateChangeDelay);
+		RCGameState->ReplicatedGameModeDelay = CurGameStateChangeDelay;
 		--CurGameStateChangeDelay;
 		
 		if (CurGameStateChangeDelay <= 0)

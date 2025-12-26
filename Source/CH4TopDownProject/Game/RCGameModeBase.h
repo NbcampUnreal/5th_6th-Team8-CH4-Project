@@ -21,7 +21,7 @@ protected:
 #pragma region Settings
 
 protected:
-	const int32 GAME_START_DELAY = 10;
+	const int32 GAME_START_DELAY = 0;
 	const int32 GAME_ENDING_DELAY = 10;
 	const int32 GAME_CLEAN_DELAY = 5;
 	int32 CurGameStateChangeDelay = 10;

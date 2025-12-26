@@ -46,7 +46,7 @@ void ARCPlayerController::BeginPlay()
 
 	if (MainHUDWidgetInstance)
 	{
-		MainHUDWidgetInstance->ShowNotice(TEXT("Goal: Survive to the end!"));
+		//MainHUDWidgetInstance->ShowNotice(TEXT("Goal: Survive to the end!"));
 				
 		GetWorld()->GetTimerManager().SetTimer(
 			HUDTimerHandle, 

@@ -43,12 +43,12 @@ void ARCWaitingLvGameModeBase::OnMainTimerElapsed()
 		else
 		{
 			UE_LOG(LogTemp, Error, TEXT("%d seconds until StartGame"), CurGameStateChangeDelay);
+			RCGameState->ReplicatedGameModeDelay = CurGameStateChangeDelay;
 			--CurGameStateChangeDelay;
 		}
 
-		if (CurGameStateChangeDelay <= 0 && bIsLoadedToBattleLv == false)
+		if (CurGameStateChangeDelay < 0 && bIsLoadedToBattleLv == false)
 		{
-			UE_LOG(LogTemp, Error, TEXT("Server Travel"));
 			bIsLoadedToBattleLv = true;
 			GetWorld()->ServerTravel(TEXT("Battle_level"), true);
 		}

@@ -20,6 +20,8 @@ enum class EMatchState : uint8
 
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAlivePlayersChanged, int32, NewAliveCount);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnReplicatedGameModeDelayChanged, const FString&, NotiMsg);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnFadeOut);
 /**
  * 
  */
@@ -45,8 +47,22 @@ protected:
 	UFUNCTION()
 	void OnRep_AlivePlayerControllerCount();
 
+
 public:
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing = OnRep_ReplicatedGameModeDelay)
 	int32 ReplicatedGameModeDelay = 0;
 
+	UPROPERTY(Replicated)
+	bool bIsLoadedBattleLv = false;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnReplicatedGameModeDelayChanged OnReplicatedGameModeDelayChanged;
+	FOnFadeOut OnFadeOut;
+
+protected:
+	UFUNCTION()
+	void OnRep_ReplicatedGameModeDelay();
+
+public:
+	void ShowNoti();
 };

@@ -7,6 +7,7 @@
 #include "Component/QuickSlotComponent.h"
 #include "UI/QuickSlotItemData.h"
 #include "Game/RCGameStateBase.h"
+#include "Components/Image.h"
 
 void UMainHUDWidget::NativeConstruct()
 {
@@ -56,9 +57,10 @@ void UMainHUDWidget::NativeConstruct()
     if (ARCGameStateBase* RCGameStateBase = GetWorld()->GetGameState<ARCGameStateBase>())
     {
         RCGameStateBase->OnAlivePlayersChanged.AddDynamic(this, &UMainHUDWidget::UpdateAlivePlayerCount);
-
         UpdateAlivePlayerCount(RCGameStateBase->AlivePlayerControllerCount);
-        //UpdateAlivePlayerCount(1);
+        
+        RCGameStateBase->OnReplicatedGameModeDelayChanged.AddDynamic(this, &UMainHUDWidget::ShowNotice);
+        RCGameStateBase->OnFadeOut.AddDynamic(this, &UMainHUDWidget::FadeOut);
     }
 }
 
@@ -113,7 +115,6 @@ void UMainHUDWidget::UpdateAlivePlayerCount(int32 AlivePlayerCount)
 {
     if (AlivePlayerCountText)
     {
-        UE_LOG(LogTemp, Error, TEXT("UpdateAlivePlayerCount :%d"), AlivePlayerCount);
         FString AlivePlayerCountString = FString::Printf(TEXT("%d생존"), AlivePlayerCount);
         AlivePlayerCountText->SetText(FText::FromString(AlivePlayerCountString));
     }
@@ -125,11 +126,28 @@ void UMainHUDWidget::ShowNotice(const FString& Message)
     {
         NoticeText->SetText(FText::FromString(Message));        
 
-        FTimerHandle NoticeTimer;
-        GetWorld()->GetTimerManager().SetTimer(NoticeTimer, [this]()
+        if (GetWorld()->GetTimerManager().IsTimerActive(NotiVisibilityControlHandle))
+        {
+            GetWorld()->GetTimerManager().ClearTimer(NotiVisibilityControlHandle);
+        }
+
+        //FTimerHandle NoticeTimer;
+        GetWorld()->GetTimerManager().SetTimer(NotiVisibilityControlHandle, [this]()
             {
                 if (NoticeText) NoticeText->SetVisibility(ESlateVisibility::Hidden);
             }, 5.0f, false);
+    }
+}
+
+void UMainHUDWidget::FadeOut()
+{
+    if (FadeImg)
+    {
+        UFunction* PlayFadeOutAnim = FindFunction(FName("PlayFadeOutAnim"));
+        if (PlayFadeOutAnim)
+        {
+            ProcessEvent(PlayFadeOutAnim, this);
+        }
     }
 }
 
