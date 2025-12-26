@@ -16,13 +16,14 @@ class CH4TOPDOWNPROJECT_API ARCGameModeBase : public AGameModeBase
 	
 protected:
 	virtual void BeginPlay() override;
-
-	void InitGame();
+	void InitGameLv();
 
 #pragma region Settings
 
 protected:
-	const int32 GameStateChangeDelay = 10;
+	const int32 GAME_START_DELAY = 10;
+	const int32 GAME_ENDING_DELAY = 10;
+	const int32 GAME_CLEAN_DELAY = 5;
 	int32 CurGameStateChangeDelay = 10;
 
 private:

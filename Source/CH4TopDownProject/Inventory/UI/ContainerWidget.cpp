@@ -3,6 +3,7 @@
 
 #include "Inventory/UI/ContainerWidget.h"
 #include "Inventory/InventoryComponent.h"
+#include "Interactor/Chest.h"
 
 
 EItemType UContainerWidget::GetItemTypeFromItemID(FName ItemID)
@@ -36,4 +37,24 @@ EItemType UContainerWidget::GetItemTypeFromItemID(FName ItemID)
 	}
 
 	return static_cast<EItemType>(TypeValue);
+}
+
+void UContainerWidget::ChestItemEntryToInventorySlot(TArray<FChestItemEntry> ChestItems)
+{
+	Items.Empty();
+
+	for (const FChestItemEntry& ChestItem : ChestItems)
+	{
+		if (ChestItem.ItemName == NAME_None || ChestItem.ItemNum <= 0)
+		{
+			continue;
+		}
+
+		FInventorySlot NewSlot;
+		NewSlot.ItemID = ChestItem.ItemName;
+		NewSlot.Num = ChestItem.ItemNum;
+		NewSlot.ItemType = GetItemTypeFromItemID(ChestItem.ItemName);
+
+		Items.Add(NewSlot);
+	}
 }

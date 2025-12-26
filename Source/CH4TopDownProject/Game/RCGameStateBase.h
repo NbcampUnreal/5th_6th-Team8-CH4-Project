@@ -14,6 +14,7 @@ enum class EMatchState : uint8
 	Waiting,
 	Playing,
 	Ending,
+	Cleaning,
 	End
 };
 
