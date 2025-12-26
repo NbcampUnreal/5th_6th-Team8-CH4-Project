@@ -18,6 +18,8 @@ enum class EMatchState : uint8
 	End
 };
 
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAlivePlayersChanged, int32, NewAliveCount);
 /**
  * 
  */
@@ -31,8 +33,20 @@ public:
 
 public:
 	UPROPERTY(Replicated)
+	EMatchState MatchState = EMatchState::Waiting;
+
+public:
+	UPROPERTY(ReplicatedUsing = OnRep_AlivePlayerControllerCount)
 	int32 AlivePlayerControllerCount = 0;
 
+	UPROPERTY(BlueprintAssignable)
+	FOnAlivePlayersChanged OnAlivePlayersChanged;
+protected:
+	UFUNCTION()
+	void OnRep_AlivePlayerControllerCount();
+
+public:
 	UPROPERTY(Replicated)
-	EMatchState MatchState = EMatchState::Waiting;
+	int32 ReplicatedGameModeDelay = 0;
+
 };

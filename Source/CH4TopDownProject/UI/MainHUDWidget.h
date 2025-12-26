@@ -37,6 +37,9 @@ public:
     //void UpdateAmmoCount(int32 CurrentAmmo, int32 MaxClipAmmo);
 
     UFUNCTION(BlueprintCallable, Category = "HUD")
+    void UpdateAlivePlayerCount(int32 AlivePlayerCount);
+
+    UFUNCTION(BlueprintCallable, Category = "HUD")
     void ShowNotice(const FString& Message);
 
     UFUNCTION(BlueprintCallable, Category = "HUD")
@@ -75,6 +78,9 @@ private:
 
     UPROPERTY(meta = (Bindwidget))
     TObjectPtr<UTextBlock> TimerText;
+    
+    UPROPERTY(meta = (Bindwidget))
+    TObjectPtr<UTextBlock> AlivePlayerCountText;
 
     UPROPERTY()
     TObjectPtr<UHealthComponent> PlayerHealthComponent;
