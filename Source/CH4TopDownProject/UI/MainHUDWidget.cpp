@@ -59,7 +59,8 @@ void UMainHUDWidget::NativeConstruct()
         RCGameStateBase->OnAlivePlayersChanged.AddDynamic(this, &UMainHUDWidget::UpdateAlivePlayerCount);
         UpdateAlivePlayerCount(RCGameStateBase->AlivePlayerControllerCount);
         
-        RCGameStateBase->OnReplicatedGameModeDelayChanged.AddDynamic(this, &UMainHUDWidget::ShowNotice);
+        RCGameStateBase->OnReplicatedGameModeDelayChanged.AddDynamic(this, &UMainHUDWidget::ShowNoticeWithNoTimer);
+        RCGameStateBase->OnShowNoti.AddDynamic(this, &UMainHUDWidget::ShowNotice);
         RCGameStateBase->OnFadeOut.AddDynamic(this, &UMainHUDWidget::FadeOut);
     }
 }
@@ -126,16 +127,19 @@ void UMainHUDWidget::ShowNotice(const FString& Message)
     {
         NoticeText->SetText(FText::FromString(Message));        
 
-        if (GetWorld()->GetTimerManager().IsTimerActive(NotiVisibilityControlHandle))
-        {
-            GetWorld()->GetTimerManager().ClearTimer(NotiVisibilityControlHandle);
-        }
-
-        //FTimerHandle NoticeTimer;
-        GetWorld()->GetTimerManager().SetTimer(NotiVisibilityControlHandle, [this]()
+        FTimerHandle NoticeTimer;
+        GetWorld()->GetTimerManager().SetTimer(NoticeTimer, [this]()
             {
-                if (NoticeText) NoticeText->SetVisibility(ESlateVisibility::Hidden);
+                if(NoticeText) NoticeText->SetVisibility(ESlateVisibility::Hidden);
             }, 5.0f, false);
+    }
+}
+
+void UMainHUDWidget::ShowNoticeWithNoTimer(const FString& Message)
+{
+    if (NoticeText)
+    {
+        NoticeText->SetText(FText::FromString(Message));
     }
 }
 

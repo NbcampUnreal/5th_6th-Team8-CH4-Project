@@ -132,14 +132,9 @@ void ARCPlayerController::OnCharacterDead()
 
 void ARCPlayerController::ClientRPCReturnToTitle_Implementation()
 {
-	UE_LOG(LogTemp, Error, TEXT("ClientRPCReturnToTitle_Implementation"));
 	if (IsLocalController() == true)
 	{ 
-		UE_LOG(LogTemp, Error, TEXT("ClientRPCReturnToTitle_Implementation 1"));
-		//UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("TitleLevel")), true);
 		ClientTravel(TEXT("TitleLevel"),ETravelType::TRAVEL_Absolute);
-
-		UE_LOG(LogTemp, Error, TEXT("ClientRPCReturnToTitle_Implementation 2"));
 	}
 }
 

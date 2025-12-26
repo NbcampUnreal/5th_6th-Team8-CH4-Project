@@ -21,6 +21,7 @@ enum class EMatchState : uint8
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAlivePlayersChanged, int32, NewAliveCount);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnReplicatedGameModeDelayChanged, const FString&, NotiMsg);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnShowNoti, const FString&, NotiMsg);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnFadeOut);
 /**
  * 
@@ -59,10 +60,10 @@ public:
 	FOnReplicatedGameModeDelayChanged OnReplicatedGameModeDelayChanged;
 	FOnFadeOut OnFadeOut;
 
+	FOnShowNoti OnShowNoti;
+
 protected:
 	UFUNCTION()
 	void OnRep_ReplicatedGameModeDelay();
 
-public:
-	void ShowNoti();
 };

@@ -31,7 +31,7 @@ void ARCGameStateBase::OnRep_ReplicatedGameModeDelay()
 		NotiMsg = FString::Printf(TEXT("게임 시작까지 %d초"), ReplicatedGameModeDelay);
 		break;
 	case EMatchState::Playing:
-		NotiMsg = FString::Printf(TEXT("Goal: Survive to the end!"));
+		NotiMsg = FString::Printf(TEXT("목표: 마지막까지 살아남으세요!"));
 		break;
 	case EMatchState::Ending:
 		NotiMsg = FString::Printf(TEXT("게임 종료까지 %d초"), ReplicatedGameModeDelay);
@@ -41,24 +41,19 @@ void ARCGameStateBase::OnRep_ReplicatedGameModeDelay()
 	default:
 		break;
 	}
-
-	//FString NotiMsg;
-	//NotiMsg = FString::Printf(TEXT("게임 시작까지 %d초"), ReplicatedGameModeDelay);
 	
-	OnReplicatedGameModeDelayChanged.Broadcast(NotiMsg);
+	if (MatchState == EMatchState::Playing)
+	{
+		OnShowNoti.Broadcast(NotiMsg);
+	}
+	else
+	{
+		OnReplicatedGameModeDelayChanged.Broadcast(NotiMsg);
+	}
 
 	if (ReplicatedGameModeDelay <= 1 && bIsLoadedBattleLv == false && MatchState == EMatchState::Waiting)
 	{
 		bIsLoadedBattleLv = true;
 		OnFadeOut.Broadcast();
-	}
-}
-
-void ARCGameStateBase::ShowNoti()
-{
-	if (HasAuthority() == false)
-	{
-		FString NotiMsg = FString::Printf(TEXT("survive!"));
-		OnReplicatedGameModeDelayChanged.Broadcast(NotiMsg);
 	}
 }

@@ -41,6 +41,9 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "HUD")
     void ShowNotice(const FString& Message);
+
+    UFUNCTION(BlueprintCallable, Category = "HUD")
+    void ShowNoticeWithNoTimer(const FString& Message);
     FTimerHandle NotiVisibilityControlHandle;
 
     UFUNCTION()

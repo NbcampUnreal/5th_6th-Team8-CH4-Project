@@ -53,7 +53,7 @@ void ARCGameModeBase::OnMainTimerElapsed()
 		if (CurGameStateChangeDelay < 0)
 		{
 			RCGameState->MatchState = EMatchState::Playing;
-			RCGameState->ShowNoti();
+			RCGameState->ReplicatedGameModeDelay = -1;
 		}
 		break;
 	}
@@ -69,7 +69,7 @@ void ARCGameModeBase::OnMainTimerElapsed()
 		RCGameState->ReplicatedGameModeDelay = CurGameStateChangeDelay;
 		--CurGameStateChangeDelay;
 		
-		if (CurGameStateChangeDelay <= 0)
+		if (CurGameStateChangeDelay < 0)
 		{
 			//플레이어 정리
 			for (auto AliveController : AlivePlayerControllers)
@@ -98,8 +98,7 @@ void ARCGameModeBase::OnMainTimerElapsed()
 				RCGameInstance->ManageSession(false);
 			}
 
-			FName CurrentLevelName = FName(UGameplayStatics::GetCurrentLevelName(this));
-			GetWorld()->ServerTravel(CurrentLevelName.ToString(), true);
+			GetWorld()->ServerTravel(TEXT("WaitingLevel"), true);
 		}
 
 		break; 
