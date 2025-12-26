@@ -83,6 +83,16 @@ void ARCPlayerController::HandleVictory()
 	ShowGameResultLayout(WinnerLayoutClass);
 }
 
+void ARCPlayerController::Client_PlayBlueZoneHitEffect_Implementation()
+{
+	if (!MainHUDWidgetInstance)
+	{
+		return;
+	}
+
+	MainHUDWidgetInstance->PlayBloodEffect();
+}
+
 void ARCPlayerController::ShowGameResultLayout(TSubclassOf<UGameResultLayout> TargetGameResultLayout)
 {
 	if (IsValid(TargetGameResultLayout))

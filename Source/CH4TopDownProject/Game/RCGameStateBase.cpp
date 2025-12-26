@@ -9,6 +9,13 @@ void ARCGameStateBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(ThisClass, AlivePlayerControllerCount);
 	DOREPLIFETIME(ThisClass, MatchState);
+	DOREPLIFETIME(ThisClass, AlivePlayerControllerCount);
+	DOREPLIFETIME(ThisClass, ReplicatedGameModeDelay);
+}
+
+void ARCGameStateBase::OnRep_AlivePlayerControllerCount()
+{
+	UE_LOG(LogTemp, Error, TEXT("AlivePlayerControllerCount :%d"), AlivePlayerControllerCount);
+	OnAlivePlayersChanged.Broadcast(AlivePlayerControllerCount);
 }

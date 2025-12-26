@@ -6,6 +6,7 @@
 #include "Component/StaminaComponent.h"
 #include "Component/QuickSlotComponent.h"
 #include "UI/QuickSlotItemData.h"
+#include "Game/RCGameStateBase.h"
 
 void UMainHUDWidget::NativeConstruct()
 {
@@ -50,6 +51,15 @@ void UMainHUDWidget::NativeConstruct()
     PlayerQuickSlotComponent->OnQuickSlotDataChanged.AddDynamic(this, &UMainHUDWidget::UpdateQuickSlotData);
     
     UpdateQuickSlotData(PlayerQuickSlotComponent->GetQuickSlotData());
+
+
+    if (ARCGameStateBase* RCGameStateBase = GetWorld()->GetGameState<ARCGameStateBase>())
+    {
+        RCGameStateBase->OnAlivePlayersChanged.AddDynamic(this, &UMainHUDWidget::UpdateAlivePlayerCount);
+
+        UpdateAlivePlayerCount(RCGameStateBase->AlivePlayerControllerCount);
+        //UpdateAlivePlayerCount(1);
+    }
 }
 
 void UMainHUDWidget::UpdateHealth(float CurrentHealth, float MaxHealth)
@@ -99,6 +109,16 @@ void UMainHUDWidget::UpdateQuickSlotData(const TArray<FQuickSlotItemData>& NewSl
     }
 }
 
+void UMainHUDWidget::UpdateAlivePlayerCount(int32 AlivePlayerCount)
+{
+    if (AlivePlayerCountText)
+    {
+        UE_LOG(LogTemp, Error, TEXT("UpdateAlivePlayerCount :%d"), AlivePlayerCount);
+        FString AlivePlayerCountString = FString::Printf(TEXT("%d생존"), AlivePlayerCount);
+        AlivePlayerCountText->SetText(FText::FromString(AlivePlayerCountString));
+    }
+}
+
 void UMainHUDWidget::ShowNotice(const FString& Message)
 {
     if (NoticeText)
@@ -124,6 +144,15 @@ void UMainHUDWidget::UpdateGameTime(float TimeInSeconds)
 
         FString TimeString = FString::Printf(TEXT("%02d:%02d"), Minutes, Seconds);
         TimerText->SetText(FText::FromString(TimeString));
+    }
+}
+
+void UMainHUDWidget::PlayBloodEffect()
+{
+    UFunction* PlayAnimFunc = FindFunction(FName("PlayBloodEffectAnim"));
+    if (PlayAnimFunc)
+    {
+        ProcessEvent(PlayAnimFunc, this);
     }
 }
 

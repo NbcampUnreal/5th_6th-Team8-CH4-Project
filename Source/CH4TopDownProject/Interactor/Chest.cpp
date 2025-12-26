@@ -1,9 +1,10 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Interactor/Chest.h"
 
 #include "Character/RCPlayerCharacter.h"
+#include "Inventory/InventoryComponent.h"
 #include "Net/UnrealNetwork.h"
 
 AChest::AChest()
@@ -14,12 +15,13 @@ AChest::AChest()
 
 void AChest::Interact_Implementation(AActor* Interactor)
 {
-	// ARCPlayerCharacter* Player = Cast<ARCPlayerCharacter>(Interactor);
-	// if (!Player)
-	// 	return;
+	//ARCPlayerCharacter* Player = Cast<ARCPlayerCharacter>(Interactor);
+	//if (!Player)
+	//	return;
 	//
-	// 이런식으로 호출하면 됨
-	// Player->OpenChestUI(this);
+	//// 이런식으로 호출하면 됨
+	//UInventoryComponent* Inventory = Player->GetComponentByClass<UInventoryComponent>();
+	//Inventory->OpenChestUI(this);
 
 	if (!HasAuthority()) return; 
 
@@ -31,6 +33,19 @@ void AChest::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLife
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AChest, ItemListArray);
+}
+
+void AChest::OnSphereEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	Super::OnSphereEnd(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex);
+	ARCPlayerCharacter* Player = Cast<ARCPlayerCharacter>(OtherActor);
+	if (!Player)
+		return;
+
+	// 이런식으로 호출하면 됨
+	UInventoryComponent* Inventory = Player->GetComponentByClass<UInventoryComponent>();
+	if (!Inventory)return;
+	Inventory->CloseChestUI();
 }
 
 void AChest::SetItem(const TMap<FName, int32>& ItemMap)
@@ -46,6 +61,15 @@ void AChest::SetItem(const TMap<FName, int32>& ItemMap)
 
 void AChest::Client_OpenChestUI_Implementation(AActor* Interactor)
 {
+	ARCPlayerCharacter* Player = Cast<ARCPlayerCharacter>(Interactor);
+	if (!Player)
+		return;
+
+	// 이런식으로 호출하면 됨
+	UInventoryComponent* Inventory = Player->GetComponentByClass<UInventoryComponent>();
+	if (!Inventory)return;
+	Inventory->OpenChestUI(this);
+
 	if (ItemListArray.Num() == 0)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Cyan, 

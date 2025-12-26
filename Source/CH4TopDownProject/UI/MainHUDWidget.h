@@ -37,10 +37,16 @@ public:
     //void UpdateAmmoCount(int32 CurrentAmmo, int32 MaxClipAmmo);
 
     UFUNCTION(BlueprintCallable, Category = "HUD")
+    void UpdateAlivePlayerCount(int32 AlivePlayerCount);
+
+    UFUNCTION(BlueprintCallable, Category = "HUD")
     void ShowNotice(const FString& Message);
 
     UFUNCTION(BlueprintCallable, Category = "HUD")
     void UpdateGameTime(float TimeInSeconds);
+
+    UFUNCTION(BlueprintCallable, Category = "HUD")
+    void PlayBloodEffect();
 
 private:
     UPROPERTY(meta = (BindWidget))
@@ -72,6 +78,9 @@ private:
 
     UPROPERTY(meta = (Bindwidget))
     TObjectPtr<UTextBlock> TimerText;
+    
+    UPROPERTY(meta = (Bindwidget))
+    TObjectPtr<UTextBlock> AlivePlayerCountText;
 
     UPROPERTY()
     TObjectPtr<UHealthComponent> PlayerHealthComponent;
