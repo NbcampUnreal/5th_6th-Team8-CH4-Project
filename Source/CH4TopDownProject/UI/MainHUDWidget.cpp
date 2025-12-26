@@ -127,6 +127,15 @@ void UMainHUDWidget::UpdateGameTime(float TimeInSeconds)
     }
 }
 
+void UMainHUDWidget::PlayBloodEffect()
+{
+    UFunction* PlayAnimFunc = FindFunction(FName("PlayBloodEffectAnim"));
+    if (PlayAnimFunc)
+    {
+        ProcessEvent(PlayAnimFunc, this);
+    }
+}
+
 //void UMainHUDWidget::UpdateAmmoCount(int32 CurrentAmmo, int32 MaxAmmo)
 //{
 //    if (CurrentAmmoText)

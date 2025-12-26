@@ -9,6 +9,9 @@ ABlueZoneActor::ABlueZoneActor()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	VisualMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Static Mesh"));
+	VisualMesh->SetupAttachment(RootComponent);
+
 	bReplicates = true;
 	bAlwaysRelevant = true;
 
@@ -21,6 +24,7 @@ void ABlueZoneActor::BeginPlay()
 
 	CurrentRadius = BlueZoneRadius;
 
+	// Will be erased
 	if (HasAuthority())
 	{
 		GetWorld()->GetTimerManager().SetTimer(
@@ -45,7 +49,10 @@ void ABlueZoneActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	DrawDebugBlueZone();
+	//DrawDebugBlueZone();
+
+	float Scale = CurrentRadius / 50.0f;
+	VisualMesh->SetWorldScale3D(FVector(Scale, Scale, Scale));
 }
 
 void ABlueZoneActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -147,4 +154,30 @@ void ABlueZoneActor::DrawDebugBlueZone()
 		FVector(0, 1, 0),
 		false
 	);
+}
+
+void ABlueZoneActor::ActivateBlueZone()
+{
+	if (HasAuthority())
+	{
+		return;
+	}
+
+	GetWorld()->GetTimerManager().SetTimer(
+		BlueZoneDamageHandle,
+		this,
+		&ABlueZoneActor::ApplyBlueZoneDamage,
+		DamageInterval,
+		true
+	);
+
+	GetWorld()->GetTimerManager().SetTimer(
+		ShrinkTimerHandle,
+		this,
+		&ABlueZoneActor::StartShrink,
+		WaitTime,
+		false
+	);
+
+	UE_LOG(LogTemp, Warning, TEXT("Activate Blue Zone!"));
 }

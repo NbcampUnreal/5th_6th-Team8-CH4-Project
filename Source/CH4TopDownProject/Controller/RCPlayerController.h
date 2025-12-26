@@ -30,6 +30,9 @@ public:
 	UFUNCTION(Client, Reliable)
 	void Client_HandleDeath();
 
+	UFUNCTION(Client, Reliable)
+	void Client_PlayBlueZoneHitEffect();
+
 protected:
 	UFUNCTION()
 	void HandleDeath();

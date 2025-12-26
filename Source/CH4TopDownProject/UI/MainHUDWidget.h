@@ -42,6 +42,9 @@ public:
     UFUNCTION(BlueprintCallable, Category = "HUD")
     void UpdateGameTime(float TimeInSeconds);
 
+    UFUNCTION(BlueprintCallable, Category = "HUD")
+    void PlayBloodEffect();
+
 private:
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<UProgressBar> HealthBar;
