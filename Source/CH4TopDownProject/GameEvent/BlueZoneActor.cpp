@@ -52,7 +52,7 @@ void ABlueZoneActor::Tick(float DeltaTime)
 	//DrawDebugBlueZone();
 
 	float Scale = CurrentRadius / 50.0f;
-	VisualMesh->SetWorldScale3D(FVector(Scale, Scale, Scale / 3.0f));
+	VisualMesh->SetWorldScale3D(FVector(Scale, Scale, Scale));
 }
 
 void ABlueZoneActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
