@@ -35,6 +35,19 @@ void AChest::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLife
 	DOREPLIFETIME(AChest, ItemListArray);
 }
 
+void AChest::OnSphereEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	Super::OnSphereEnd(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex);
+	ARCPlayerCharacter* Player = Cast<ARCPlayerCharacter>(OtherActor);
+	if (!Player)
+		return;
+
+	// 이런식으로 호출하면 됨
+	UInventoryComponent* Inventory = Player->GetComponentByClass<UInventoryComponent>();
+	if (!Inventory)return;
+	Inventory->CloseChestUI();
+}
+
 void AChest::SetItem(const TMap<FName, int32>& ItemMap)
 {
 	if (!HasAuthority()) return;
@@ -54,6 +67,7 @@ void AChest::Client_OpenChestUI_Implementation(AActor* Interactor)
 
 	// 이런식으로 호출하면 됨
 	UInventoryComponent* Inventory = Player->GetComponentByClass<UInventoryComponent>();
+	if (!Inventory)return;
 	Inventory->OpenChestUI(this);
 
 	if (ItemListArray.Num() == 0)
