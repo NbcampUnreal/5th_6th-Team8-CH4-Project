@@ -18,6 +18,11 @@ enum class EMatchState : uint8
 	End
 };
 
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAlivePlayersChanged, int32, NewAliveCount);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnReplicatedGameModeDelayChanged, const FString&, NotiMsg);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnShowNoti, const FString&, NotiMsg);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnFadeOut);
 /**
  * 
  */
@@ -31,8 +36,34 @@ public:
 
 public:
 	UPROPERTY(Replicated)
+	EMatchState MatchState = EMatchState::Waiting;
+
+public:
+	UPROPERTY(ReplicatedUsing = OnRep_AlivePlayerControllerCount)
 	int32 AlivePlayerControllerCount = 0;
 
+	UPROPERTY(BlueprintAssignable)
+	FOnAlivePlayersChanged OnAlivePlayersChanged;
+protected:
+	UFUNCTION()
+	void OnRep_AlivePlayerControllerCount();
+
+
+public:
+	UPROPERTY(ReplicatedUsing = OnRep_ReplicatedGameModeDelay)
+	int32 ReplicatedGameModeDelay = 0;
+
 	UPROPERTY(Replicated)
-	EMatchState MatchState = EMatchState::Waiting;
+	bool bIsLoadedBattleLv = false;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnReplicatedGameModeDelayChanged OnReplicatedGameModeDelayChanged;
+	FOnFadeOut OnFadeOut;
+
+	FOnShowNoti OnShowNoti;
+
+protected:
+	UFUNCTION()
+	void OnRep_ReplicatedGameModeDelay();
+
 };

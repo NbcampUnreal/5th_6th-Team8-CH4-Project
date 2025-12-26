@@ -21,7 +21,7 @@ protected:
 
 protected:
 	const int32 GAME_START_DELAY = 10;
-	int32 CurGameStateChangeDelay = 10;
+	int32 CurGameStateChangeDelay = 0;
 	bool bIsLoadedToBattleLv = false;
 
 private:

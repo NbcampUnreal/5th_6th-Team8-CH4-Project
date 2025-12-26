@@ -45,27 +45,31 @@ void ARCGameModeBase::OnMainTimerElapsed()
 		else
 		{
 			UE_LOG(LogTemp, Error, TEXT("%d seconds until StartGame"), CurGameStateChangeDelay);
+
+			//RCGameState->ReplicatedGameModeDelay = CurGameStateChangeDelay;
 			--CurGameStateChangeDelay;
 		}
 
-		if (CurGameStateChangeDelay <= 0)
+		if (CurGameStateChangeDelay < 0)
 		{
 			RCGameState->MatchState = EMatchState::Playing;
+			RCGameState->ReplicatedGameModeDelay = -1;
 		}
 		break;
 	}
 	case EMatchState::Playing:
 	{ 
-
+		
 
 		break; 
 	}
 	case EMatchState::Ending: 
 	{
 		UE_LOG(LogTemp, Error, TEXT("%d seconds until RestartServer"), CurGameStateChangeDelay);
+		RCGameState->ReplicatedGameModeDelay = CurGameStateChangeDelay;
 		--CurGameStateChangeDelay;
 		
-		if (CurGameStateChangeDelay <= 0)
+		if (CurGameStateChangeDelay < 0)
 		{
 			//플레이어 정리
 			for (auto AliveController : AlivePlayerControllers)
@@ -88,14 +92,13 @@ void ARCGameModeBase::OnMainTimerElapsed()
 		if (CurGameStateChangeDelay <= 0)
 		{
 			MainTimerHandle.Invalidate();
-			URCGameInstance* GI = GetWorld()->GetGameInstance<URCGameInstance>();
-			if (GI)
+			URCGameInstance* RCGameInstance = GetWorld()->GetGameInstance<URCGameInstance>();
+			if (RCGameInstance)
 			{
-				GI->ManageSession(false);
+				RCGameInstance->ManageSession(false);
 			}
 
-			FName CurrentLevelName = FName(UGameplayStatics::GetCurrentLevelName(this));
-			GetWorld()->ServerTravel(CurrentLevelName.ToString(), true);
+			GetWorld()->ServerTravel(TEXT("WaitingLevel"), true);
 		}
 
 		break; 
@@ -113,6 +116,12 @@ void ARCGameModeBase::PostLogin(APlayerController* NewPlayer)
 	if (NewPlayerController != nullptr)
 	{
 		AlivePlayerControllers.Add(NewPlayerController);
+		ARCGameStateBase* RCGameState = GetGameState<ARCGameStateBase>();
+		if (IsValid(RCGameState) == false)
+		{
+			return;
+		}
+		RCGameState->AlivePlayerControllerCount = AlivePlayerControllers.Num();
 
 		if (AlivePlayerControllers.Num() >= MaxPlayerCount) {
 			UE_LOG(LogTemp, Error, TEXT("Player is full. This Session will be closed..."));

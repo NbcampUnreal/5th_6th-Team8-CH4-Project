@@ -37,7 +37,17 @@ public:
     //void UpdateAmmoCount(int32 CurrentAmmo, int32 MaxClipAmmo);
 
     UFUNCTION(BlueprintCallable, Category = "HUD")
+    void UpdateAlivePlayerCount(int32 AlivePlayerCount);
+
+    UFUNCTION(BlueprintCallable, Category = "HUD")
     void ShowNotice(const FString& Message);
+
+    UFUNCTION(BlueprintCallable, Category = "HUD")
+    void ShowNoticeWithNoTimer(const FString& Message);
+    FTimerHandle NotiVisibilityControlHandle;
+
+    UFUNCTION()
+    void FadeOut();
 
     UFUNCTION(BlueprintCallable, Category = "HUD")
     void UpdateGameTime(float TimeInSeconds);
@@ -75,6 +85,9 @@ private:
 
     UPROPERTY(meta = (Bindwidget))
     TObjectPtr<UTextBlock> TimerText;
+    
+    UPROPERTY(meta = (Bindwidget))
+    TObjectPtr<UTextBlock> AlivePlayerCountText;
 
     UPROPERTY()
     TObjectPtr<UHealthComponent> PlayerHealthComponent;
@@ -84,4 +97,7 @@ private:
 
     UPROPERTY()
     TObjectPtr<UQuickSlotComponent> PlayerQuickSlotComponent;    
+
+    UPROPERTY(meta = (BindWidget))
+    class UImage* FadeImg;
 };

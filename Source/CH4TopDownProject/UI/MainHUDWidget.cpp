@@ -6,6 +6,8 @@
 #include "Component/StaminaComponent.h"
 #include "Component/QuickSlotComponent.h"
 #include "UI/QuickSlotItemData.h"
+#include "Game/RCGameStateBase.h"
+#include "Components/Image.h"
 
 void UMainHUDWidget::NativeConstruct()
 {
@@ -50,6 +52,17 @@ void UMainHUDWidget::NativeConstruct()
     PlayerQuickSlotComponent->OnQuickSlotDataChanged.AddDynamic(this, &UMainHUDWidget::UpdateQuickSlotData);
     
     UpdateQuickSlotData(PlayerQuickSlotComponent->GetQuickSlotData());
+
+
+    if (ARCGameStateBase* RCGameStateBase = GetWorld()->GetGameState<ARCGameStateBase>())
+    {
+        RCGameStateBase->OnAlivePlayersChanged.AddDynamic(this, &UMainHUDWidget::UpdateAlivePlayerCount);
+        UpdateAlivePlayerCount(RCGameStateBase->AlivePlayerControllerCount);
+        
+        RCGameStateBase->OnReplicatedGameModeDelayChanged.AddDynamic(this, &UMainHUDWidget::ShowNoticeWithNoTimer);
+        RCGameStateBase->OnShowNoti.AddDynamic(this, &UMainHUDWidget::ShowNotice);
+        RCGameStateBase->OnFadeOut.AddDynamic(this, &UMainHUDWidget::FadeOut);
+    }
 }
 
 void UMainHUDWidget::UpdateHealth(float CurrentHealth, float MaxHealth)
@@ -99,6 +112,15 @@ void UMainHUDWidget::UpdateQuickSlotData(const TArray<FQuickSlotItemData>& NewSl
     }
 }
 
+void UMainHUDWidget::UpdateAlivePlayerCount(int32 AlivePlayerCount)
+{
+    if (AlivePlayerCountText)
+    {
+        FString AlivePlayerCountString = FString::Printf(TEXT("%d생존"), AlivePlayerCount);
+        AlivePlayerCountText->SetText(FText::FromString(AlivePlayerCountString));
+    }
+}
+
 void UMainHUDWidget::ShowNotice(const FString& Message)
 {
     if (NoticeText)
@@ -108,8 +130,28 @@ void UMainHUDWidget::ShowNotice(const FString& Message)
         FTimerHandle NoticeTimer;
         GetWorld()->GetTimerManager().SetTimer(NoticeTimer, [this]()
             {
-                if (NoticeText) NoticeText->SetVisibility(ESlateVisibility::Hidden);
+                if(NoticeText) NoticeText->SetVisibility(ESlateVisibility::Hidden);
             }, 5.0f, false);
+    }
+}
+
+void UMainHUDWidget::ShowNoticeWithNoTimer(const FString& Message)
+{
+    if (NoticeText)
+    {
+        NoticeText->SetText(FText::FromString(Message));
+    }
+}
+
+void UMainHUDWidget::FadeOut()
+{
+    if (FadeImg)
+    {
+        UFunction* PlayFadeOutAnim = FindFunction(FName("PlayFadeOutAnim"));
+        if (PlayFadeOutAnim)
+        {
+            ProcessEvent(PlayFadeOutAnim, this);
+        }
     }
 }
 
