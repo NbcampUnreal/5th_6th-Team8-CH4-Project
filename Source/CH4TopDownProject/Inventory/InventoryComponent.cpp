@@ -98,6 +98,7 @@ void UInventoryComponent::OpenChestUI(AChest* Chest)
 		if (ContainerWidget)
 		{
 			ContainerWidget->OwnerChest = Chest;
+			ContainerWidget->InventoryComponent = this;
 			ContainerWidget->ChestItemEntryToInventorySlot(Chest->ItemListArray);
 			ContainerWidget->AddToViewport();
 		}
@@ -214,7 +215,7 @@ bool UInventoryComponent::GetItem(AActor* ItemActor)
 		if (bool bHit = GetWorld()->LineTraceSingleByChannel(
 			Hit, 
 			st, ed, 
-			ECC_Visibility, 
+			ECC_Camera, 
 			Params)
 			) {
 			ItemActor = Hit.GetActor();
@@ -755,6 +756,8 @@ void UInventoryComponent::ServerSetWeapon_Implementation(int32 Index, FInventory
 		NewWeaponActor->SetActorHiddenInGame(true);
 		WeaponActors[Index] = NewWeaponActor;
 	}
+	if (Index == CurrentWeaponIndex)
+		ServerEquipWeapon_Implementation(Index);
 }
 
 void UInventoryComponent::ServerEquipWeapon_Implementation(int32 Index)
@@ -786,6 +789,7 @@ void UInventoryComponent::OnRep_CurrentWeaponIndex()
 		}
 	}
 	WeaponActors[CurrentWeaponIndex]->SetActorHiddenInGame(false);
+
 }
 
 void UInventoryComponent::OnRep_WeaponActors()
