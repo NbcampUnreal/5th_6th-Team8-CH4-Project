@@ -4,6 +4,7 @@
 #include "GameFramework/Actor.h"
 #include "BlueZoneActor.generated.h"
 
+UENUM(BlueprintType)
 enum class EBlueZoneState : uint8
 {
 	Waiting,
@@ -35,9 +36,13 @@ protected:
 	void DrawDebugBlueZone();
 
 public:
-	void ActivateBlueZone();
+	UFUNCTION(BlueprintPure)
+	EBlueZoneState GetCurrentState() const { return BlueZoneState; }
 
+	UFUNCTION(BlueprintPure)
 	float GetCurrentRadius() const { return CurrentRadius; }
+
+	void ActivateBlueZone();
 
 protected:	
 	UPROPERTY(VisibleAnywhere)
