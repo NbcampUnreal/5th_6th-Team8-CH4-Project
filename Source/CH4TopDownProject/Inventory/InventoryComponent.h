@@ -54,7 +54,6 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Inventory|UI")
 	TSubclassOf<UContainerWidget> ContainerWidgetClass;
-
 	
 public:
 	UPROPERTY(BlueprintAssignable, Category = "Inventory|Event")
@@ -65,6 +64,9 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Inventory|UI")
 	UContainerWidget* ContainerWidget;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Inventory|UI")
+	bool IsInventoryOpen = false;
 public:
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void OpenInventoryUI();

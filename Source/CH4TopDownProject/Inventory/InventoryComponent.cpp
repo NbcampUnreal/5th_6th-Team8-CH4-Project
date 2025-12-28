@@ -13,6 +13,7 @@
 #include "Interactor/Chest.h"
 #include "Character/RCPlayerCharacter.h"
 #include "Component/HealthComponent.h"
+#include "Weapon/TopDownWeaponBase.h"
 #include "Net/UnrealNetwork.h"
 
 
@@ -73,6 +74,7 @@ void UInventoryComponent::OpenInventoryUI()
 			InventoryWidget->AddToViewport();
 		}
 	}
+	IsInventoryOpen = true;
 }
 
 void UInventoryComponent::OpenChestUI(AChest* Chest)
@@ -112,6 +114,7 @@ void UInventoryComponent::CloseInventoryUI()
 		InventoryWidget->RemoveFromParent();
 		InventoryWidget = nullptr;
 	}
+	IsInventoryOpen = false;
 	CloseChestUI();
 }
 
@@ -774,6 +777,9 @@ void UInventoryComponent::ServerEquipWeapon_Implementation(int32 Index)
 
 	AActor* Weapon = WeaponActors[CurrentWeaponIndex];
 	if (!Weapon) return;
+	Weapon->SetActorHiddenInGame(false);
+	//밀리 무기 추가로 인한 추가
+	Cast<ARCPlayerCharacter>(GetOwner())->GetCurrentWeapon()->SetActorHiddenInGame(true);
 
 	Cast<ARCPlayerCharacter>(GetOwner())->SetCurrentWeapon(Weapon);
 }
