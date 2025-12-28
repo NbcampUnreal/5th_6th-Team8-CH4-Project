@@ -40,6 +40,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interact")
 	TObjectPtr<UWidgetComponent> InteractCheckWidget;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Effects")
+	UParticleSystem* DestroyParticle;
+
 	UPROPERTY(EditAnywhere)
 	bool bCanInteract = true;
 
@@ -60,6 +63,9 @@ protected:
 
 	UFUNCTION(BlueprintNativeEvent)
 	void OnItemDestroyed();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_OnDeathEmitter();
 
 	UFUNCTION(BlueprintCallable)
 	virtual void OnSphereOverlap(UPrimitiveComponent* OverlappedComp,

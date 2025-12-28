@@ -37,18 +37,20 @@ protected:
 public:
 	void ActivateBlueZone();
 
+	float GetCurrentRadius() const { return CurrentRadius; }
+
 protected:	
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UStaticMeshComponent> VisualMesh;
 
 	UPROPERTY(EditAnywhere, Category = "BlueZone")
-	float WaitTime = 30.0f;
+	float WaitTime = 180.0f;
 
 	UPROPERTY(EditAnywhere, Category = "BlueZone")
-	float ShrinkDuration = 100.0f;
+	float ShrinkDuration = 200.0f;
 
 	UPROPERTY(EditAnywhere, Category = "BlueZone")
-	float BlueZoneRadius = 10000.0f;
+	float BlueZoneRadius = 33000.0f;
 
 	UPROPERTY(EditAnywhere, Category = "BlueZone")
 	float TargetRadius = 2000.0f;

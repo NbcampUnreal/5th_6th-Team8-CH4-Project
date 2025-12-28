@@ -43,6 +43,13 @@ public:
     void ShowNotice(const FString& Message);
 
     UFUNCTION(BlueprintCallable, Category = "HUD")
+    void ShowNoticeWithNoTimer(const FString& Message);
+    FTimerHandle NotiVisibilityControlHandle;
+
+    UFUNCTION()
+    void FadeOut();
+
+    UFUNCTION(BlueprintCallable, Category = "HUD")
     void UpdateGameTime(float TimeInSeconds);
 
     UFUNCTION(BlueprintCallable, Category = "HUD")
@@ -90,4 +97,7 @@ private:
 
     UPROPERTY()
     TObjectPtr<UQuickSlotComponent> PlayerQuickSlotComponent;    
+
+    UPROPERTY(meta = (BindWidget))
+    class UImage* FadeImg;
 };
