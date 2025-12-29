@@ -1,22 +1,38 @@
-#include "Weapon/MeleeWeapon.h"
+// Weapons/MeleeWeapon.cpp
+#include "Weapons/MeleeWeapon.h"
+
+#include "Components/SceneComponent.h"
+#include "DrawDebugHelpers.h"
+#include "Engine/World.h"
 #include "GameFramework/Pawn.h"
 #include "Kismet/GameplayStatics.h"
-#include "DrawDebugHelpers.h"
 #include "NiagaraFunctionLibrary.h"
 
 AMeleeWeapon::AMeleeWeapon()
 {
     PrimaryActorTick.bCanEverTick = true;
 
-    WeaponType = EWeaponType::Melee;
-
-    WeaponStats.MagazineSize = 0;
-    CurrentAmmoInMag = 0;
+    WeaponType = EWeaponTypes::Melee;
 
     SwingPivot = CreateDefaultSubobject<USceneComponent>(TEXT("SwingPivot"));
     SetRootComponent(SwingPivot);
 
-    WeaponMesh->SetupAttachment(SwingPivot);
+    if (WeaponMesh)
+    {
+        WeaponMesh->SetupAttachment(SwingPivot);
+    }
+
+    SwingPivot->SetMobility(EComponentMobility::Movable);
+}
+
+void AMeleeWeapon::BeginPlay()
+{
+    Super::BeginPlay();
+
+    if (SwingPivot)
+    {
+        CachedPivotRot = SwingPivot->GetRelativeRotation();
+    }
 }
 
 bool AMeleeWeapon::IsInFrontArc(const FVector& OwnerForward, const FVector& ToTarget) const
@@ -28,10 +44,7 @@ bool AMeleeWeapon::IsInFrontArc(const FVector& OwnerForward, const FVector& ToTa
 
 void AMeleeWeapon::Multicast_PlaySwingFX_Implementation()
 {
-    if (GetNetMode() == NM_DedicatedServer)
-    { 
-        return;
-    }
+    if (GetNetMode() == NM_DedicatedServer) return;
 
     if (CanPlaySwingVisual())
     {
@@ -39,10 +52,7 @@ void AMeleeWeapon::Multicast_PlaySwingFX_Implementation()
         BeginSwingVisual();
     }
 
-    if (!SwingFX || !WeaponMesh)
-    {
-        return;
-    }
+    if (!SwingFX || !WeaponMesh) return;
 
     UNiagaraFunctionLibrary::SpawnSystemAttached(
         SwingFX,
@@ -55,20 +65,21 @@ void AMeleeWeapon::Multicast_PlaySwingFX_Implementation()
     );
 }
 
-void AMeleeWeapon::Server_AttackOnce()
+bool AMeleeWeapon::Server_AttackOnce()
 {
     if (!HasAuthority() || !GetWorld())
     {
-        return;
+        return false;
     }
-
-    Multicast_PlaySwingFX();
 
     APawn* OwnerPawn = Cast<APawn>(GetOwner());
     if (!OwnerPawn)
     {
-        return;
+        return false;
     }
+
+    Multicast_PlaySwingFX();
+
     const FVector Start = OwnerPawn->GetActorLocation();
     const FVector Forward = OwnerPawn->GetActorForwardVector();
     const FVector End = Start + Forward * MeleeStats.Range;
@@ -94,62 +105,44 @@ void AMeleeWeapon::Server_AttackOnce()
 
     if (!bHit)
     {
-        return;
+        return false;
     }
+
     AController* InstCtrl = OwnerPawn->GetController();
 
     TSet<TWeakObjectPtr<AActor>> Damaged;
+    bool bAppliedAnyDamage = false;
 
     for (const FHitResult& HR : Hits)
     {
         AActor* Victim = HR.GetActor();
-        if (!Victim || Victim == OwnerPawn)
-        {
-            continue;
-        }
-        if (Damaged.Contains(Victim))
-        {
-            continue;
-        }
-        const FVector ToTarget = Victim->GetActorLocation() - OwnerPawn->GetActorLocation();
-        if (!IsInFrontArc(Forward, ToTarget))
-        {
-            continue;
+        if (!Victim || Victim == OwnerPawn) continue;
+        if (Damaged.Contains(Victim)) continue;
 
-        }
+        const FVector ToTarget = Victim->GetActorLocation() - OwnerPawn->GetActorLocation();
+        if (!IsInFrontArc(Forward, ToTarget)) continue;
+
         Damaged.Add(Victim);
 
         UGameplayStatics::ApplyPointDamage(
             Victim,
-            MeleeStats.Damage,
+            CommonStats.Damage,
             Forward,
             HR,
             InstCtrl,
             this,
             nullptr
         );
-    }
-}
 
-float AMeleeWeapon::GetAttackInterval() const
-{
-    return MeleeStats.AttackInterval;
-}
-
-void AMeleeWeapon::StartFire()
-{
-    if (CanPlaySwingVisual())
-    {
-        LastSwingVisualTime = GetWorld()->GetTimeSeconds();
-        BeginSwingVisual();
+        bAppliedAnyDamage = true;
     }
 
-    Super::StartFire();
+    return bAppliedAnyDamage;
 }
 
 void AMeleeWeapon::BeginSwingVisual()
 {
-    if (!SwingPivot || !GetWorld()) 
+    if (!SwingPivot || !GetWorld())
     {
         return;
     }
@@ -163,18 +156,27 @@ void AMeleeWeapon::BeginSwingVisual()
     SwingStartTime = GetWorld()->GetTimeSeconds();
 }
 
+bool AMeleeWeapon::CanPlaySwingVisual() const
+{
+    if (!GetWorld()) return false;
+    if (bSwinging) return false;
+
+    const float Now = GetWorld()->GetTimeSeconds();
+    return (Now - LastSwingVisualTime) >= GetAttackInterval();
+}
+
 void AMeleeWeapon::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
 
-    if (!bSwinging || !SwingPivot || !GetWorld()) 
+    if (!bSwinging || !SwingPivot || !GetWorld())
     {
         return;
     }
 
     const float t = GetWorld()->GetTimeSeconds() - SwingStartTime;
 
-    if (t >= SwingDuration * 2)
+    if (t >= SwingDuration * 2.f)
     {
         SwingPivot->SetRelativeRotation(CachedPivotRot + SwingRotA);
         bSwinging = false;
@@ -191,27 +193,10 @@ void AMeleeWeapon::Tick(float DeltaSeconds)
     else
     {
         const float rt = (t - SwingDuration) / SwingDuration;
-        float Ease = FMath::InterpEaseInOut(0.f, 1.f, rt, 2.0f);
+        const float Ease = FMath::InterpEaseInOut(0.f, 1.f, rt, 2.0f);
         Alpha = 1.f - Ease;
     }
 
     const FRotator AddRot = FMath::Lerp(SwingRotA, SwingRotB, Alpha);
     SwingPivot->SetRelativeRotation(CachedPivotRot + AddRot);
-}
-
-bool AMeleeWeapon::CanPlaySwingVisual() const
-{
-    if (!GetWorld()) 
-    {
-        return false;
-    }
-
-    if (bSwinging) 
-    {
-        return false;
-    }
-
-    const float Now = GetWorld()->GetTimeSeconds();
-    const float Interval = GetAttackInterval();
-    return (Now - LastSwingVisualTime) >= Interval;
 }
