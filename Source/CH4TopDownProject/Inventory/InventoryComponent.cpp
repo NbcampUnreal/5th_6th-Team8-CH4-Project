@@ -260,7 +260,7 @@ bool UInventoryComponent::GetItem(AActor* ItemActor)
 		}
 		else if (Item.ItemType == EItemType::Weapon) {
 			for (int i = 0; i < 2; i++) {
-				if (!WeaponActors[i]) {
+ 				if (!WeaponActors[i]) {
 					RequestSetWeapon(i, Item);
 					return true;
 				}
@@ -760,7 +760,9 @@ void UInventoryComponent::RequestSetWeapon(
 	if (!GetOwner()->HasAuthority())
 	{
 		ServerSetWeapon(Index, NewWeapon);
+		return;
 	}
+	ServerSetWeapon_Implementation(Index, NewWeapon);
 }
 
 void UInventoryComponent::RequestEquipWeapon(int32 Index)
@@ -768,7 +770,9 @@ void UInventoryComponent::RequestEquipWeapon(int32 Index)
 	if (!GetOwner()->HasAuthority())
 	{
 		ServerEquipWeapon(Index);
+		return;
 	}
+	
 }
 
 void UInventoryComponent::ServerSetWeapon_Implementation(int32 Index, FInventorySlot NewWeapon)
