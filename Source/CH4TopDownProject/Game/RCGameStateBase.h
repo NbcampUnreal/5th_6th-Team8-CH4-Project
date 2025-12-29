@@ -23,6 +23,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAlivePlayersChanged, int32, NewAl
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnReplicatedGameModeDelayChanged, const FString&, NotiMsg);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnShowNoti, const FString&, NotiMsg);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnFadeOut);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnFadeIn);
 /**
  * 
  */
@@ -59,6 +60,7 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnReplicatedGameModeDelayChanged OnReplicatedGameModeDelayChanged;
 	FOnFadeOut OnFadeOut;
+	FOnFadeIn OnFadeIn;
 
 	FOnShowNoti OnShowNoti;
 

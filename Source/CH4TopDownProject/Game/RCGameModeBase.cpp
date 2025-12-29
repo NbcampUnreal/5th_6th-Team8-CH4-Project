@@ -7,6 +7,7 @@
 #include "Game/RCGameStateBase.h"
 
 #include "Controller/RCPlayerController.h"
+#include "Spawner/SpawnManager.h"
 
 void ARCGameModeBase::BeginPlay()
 {
@@ -14,6 +15,12 @@ void ARCGameModeBase::BeginPlay()
 
 	InitGameLv();
 	InitPool();
+
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ASpawnManager::StaticClass(), GetAllActorList);
+	if (GetAllActorList.IsEmpty() == false )
+	{
+		SpawnManager = Cast<ASpawnManager>(GetAllActorList[0]);
+	}
 }
 
 void ARCGameModeBase::InitGameLv()
@@ -131,6 +138,22 @@ void ARCGameModeBase::PostLogin(APlayerController* NewPlayer)
 			{
 				RCGameInstance->ManageSession(true);
 			}
+		}
+	}
+}
+
+void ARCGameModeBase::RestartPlayer(AController* NewPlayer)
+{
+	Super::RestartPlayer(NewPlayer);
+
+	APlayerController* PlayerController = Cast<APlayerController>(NewPlayer);
+	if (PlayerController)
+	{
+		// 3. Pawn 생성 확인
+		APawn* NewPawn = PlayerController->GetPawn();
+		if (NewPawn != nullptr)
+		{
+			SpawnManager->SpawnCharacter(NewPawn);
 		}
 	}
 }

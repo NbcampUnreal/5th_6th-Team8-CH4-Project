@@ -1,8 +1,12 @@
+// Weapons/MeleeWeapon.h
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Weapon/TopDownWeaponBase.h"
+#include "Weapons/WeaponBase.h"
 #include "MeleeWeapon.generated.h"
+
+class UNiagaraSystem;
+class USceneComponent;
 
 USTRUCT(BlueprintType)
 struct FMeleeStats
@@ -10,13 +14,7 @@ struct FMeleeStats
     GENERATED_BODY()
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Melee")
-    float Damage = 35.f;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Melee")
     float Range = 150.f;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Melee")
-    float AttackInterval = 1.f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Melee")
     float Radius = 35.f;
@@ -26,12 +24,19 @@ struct FMeleeStats
 };
 
 UCLASS()
-class CH4TOPDOWNPROJECT_API AMeleeWeapon : public ATopDownWeaponBase
+class CH4TOPDOWNPROJECT_API AMeleeWeapon : public AWeaponBase
 {
     GENERATED_BODY()
 
 public:
     AMeleeWeapon();
+
+protected:
+    virtual void BeginPlay() override;
+    virtual void Tick(float DeltaSeconds) override;
+
+    virtual bool Server_AttackOnce() override;
+    virtual float GetAttackInterval() const override { return CommonStats.AttackInterval; }
 
 protected:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Melee")
@@ -47,7 +52,7 @@ protected:
     TObjectPtr<USceneComponent> SwingPivot;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Melee|Swing")
-    FRotator SwingRotA = FRotator(0.f);
+    FRotator SwingRotA = FRotator::ZeroRotator;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Melee|Swing")
     FRotator SwingRotB = FRotator(-45.f, 0.f, -90.f);
@@ -58,26 +63,14 @@ protected:
     UFUNCTION(NetMulticast, Unreliable)
     void Multicast_PlaySwingFX();
 
-protected:
-    FRotator CachedPivotRot;
-
-    bool bSwinging = false;
-
-    float SwingStartTime = 0.f;
-
-    float LastSwingVisualTime = -FLT_MAX;
-
-    virtual void Tick(float DeltaSeconds) override;
-
-    virtual void StartFire() override;
+private:
+    bool IsInFrontArc(const FVector& OwnerForward, const FVector& ToTarget) const;
 
     void BeginSwingVisual();
-
     bool CanPlaySwingVisual() const;
 
-    virtual void Server_AttackOnce() override;
-
-    virtual float GetAttackInterval() const override;
-
-    bool IsInFrontArc(const FVector& OwnerForward, const FVector& ToTarget) const;
+    FRotator CachedPivotRot = FRotator::ZeroRotator;
+    bool bSwinging = false;
+    float SwingStartTime = 0.f;
+    float LastSwingVisualTime = -FLT_MAX;
 };
