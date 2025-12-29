@@ -13,6 +13,7 @@
 #include "Interactor/Chest.h"
 #include "Character/RCPlayerCharacter.h"
 #include "Component/HealthComponent.h"
+#include "Weapon/TopDownWeaponBase.h"
 #include "Net/UnrealNetwork.h"
 
 
@@ -73,6 +74,7 @@ void UInventoryComponent::OpenInventoryUI()
 			InventoryWidget->AddToViewport();
 		}
 	}
+	IsInventoryOpen = true;
 }
 
 void UInventoryComponent::OpenChestUI(AChest* Chest)
@@ -98,6 +100,7 @@ void UInventoryComponent::OpenChestUI(AChest* Chest)
 		if (ContainerWidget)
 		{
 			ContainerWidget->OwnerChest = Chest;
+			ContainerWidget->InventoryComponent = this;
 			ContainerWidget->ChestItemEntryToInventorySlot(Chest->ItemListArray);
 			ContainerWidget->AddToViewport();
 		}
@@ -111,6 +114,7 @@ void UInventoryComponent::CloseInventoryUI()
 		InventoryWidget->RemoveFromParent();
 		InventoryWidget = nullptr;
 	}
+	IsInventoryOpen = false;
 	CloseChestUI();
 }
 
@@ -214,7 +218,7 @@ bool UInventoryComponent::GetItem(AActor* ItemActor)
 		if (bool bHit = GetWorld()->LineTraceSingleByChannel(
 			Hit, 
 			st, ed, 
-			ECC_Visibility, 
+			ECC_Camera, 
 			Params)
 			) {
 			ItemActor = Hit.GetActor();
@@ -755,6 +759,8 @@ void UInventoryComponent::ServerSetWeapon_Implementation(int32 Index, FInventory
 		NewWeaponActor->SetActorHiddenInGame(true);
 		WeaponActors[Index] = NewWeaponActor;
 	}
+	if (Index == CurrentWeaponIndex)
+		ServerEquipWeapon_Implementation(Index);
 }
 
 void UInventoryComponent::ServerEquipWeapon_Implementation(int32 Index)
@@ -771,6 +777,9 @@ void UInventoryComponent::ServerEquipWeapon_Implementation(int32 Index)
 
 	AActor* Weapon = WeaponActors[CurrentWeaponIndex];
 	if (!Weapon) return;
+	Weapon->SetActorHiddenInGame(false);
+	//밀리 무기 추가로 인한 추가
+	Cast<ARCPlayerCharacter>(GetOwner())->GetCurrentWeapon()->SetActorHiddenInGame(true);
 
 	Cast<ARCPlayerCharacter>(GetOwner())->SetCurrentWeapon(Weapon);
 }
@@ -786,6 +795,7 @@ void UInventoryComponent::OnRep_CurrentWeaponIndex()
 		}
 	}
 	WeaponActors[CurrentWeaponIndex]->SetActorHiddenInGame(false);
+
 }
 
 void UInventoryComponent::OnRep_WeaponActors()

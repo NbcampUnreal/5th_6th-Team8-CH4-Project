@@ -1,4 +1,4 @@
-#include "Weapon/TopDownWeaponBase.h"
+﻿#include "Weapon/TopDownWeaponBase.h"
 
 #include "Components/StaticMeshComponent.h"
 #include "Components/SceneComponent.h"
@@ -45,7 +45,7 @@ void ATopDownWeaponBase::BeginPlay()
 		return;
 	}
 
-	this->SetActorHiddenInGame(true);
+	/*this->SetActorHiddenInGame(true);
 
 	APlayerController* PC = Cast<APlayerController>(GetInstigatorController());
 	if (PC)
@@ -54,7 +54,7 @@ void ATopDownWeaponBase::BeginPlay()
 		{
 			this->SetActorHiddenInGame(false);
 		}
-	}
+	}*/
 }
 
 void ATopDownWeaponBase::GetLifetimeReplicatedProps(

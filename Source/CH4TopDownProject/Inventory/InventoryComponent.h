@@ -54,7 +54,6 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Inventory|UI")
 	TSubclassOf<UContainerWidget> ContainerWidgetClass;
-
 	
 public:
 	UPROPERTY(BlueprintAssignable, Category = "Inventory|Event")
@@ -65,6 +64,9 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Inventory|UI")
 	UContainerWidget* ContainerWidget;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Inventory|UI")
+	bool IsInventoryOpen = false;
 public:
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void OpenInventoryUI();
@@ -110,9 +112,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory|Data")
 	UDataTable* AmmoItemDataTable;
 	
-private:
-	AActor* SpawnItemOnGround(TSubclassOf<AActor> SpawnActor);
 	UDataTable* GetDataTableByItemType(EItemType ItemType)const;
+
+private:
+	AActor* SpawnItemOnGround(TSubclassOf<AActor> SpawnActor);	
 	EItemType GetDataTypeByItemID(FName ItemID)const;
 
 public:
@@ -214,7 +217,7 @@ private:
 
 	// 현재 사용 중인 무기 슬롯 인덱스
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentWeaponIndex)
-	int32 CurrentWeaponIndex = INDEX_NONE;
+	int32 CurrentWeaponIndex = 0;
 
 protected:
 	UFUNCTION()
