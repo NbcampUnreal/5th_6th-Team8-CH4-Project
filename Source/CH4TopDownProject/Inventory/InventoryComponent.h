@@ -206,7 +206,7 @@ public:
 	int32 GetDeffence();
 
 	void HandleEquipmentHeadChanged();
-
+	void HandleEquipmentChestChanged();
 	
 #pragma endregion
 
