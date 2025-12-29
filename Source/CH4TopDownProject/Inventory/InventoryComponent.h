@@ -246,4 +246,6 @@ public:
 	FInventorySlot Get_Weapon (int32 index) const;
 #pragma endregion
 
+	void RemoveItem_Iternal(int32 Index);
+
 };
