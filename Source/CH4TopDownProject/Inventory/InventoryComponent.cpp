@@ -603,7 +603,7 @@ void UInventoryComponent::OnRep_EquipmentChest()
 
 void UInventoryComponent::OnRep_EquipmentHead()
 {
-	OnInventoryUpdated.Broadcast();
+	HandleEquipmentHeadChanged();
 }
 
 void UInventoryComponent::SetEquipmentBagID(FInventorySlot NewID) {
@@ -680,6 +680,8 @@ void UInventoryComponent::ServerSetEquipmentHeadID_Implementation(FInventorySlot
 	if (!GetOwner() || !GetOwner()->HasAuthority())
 		return;
 	EquipmentHeadID = NewID;
+
+	HandleEquipmentHeadChanged();
 }
 
 int32 UInventoryComponent::GetBonusHealth()
@@ -718,6 +720,18 @@ int32 UInventoryComponent::GetDeffence()
 	}
 
 	return Deffence;
+}
+
+void UInventoryComponent::HandleEquipmentHeadChanged()
+{
+	OnInventoryUpdated.Broadcast();
+
+	ARCPlayerCharacter* OwnerChar = Cast<ARCPlayerCharacter>(GetOwner());
+	if (!OwnerChar) return;
+	
+	if (OwnerChar->GetNetMode() == NM_DedicatedServer) return;
+
+	OwnerChar->OnHelmetChanged(EquipmentHeadID.ItemID);
 }
 
 #pragma endregion

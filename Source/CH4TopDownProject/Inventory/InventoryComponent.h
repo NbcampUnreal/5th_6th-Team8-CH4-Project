@@ -12,6 +12,8 @@ class UInventoryUI;
 class UContainerWidget;
 class AChest;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInventoryUpdated);
+
 struct FItemData;
 
 USTRUCT(BlueprintType)
@@ -27,7 +29,6 @@ struct FInventorySlot // 아이템슬롯 == 아이템 한칸에 들어갈 정보
 	int32 Num;
 };
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInventoryUpdated);
 
 UCLASS(Blueprintable, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class CH4TOPDOWNPROJECT_API UInventoryComponent : public UActorComponent
@@ -46,9 +47,7 @@ protected:
 	) const override;
 #pragma region UI
 private:
-
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInventoryUpdated);
-
+	
 	UPROPERTY(EditDefaultsOnly, Category = "Inventory|UI")
 	TSubclassOf<UInventoryUI> InventoryWidgetClass;
 
@@ -205,6 +204,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
 	int32 GetDeffence();
+
+	void HandleEquipmentHeadChanged();
+
+	
 #pragma endregion
 
 #pragma region Weapon

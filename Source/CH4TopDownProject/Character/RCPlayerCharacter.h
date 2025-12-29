@@ -66,6 +66,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	UInventoryComponent* GetInventoryComponent() {return InventoryComponent;}
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void OnHelmetChanged(FName NewHelmetID);
 	
 # pragma region Components
 private:
