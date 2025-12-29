@@ -210,6 +210,9 @@ protected:
 	UFUNCTION(Server, Unreliable)
 	void Server_SetAimYaw(float NewYaw);
 
+	UFUNCTION(Server, Reliable)
+	void Server_SetCurrentWeapon(AWeaponBase* NewWeapon);
+
 	UPROPERTY(Replicated)
 	float AimYaw = 0.f;
 

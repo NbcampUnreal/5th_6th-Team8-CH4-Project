@@ -548,13 +548,38 @@ void ARCPlayerCharacter::HandleReloadInput(const FInputActionValue& InValue)
 
 void ARCPlayerCharacter::SetCurrentWeapon(AActor* weapon)
 {
-	CurrentWeapon = Cast<AWeaponBase>(weapon);
+	AWeaponBase* NewWeapon = Cast<AWeaponBase>(weapon);
+	if (!NewWeapon) return;
 
-	if (!CurrentWeapon) return;
+	if (!HasAuthority())
+	{
+		Server_SetCurrentWeapon(NewWeapon);
+		return;
+	}
 
-	if (GetNetMode() == NM_DedicatedServer) return;
-	
-	CurrentWeapon->SetActorHiddenInGame(!IsLocallyControlled());
+	Server_SetCurrentWeapon(NewWeapon);
+}
+
+void ARCPlayerCharacter::Server_SetCurrentWeapon_Implementation(AWeaponBase* NewWeapon)
+{
+	if (!NewWeapon || !GetMesh()) return;
+
+	CurrentWeapon = NewWeapon;
+
+	CurrentWeapon->SetOwner(this);
+	CurrentWeapon->SetInstigator(this);
+
+	CurrentWeapon->AttachToComponent(
+		GetMesh(),
+		FAttachmentTransformRules::SnapToTargetNotIncludingScale,
+		TEXT("WeaponSocket")
+	);
+
+	CurrentWeapon->SetActorEnableCollision(false);
+	CurrentWeapon->SetActorHiddenInGame(false);
+
+	CurrentWeapon->ForceNetUpdate();
+	ForceNetUpdate();
 }
 
 void ARCPlayerCharacter::UpdateAim()
