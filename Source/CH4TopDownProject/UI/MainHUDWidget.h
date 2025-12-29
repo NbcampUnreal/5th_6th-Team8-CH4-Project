@@ -75,7 +75,7 @@ private:
     //TObjectPtr<UTextBlock> MaxAmmoText;
 
     UPROPERTY(meta = (BindWidget))
-    TObjectPtr<UMinimapWidget> WBP_Minimap;
+    TObjectPtr<UMinimapWidget> MinimapWidget;
     
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<UHorizontalBox> QuickslotBox;
