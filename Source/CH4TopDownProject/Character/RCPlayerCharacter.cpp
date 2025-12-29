@@ -548,9 +548,9 @@ void ARCPlayerCharacter::HandleReloadInput(const FInputActionValue& InValue)
 
 void ARCPlayerCharacter::SetCurrentWeapon(AActor* weapon)
 {
-	CurrentWeapon = Cast<AWeaponBase>(weapon);
+	/*CurrentWeapon = Cast<AWeaponBase>(weapon);
 
-	if (Owner->GetNetMode() == NM_DedicatedServer) return;
+	if (GetNetMode() == NM_DedicatedServer) return;
 
 	if (ARCPlayerCharacter* Player = Cast<ARCPlayerCharacter>(Owner))
 	{
@@ -558,7 +558,24 @@ void ARCPlayerCharacter::SetCurrentWeapon(AActor* weapon)
 			return;
 	}
 
-	Owner->SetActorHiddenInGame(true);
+	SetActorHiddenInGame(true);
+
+	if (ARCPlayerCharacter* Player = Cast<ARCPlayerCharacter>(Owner))
+	{
+		if (AWeaponBase* Weapon = Player->GetCurrentWeapon())
+			Weapon->SetActorHiddenInGame(true);
+
+		if (AArmorBase* Armor = Player->GetCurrentArmor())
+			Armor->SetActorHiddenInGame(true);
+	}*/
+	CurrentWeapon = Cast<AWeaponBase>(weapon);
+
+	if (!CurrentWeapon) return;
+
+	if (GetNetMode() == NM_DedicatedServer) return;
+
+
+	CurrentWeapon->SetActorHiddenInGame(!IsLocallyControlled());
 
 	if (ARCPlayerCharacter* Player = Cast<ARCPlayerCharacter>(Owner))
 	{
@@ -568,8 +585,6 @@ void ARCPlayerCharacter::SetCurrentWeapon(AActor* weapon)
 		if (AArmorBase* Armor = Player->GetCurrentArmor())
 			Armor->SetActorHiddenInGame(true);
 	}
-
-	
 }
 
 void ARCPlayerCharacter::UpdateAim()
