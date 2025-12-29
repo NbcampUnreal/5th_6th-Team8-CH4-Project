@@ -109,9 +109,9 @@ void ARCPlayerCharacter::BeginPlay()
 		FActorSpawnParameters Params;
 		Params.Owner = this;
 		Params.Instigator = this;
-
-		CurrentWeapon = GetWorld()->SpawnActor<AWeaponBase>(DefaultWeaponClass, Params);
-
+		
+		SetCurrentWeapon(GetWorld()->SpawnActor<AWeaponBase>(DefaultWeaponClass, Params));
+		
 		if (CurrentWeapon && GetMesh())
 		{
 			CurrentWeapon->AttachToComponent(
@@ -119,6 +119,7 @@ void ARCPlayerCharacter::BeginPlay()
 				FAttachmentTransformRules::SnapToTargetNotIncludingScale,
 				TEXT("WeaponSocket")
 			);
+			
 		}
 
 		CurrentArmor = GetWorld()->SpawnActor<AArmorBase>(
@@ -548,6 +549,12 @@ void ARCPlayerCharacter::HandleReloadInput(const FInputActionValue& InValue)
 void ARCPlayerCharacter::SetCurrentWeapon(AActor* weapon)
 {
 	CurrentWeapon = Cast<AWeaponBase>(weapon);
+
+	if (!CurrentWeapon) return;
+
+	if (GetNetMode() == NM_DedicatedServer) return;
+	
+	CurrentWeapon->SetActorHiddenInGame(!IsLocallyControlled());
 }
 
 void ARCPlayerCharacter::UpdateAim()
@@ -592,6 +599,9 @@ void ARCPlayerCharacter::OnRep_CurrentWeapon()
 			FAttachmentTransformRules::SnapToTargetNotIncludingScale,
 			TEXT("WeaponSocket")
 		);
+
+		CurrentWeapon->SetActorEnableCollision(false);
+		
 	}
 }
 
@@ -604,6 +614,8 @@ void ARCPlayerCharacter::OnRep_CurrentArmor()
 			FAttachmentTransformRules::SnapToTargetNotIncludingScale,
 			TEXT("ArmorChestSocket")
 		);
+
+		CurrentArmor->SetActorEnableCollision(false);
 	}
 }
 
