@@ -13,6 +13,7 @@
 struct FInventorySlot;
 struct FChestItemEntry;
 class AChest;
+class UInventoryComponent;
 
 UCLASS()
 class CH4TOPDOWNPROJECT_API UContainerWidget : public UUserWidget
@@ -23,7 +24,8 @@ public:
 	AChest* OwnerChest;
 	UPROPERTY(BlueprintReadOnly)
 	TArray<FInventorySlot> Items;
-
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UI", meta = (ExposeOnSpawn = "true"))
+	UInventoryComponent* InventoryComponent;
 private:
 	UFUNCTION(BlueprintCallable)
 	EItemType GetItemTypeFromItemID(FName ItemID);	

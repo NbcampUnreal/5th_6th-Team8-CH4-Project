@@ -13,6 +13,7 @@
 #include "Interactor/Chest.h"
 #include "Character/RCPlayerCharacter.h"
 #include "Component/HealthComponent.h"
+#include "Weapon/TopDownWeaponBase.h"
 #include "Net/UnrealNetwork.h"
 
 
@@ -31,7 +32,7 @@ void UInventoryComponent::BeginPlay()
 	Items.SetNum(GetInventorytSize());
 	WeaponActors.SetNum(2);
 
-	OpenInventoryUI();	
+	//OpenInventoryUI();	
 }
 
 void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -73,6 +74,7 @@ void UInventoryComponent::OpenInventoryUI()
 			InventoryWidget->AddToViewport();
 		}
 	}
+	IsInventoryOpen = true;
 }
 
 void UInventoryComponent::OpenChestUI(AChest* Chest)
@@ -98,6 +100,7 @@ void UInventoryComponent::OpenChestUI(AChest* Chest)
 		if (ContainerWidget)
 		{
 			ContainerWidget->OwnerChest = Chest;
+			ContainerWidget->InventoryComponent = this;
 			ContainerWidget->ChestItemEntryToInventorySlot(Chest->ItemListArray);
 			ContainerWidget->AddToViewport();
 		}
@@ -111,6 +114,7 @@ void UInventoryComponent::CloseInventoryUI()
 		InventoryWidget->RemoveFromParent();
 		InventoryWidget = nullptr;
 	}
+	IsInventoryOpen = false;
 	CloseChestUI();
 }
 
@@ -214,7 +218,7 @@ bool UInventoryComponent::GetItem(AActor* ItemActor)
 		if (bool bHit = GetWorld()->LineTraceSingleByChannel(
 			Hit, 
 			st, ed, 
-			ECC_Visibility, 
+			ECC_Camera, 
 			Params)
 			) {
 			ItemActor = Hit.GetActor();
@@ -400,12 +404,18 @@ void UInventoryComponent::RemoveItem(int32 Index) {
 	if (!GetOwner()->HasAuthority())
 	{
 		Server_RemoveItem(Index);
+		return;
 	}
 
-	Server_RemoveItem_Implementation(Index);
+	RemoveItem_Iternal(Index);
 }
 
 void UInventoryComponent::Server_RemoveItem_Implementation(int32 Index)
+{
+	RemoveItem_Iternal(Index);
+}
+
+void UInventoryComponent::RemoveItem_Iternal(int32 Index)
 {
 	const FName ItemID = Items[Index].ItemID;
 	const int32 Num = Items[Index].Num;
@@ -423,8 +433,11 @@ void UInventoryComponent::Server_RemoveItem_Implementation(int32 Index)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("ItemID %s not found in ItemCountCache"), *ItemID.ToString());
 	}
-
 	Items[Index] = FInventorySlot();
+
+	//Items.RemoveAt(Index);
+	//Items.Insert(FInventorySlot(), Index);
+	Items = Items;
 }
 
 int32 UInventoryComponent::UseItem_ID(FName ItemID, int32 Num)
@@ -755,6 +768,8 @@ void UInventoryComponent::ServerSetWeapon_Implementation(int32 Index, FInventory
 		NewWeaponActor->SetActorHiddenInGame(true);
 		WeaponActors[Index] = NewWeaponActor;
 	}
+	if (Index == CurrentWeaponIndex)
+		ServerEquipWeapon_Implementation(Index);
 }
 
 void UInventoryComponent::ServerEquipWeapon_Implementation(int32 Index)
@@ -771,6 +786,9 @@ void UInventoryComponent::ServerEquipWeapon_Implementation(int32 Index)
 
 	AActor* Weapon = WeaponActors[CurrentWeaponIndex];
 	if (!Weapon) return;
+	Weapon->SetActorHiddenInGame(false);
+	//밀리 무기 추가로 인한 추가
+	Cast<ARCPlayerCharacter>(GetOwner())->GetCurrentWeapon()->SetActorHiddenInGame(true);
 
 	Cast<ARCPlayerCharacter>(GetOwner())->SetCurrentWeapon(Weapon);
 }
@@ -786,6 +804,7 @@ void UInventoryComponent::OnRep_CurrentWeaponIndex()
 		}
 	}
 	WeaponActors[CurrentWeaponIndex]->SetActorHiddenInGame(false);
+
 }
 
 void UInventoryComponent::OnRep_WeaponActors()
