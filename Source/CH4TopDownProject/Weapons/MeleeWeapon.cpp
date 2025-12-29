@@ -44,7 +44,14 @@ bool AMeleeWeapon::IsInFrontArc(const FVector& OwnerForward, const FVector& ToTa
 
 void AMeleeWeapon::Multicast_PlaySwingFX_Implementation()
 {
-    if (GetNetMode() == NM_DedicatedServer) return;
+    if (GetNetMode() == NM_DedicatedServer)
+    {
+        return;
+    }
+    if (!GetWorld())
+    {
+        return;
+    }
 
     if (CanPlaySwingVisual())
     {
@@ -52,18 +59,17 @@ void AMeleeWeapon::Multicast_PlaySwingFX_Implementation()
         BeginSwingVisual();
     }
 
-    if (!SwingFX || !WeaponMesh) return;
 
-    UNiagaraFunctionLibrary::SpawnSystemAttached(
-        SwingFX,
-        WeaponMesh,
-        SwingSocketName,
-        FVector::ZeroVector,
-        FRotator::ZeroRotator,
-        EAttachLocation::SnapToTarget,
-        true
-    );
+    if (SwingSound)
+    {
+        UGameplayStatics::PlaySoundAtLocation(
+            GetWorld(),
+            SwingSound,
+            GetActorLocation()
+        );
+    }
 }
+
 
 bool AMeleeWeapon::Server_AttackOnce()
 {

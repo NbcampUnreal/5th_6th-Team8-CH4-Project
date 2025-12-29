@@ -7,6 +7,7 @@
 
 class UNiagaraSystem;
 class USceneComponent;
+class USoundBase;
 
 USTRUCT(BlueprintType)
 struct FMeleeStats
@@ -47,6 +48,9 @@ protected:
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Melee|VFX")
     FName SwingSocketName = TEXT("BladeSocket");
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Melee|SFX")
+    TObjectPtr<USoundBase> SwingSound;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Melee|Swing")
     TObjectPtr<USceneComponent> SwingPivot;
