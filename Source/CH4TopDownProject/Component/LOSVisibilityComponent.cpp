@@ -5,15 +5,13 @@
 
 #include "HealthComponent.h"
 #include "Character/RCPlayerCharacter.h"
-#include "Weapon/TopDownWeaponBase.h"
+#include "Weapons/WeaponBase.h"
 #include "Armor/ArmorBase.h"
 
 ULOSVisibilityComponent::ULOSVisibilityComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 }
-
-
 
 void ULOSVisibilityComponent::BeginPlay()
 {
@@ -52,7 +50,7 @@ void ULOSVisibilityComponent::SetOwnerVisible(bool bVisible) const
 
 		if (ARCPlayerCharacter* Player = Cast<ARCPlayerCharacter>(Owner))
 		{
-			ATopDownWeaponBase* weapon  =Player->GetCurrentWeapon();
+			AWeaponBase* weapon  =Player->GetCurrentWeapon();
 			if (weapon)
 			{
 				weapon->SetActorHiddenInGame(!bVisible);

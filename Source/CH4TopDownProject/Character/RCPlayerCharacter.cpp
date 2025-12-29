@@ -5,13 +5,15 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/PlayerController.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/Engine.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
 
-#include "Weapon/TopDownWeaponBase.h"
+#include "Weapons/WeaponBase.h"
+#include "Weapons/RangeWeapon.h" 
 #include "Armor/ArmorBase.h"
 #include "Net/UnrealNetwork.h"
 
@@ -108,7 +110,7 @@ void ARCPlayerCharacter::BeginPlay()
 		Params.Owner = this;
 		Params.Instigator = this;
 
-		CurrentWeapon = GetWorld()->SpawnActor<ATopDownWeaponBase>(DefaultWeaponClass, Params);
+		CurrentWeapon = GetWorld()->SpawnActor<AWeaponBase>(DefaultWeaponClass, Params);
 
 		if (CurrentWeapon && GetMesh())
 		{
@@ -462,29 +464,29 @@ void ARCPlayerCharacter::Client_StopSprint_Implementation()
 
 void ARCPlayerCharacter::HandleFireStarted(const FInputActionValue& InValue)
 {
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow, TEXT("Fire Started"));
-	}
-	UE_LOG(LogTemp, Warning, TEXT("HandleFireStarted called"));
 	bIsFirstButtonDown = true;
 
-	if (CurrentWeapon)
-	{
-		CurrentWeapon->StartFire();
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("CurrentWeapon is null"));
-	}
+	if (!CurrentWeapon) return;
+
+	APlayerController* PC = Cast<APlayerController>(GetController());
+	if (!PC) return;
+
+	FHitResult Hit;
+	if (!PC->GetHitResultUnderCursor(ECC_Visibility, false, Hit)) return;
+
+	FVector Target = Hit.ImpactPoint;
+	Target.Z += 80.f;
+
+	CurrentWeapon->StartAttack(Target);
 }
 
 void ARCPlayerCharacter::HandleFireStopped(const FInputActionValue& InValue)
 {
 	bIsFirstButtonDown = false;
+
 	if (CurrentWeapon)
 	{
-		CurrentWeapon->StopFire();
+		CurrentWeapon->StopAttack();
 	}
 }
 
@@ -538,22 +540,20 @@ void ARCPlayerCharacter::HandleUseSlot8Input(const FInputActionValue& InValue)
 
 void ARCPlayerCharacter::HandleReloadInput(const FInputActionValue& InValue)
 {
-	if (CurrentWeapon)
-	{
-		CurrentWeapon->StartReload();
-	}
+	if (!CurrentWeapon) return;
+
+	CurrentWeapon->StartReload();
 }
 
 void ARCPlayerCharacter::SetCurrentWeapon(AActor* weapon)
 {
-	CurrentWeapon = Cast<ATopDownWeaponBase>(weapon);
+	CurrentWeapon = Cast<AWeaponBase>(weapon);
 }
 
 void ARCPlayerCharacter::UpdateAim()
 {
 	if (!IsLocallyControlled())
 		return;
-
 
 	if (!bIsFirstButtonDown)
 		return;

@@ -15,6 +15,7 @@
 #include "Component/HealthComponent.h"
 #include "Weapon/TopDownWeaponBase.h"
 #include "Net/UnrealNetwork.h"
+#include "Weapons/WeaponBase.h"
 
 
 UInventoryComponent::UInventoryComponent()
@@ -598,12 +599,13 @@ void UInventoryComponent::OnRep_EquipmentBag()
 
 void UInventoryComponent::OnRep_EquipmentChest()
 {
-	OnInventoryUpdated.Broadcast();
+	HandleEquipmentChestChanged();
+
 }
 
 void UInventoryComponent::OnRep_EquipmentHead()
 {
-	OnInventoryUpdated.Broadcast();
+	HandleEquipmentHeadChanged();
 }
 
 void UInventoryComponent::SetEquipmentBagID(FInventorySlot NewID) {
@@ -672,7 +674,9 @@ void UInventoryComponent::ServerSetEquipmentChestID_Implementation(FInventorySlo
 {
 	if (!GetOwner() || !GetOwner()->HasAuthority())
 		return;
+
 	EquipmentChestID = NewID;
+	HandleEquipmentChestChanged();
 }
 
 void UInventoryComponent::ServerSetEquipmentHeadID_Implementation(FInventorySlot NewID)
@@ -680,6 +684,8 @@ void UInventoryComponent::ServerSetEquipmentHeadID_Implementation(FInventorySlot
 	if (!GetOwner() || !GetOwner()->HasAuthority())
 		return;
 	EquipmentHeadID = NewID;
+
+	HandleEquipmentHeadChanged();
 }
 
 int32 UInventoryComponent::GetBonusHealth()
@@ -718,6 +724,30 @@ int32 UInventoryComponent::GetDeffence()
 	}
 
 	return Deffence;
+}
+
+void UInventoryComponent::HandleEquipmentHeadChanged()
+{
+	OnInventoryUpdated.Broadcast();
+
+	ARCPlayerCharacter* OwnerChar = Cast<ARCPlayerCharacter>(GetOwner());
+	if (!OwnerChar) return;
+	
+	if (OwnerChar->GetNetMode() == NM_DedicatedServer) return;
+
+	OwnerChar->OnHelmetChanged(EquipmentHeadID.ItemID);
+}
+
+void UInventoryComponent::HandleEquipmentChestChanged()
+{
+	OnInventoryUpdated.Broadcast();
+
+	ARCPlayerCharacter* OwnerChar = Cast<ARCPlayerCharacter>(GetOwner());
+	if (!OwnerChar) return;
+
+	if (OwnerChar->GetNetMode() == NM_DedicatedServer) return;
+
+	OwnerChar->OnChestChanged(EquipmentChestID.ItemID);
 }
 
 #pragma endregion
