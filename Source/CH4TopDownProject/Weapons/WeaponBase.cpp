@@ -29,21 +29,7 @@ AWeaponBase::AWeaponBase()
 void AWeaponBase::BeginPlay()
 {
     Super::BeginPlay();
-
-   
-
-    APlayerController* PC = Cast<APlayerController>(GetInstigatorController());
-    if (PC)
-    {
-        if (PC->IsLocalController())
-        {
-            this->SetActorHiddenInGame(false);
-        }
-        else
-        {
-            this->SetActorHiddenInGame(true);
-        }
-    }
+    
 }
 
 void AWeaponBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

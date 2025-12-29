@@ -109,9 +109,9 @@ void ARCPlayerCharacter::BeginPlay()
 		FActorSpawnParameters Params;
 		Params.Owner = this;
 		Params.Instigator = this;
-
-		CurrentWeapon = GetWorld()->SpawnActor<AWeaponBase>(DefaultWeaponClass, Params);
-
+		
+		SetCurrentWeapon(GetWorld()->SpawnActor<AWeaponBase>(DefaultWeaponClass, Params));
+		
 		if (CurrentWeapon && GetMesh())
 		{
 			CurrentWeapon->AttachToComponent(
@@ -119,6 +119,7 @@ void ARCPlayerCharacter::BeginPlay()
 				FAttachmentTransformRules::SnapToTargetNotIncludingScale,
 				TEXT("WeaponSocket")
 			);
+			
 		}
 
 		CurrentArmor = GetWorld()->SpawnActor<AArmorBase>(
@@ -548,6 +549,27 @@ void ARCPlayerCharacter::HandleReloadInput(const FInputActionValue& InValue)
 void ARCPlayerCharacter::SetCurrentWeapon(AActor* weapon)
 {
 	CurrentWeapon = Cast<AWeaponBase>(weapon);
+
+	if (Owner->GetNetMode() == NM_DedicatedServer) return;
+
+	if (ARCPlayerCharacter* Player = Cast<ARCPlayerCharacter>(Owner))
+	{
+		if (!Player->IsLocallyControlled())
+			return;
+	}
+
+	Owner->SetActorHiddenInGame(true);
+
+	if (ARCPlayerCharacter* Player = Cast<ARCPlayerCharacter>(Owner))
+	{
+		if (AWeaponBase* Weapon = Player->GetCurrentWeapon())
+			Weapon->SetActorHiddenInGame(true);
+
+		if (AArmorBase* Armor = Player->GetCurrentArmor())
+			Armor->SetActorHiddenInGame(true);
+	}
+
+	
 }
 
 void ARCPlayerCharacter::UpdateAim()
