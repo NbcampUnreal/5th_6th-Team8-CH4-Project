@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
 #include "GameFramework/Character.h"
 #include "InputAction.h"
 
@@ -11,11 +10,11 @@
 
 class AWorldItemBase;
 class UInputAction;
-class ATopDownWeaponBase;
 class UHealthComponent;
 class UStaminaComponent;
 class UQuickSlotComponent;
 
+class AWeaponBase;
 class AArmorBase;
 
 class USceneCaptureComponent2D;
@@ -55,7 +54,7 @@ public:
 	UPROPERTY()
 	TObjectPtr<AActor> IgnoreActor = nullptr;
 
-	ATopDownWeaponBase* GetCurrentWeapon() {return CurrentWeapon;}
+	AWeaponBase* GetCurrentWeapon() {return CurrentWeapon;}
 
 	AArmorBase* GetCurrentArmor() { return CurrentArmor; }
 
@@ -185,10 +184,10 @@ protected:
 	TObjectPtr<UInputAction> FireAction;
 
 	UPROPERTY(EditDefaultsOnly, Category = Weapon)
-	TSubclassOf<ATopDownWeaponBase> DefaultWeaponClass;
+	TSubclassOf<AWeaponBase> DefaultWeaponClass;
 
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentWeapon)
-	ATopDownWeaponBase* CurrentWeapon;
+	AWeaponBase* CurrentWeapon = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = Input)
 	TObjectPtr<UInputAction> ReloadAction;
