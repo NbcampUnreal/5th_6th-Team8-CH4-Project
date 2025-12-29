@@ -140,9 +140,16 @@ void AWeaponBase::Multicast_PlayAttackFX_Implementation(const FVector& Loc, cons
 
 void AWeaponBase::Interact_Implementation(AActor* Interactor)
 {
+    if (!HasAuthority())
+    {
+        return;
+    }
+
     ARCPlayerCharacter* Player = Cast<ARCPlayerCharacter>(Interactor);
     if (Player)
     {
         Player->GetInventoryComponent()->GetItem(this);
+        
+		this->Destroy();
     }
 }
