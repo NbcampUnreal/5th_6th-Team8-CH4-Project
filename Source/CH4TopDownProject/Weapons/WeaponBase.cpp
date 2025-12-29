@@ -12,7 +12,8 @@
 
 AWeaponBase::AWeaponBase()
 {
-    PrimaryActorTick.bCanEverTick = false;
+    PrimaryActorTick.bCanEverTick = true;
+    PrimaryActorTick.TickInterval = 0.f;
 
     bReplicates = true;
     SetReplicateMovement(true);
@@ -32,6 +33,40 @@ void AWeaponBase::BeginPlay()
     
 }
 
+void AWeaponBase::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime);
+
+    if (!HasAuthority() || !bWantsToAttack) return;
+
+    AttackAccum += DeltaTime;
+
+    const float Interval = GetAttackInterval();
+    if (Interval <= 0.f) return;
+
+    while (AttackAccum >= Interval)
+    {
+        AttackAccum -= Interval;
+
+        LastAttackTime = GetWorld()->GetTimeSeconds();
+
+        const bool bDidAttack = Server_AttackOnce();
+        if (bDidAttack)
+        {
+            const FVector Loc = WeaponMesh ? WeaponMesh->GetComponentLocation() : GetActorLocation();
+            const FRotator Rot = WeaponMesh ? WeaponMesh->GetComponentRotation() : GetActorRotation();
+            Multicast_PlayAttackFX(Loc, Rot);
+        }
+
+        if (!CommonStats.bAutoRepeat)
+        {
+            bWantsToAttack = false;
+            AttackAccum = 0.f;
+            break;
+        }
+    }
+}
+
 void AWeaponBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -39,6 +74,18 @@ void AWeaponBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 
 void AWeaponBase::StartAttack(const FVector_NetQuantize& TargetWorldPos)
 {
+    if (!HasAuthority() && GetWorld())
+    {
+        const float Now = GetWorld()->GetTimeSeconds();
+        const float Interval = GetAttackInterval();
+
+        if ((Now - LastAttackTime) < Interval)
+        {
+            return;
+        }
+        LastAttackTime = Now;
+    }
+
     if (!HasAuthority())
     {
         Server_StartAttack(TargetWorldPos);
@@ -62,6 +109,9 @@ void AWeaponBase::Server_StartAttack_Implementation(const FVector_NetQuantize& T
     CachedTargetWorldPos = TargetWorldPos;
     bWantsToAttack = true;
 
+    AttackAccum = GetAttackInterval();
+
+    /*
     if (GetWorldTimerManager().IsTimerActive(AttackTimerHandle))
     {
         return;
@@ -79,12 +129,16 @@ void AWeaponBase::Server_StartAttack_Implementation(const FVector_NetQuantize& T
             true
         );
     }
+    */
 }
 
 void AWeaponBase::Server_StopAttack_Implementation()
 {
     bWantsToAttack = false;
-    GetWorldTimerManager().ClearTimer(AttackTimerHandle);
+    AttackAccum = 0.f;
+
+    //bWantsToAttack = false;
+    //GetWorldTimerManager().ClearTimer(AttackTimerHandle);
 }
 
 void AWeaponBase::Server_UpdateAim_Implementation(const FVector_NetQuantize& NewTargetWorldPos)

@@ -550,26 +550,11 @@ void ARCPlayerCharacter::SetCurrentWeapon(AActor* weapon)
 {
 	CurrentWeapon = Cast<AWeaponBase>(weapon);
 
-	if (Owner->GetNetMode() == NM_DedicatedServer) return;
+	if (!CurrentWeapon) return;
 
-	if (ARCPlayerCharacter* Player = Cast<ARCPlayerCharacter>(Owner))
-	{
-		if (!Player->IsLocallyControlled())
-			return;
-	}
-
-	Owner->SetActorHiddenInGame(true);
-
-	if (ARCPlayerCharacter* Player = Cast<ARCPlayerCharacter>(Owner))
-	{
-		if (AWeaponBase* Weapon = Player->GetCurrentWeapon())
-			Weapon->SetActorHiddenInGame(true);
-
-		if (AArmorBase* Armor = Player->GetCurrentArmor())
-			Armor->SetActorHiddenInGame(true);
-	}
-
+	if (GetNetMode() == NM_DedicatedServer) return;
 	
+	CurrentWeapon->SetActorHiddenInGame(!IsLocallyControlled());
 }
 
 void ARCPlayerCharacter::UpdateAim()

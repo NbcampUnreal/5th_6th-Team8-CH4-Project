@@ -43,6 +43,9 @@ public:
     AWeaponBase();
 
     virtual void BeginPlay() override;
+
+	virtual void Tick(float DeltaTime) override;
+
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 public:
@@ -81,6 +84,7 @@ protected:
     float LastAttackTime = -FLT_MAX;
     FTimerHandle AttackTimerHandle;
 
+    float AttackAccum = 0.f;
 protected:
     virtual float GetAttackInterval() const { return CommonStats.AttackInterval; }
 
