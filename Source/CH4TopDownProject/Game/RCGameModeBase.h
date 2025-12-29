@@ -18,6 +18,9 @@ protected:
 	virtual void BeginPlay() override;
 	void InitGameLv();
 
+	TArray<class AActor*> GetAllActorList;
+	class ASpawnManager* SpawnManager;	
+
 #pragma region Settings
 
 protected:
@@ -48,6 +51,8 @@ protected:
 
 protected:
 	virtual void PostLogin(APlayerController* NewPlayer) override;
+	virtual void RestartPlayer(AController* NewPlayer) override;
+
 	virtual void Logout(AController* ExitingPlayer) override;
 public:
 	void OnPlayerDeath(ARCPlayerController* Controller);
