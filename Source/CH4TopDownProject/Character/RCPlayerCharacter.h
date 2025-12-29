@@ -63,6 +63,10 @@ public:
 
 	UFUNCTION(Server, Reliable)
 	void Server_Interact(AWorldItemBase* Target);
+
+	UFUNCTION(BlueprintCallable)
+	UInventoryComponent* GetInventoryComponent() {return InventoryComponent;}
+	
 # pragma region Components
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
@@ -80,6 +84,8 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UQuickSlotComponent> QuickSlotComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInventoryComponent> InventoryComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USpringArmComponent> MinimapSpringArm;

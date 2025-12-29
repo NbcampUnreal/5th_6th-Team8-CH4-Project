@@ -22,25 +22,25 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<USceneComponent> Root;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<UStaticMeshComponent> StaticMesh;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<UBoxComponent> Collision;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<USphereComponent> InteractionCheckCollision;
 
-	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category="Interact")
+	UPROPERTY(VisibleAnywhere,BlueprintReadWrite, Category="Interact")
 	TObjectPtr<UWidgetComponent> InteractWidget;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interact")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Interact")
 	TObjectPtr<UWidgetComponent> InteractCheckWidget;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Effects")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Item|Effects")
 	UParticleSystem* DestroyParticle;
 
 	UPROPERTY(EditAnywhere)
