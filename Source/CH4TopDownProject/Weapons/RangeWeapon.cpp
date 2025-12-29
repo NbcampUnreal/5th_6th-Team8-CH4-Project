@@ -18,6 +18,13 @@ ARangeWeapon::ARangeWeapon()
     Muzzle = CreateDefaultSubobject<USceneComponent>(TEXT("Muzzle"));
     Muzzle->SetupAttachment(WeaponMesh);
 
+    MagazineMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MagazineMesh"));
+    MagazineMesh->SetupAttachment(WeaponMesh);
+
+    MagazineMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    MagazineMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
+    MagazineMesh->SetSimulatePhysics(false);
+
     bReplicates = true;
     SetReplicateMovement(true);
 }

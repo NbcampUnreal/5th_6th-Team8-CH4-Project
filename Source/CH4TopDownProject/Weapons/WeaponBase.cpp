@@ -8,6 +8,7 @@
 #include "TimerManager.h"
 #include "Net/UnrealNetwork.h"
 #include "Character/RCPlayerCharacter.h"
+#include "Inventory/InventoryComponent.h"
 
 AWeaponBase::AWeaponBase()
 {
@@ -142,6 +143,6 @@ void AWeaponBase::Interact_Implementation(AActor* Interactor)
     ARCPlayerCharacter* Player = Cast<ARCPlayerCharacter>(Interactor);
     if (Player)
     {
-        //Player->GetInventoryComponent()->GetItem(this);
+        Player->GetInventoryComponent()->GetItem(this);
     }
 }

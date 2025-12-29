@@ -3,6 +3,7 @@
 
 #include "CoreMinimal.h"
 #include "Weapons/WeaponBase.h"
+#include "Components/StaticMeshComponent.h"
 #include "RangeWeapon.generated.h"
 
 class USceneComponent;
@@ -42,6 +43,9 @@ public:
     ARangeWeapon();
 
 protected:
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Range")
+    TObjectPtr<UStaticMeshComponent> MagazineMesh;
+
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Range")
     TObjectPtr<USceneComponent> Muzzle;
 

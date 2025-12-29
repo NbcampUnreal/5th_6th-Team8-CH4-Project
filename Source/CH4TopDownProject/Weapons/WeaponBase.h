@@ -9,6 +9,7 @@
 class UStaticMeshComponent;
 class UNiagaraSystem;
 class USoundBase;
+class UBaseItemComponent;
 
 UENUM(BlueprintType)
 enum class EWeaponTypes : uint8
@@ -23,13 +24,13 @@ struct FWeaponCommonStats
 {
     GENERATED_BODY()
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Stats")
     float Damage = 20.f;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Stats")
     float AttackInterval = 0.15f;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Stats")
     bool bAutoRepeat = true;
 };
 
