@@ -30,7 +30,7 @@ void AWeaponBase::BeginPlay()
 {
     Super::BeginPlay();
 
-    this->SetActorHiddenInGame(true);
+   
 
     APlayerController* PC = Cast<APlayerController>(GetInstigatorController());
     if (PC)
@@ -38,6 +38,10 @@ void AWeaponBase::BeginPlay()
         if (PC->IsLocalController())
         {
             this->SetActorHiddenInGame(false);
+        }
+        else
+        {
+            this->SetActorHiddenInGame(true);
         }
     }
 }
