@@ -125,6 +125,11 @@ void UMainHUDWidget::ShowNotice(const FString& Message)
 {
     if (NoticeText)
     {
+        if (NoticeText->GetVisibility() == ESlateVisibility::Hidden)
+        {
+            NoticeText->SetVisibility(ESlateVisibility::Visible);
+        }
+
         NoticeText->SetText(FText::FromString(Message));        
 
         FTimerHandle NoticeTimer;
@@ -139,6 +144,11 @@ void UMainHUDWidget::ShowNoticeWithNoTimer(const FString& Message)
 {
     if (NoticeText)
     {
+        if (NoticeText->GetVisibility() == ESlateVisibility::Hidden)
+        {
+            NoticeText->SetVisibility(ESlateVisibility::Visible);
+        }
+
         NoticeText->SetText(FText::FromString(Message));
     }
 }

@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
 #include "GameFramework/Character.h"
 #include "InputAction.h"
 
@@ -11,11 +10,11 @@
 
 class AWorldItemBase;
 class UInputAction;
-class ATopDownWeaponBase;
 class UHealthComponent;
 class UStaminaComponent;
 class UQuickSlotComponent;
 
+class AWeaponBase;
 class AArmorBase;
 
 class USceneCaptureComponent2D;
@@ -55,7 +54,7 @@ public:
 	UPROPERTY()
 	TObjectPtr<AActor> IgnoreActor = nullptr;
 
-	ATopDownWeaponBase* GetCurrentWeapon() {return CurrentWeapon;}
+	AWeaponBase* GetCurrentWeapon() {return CurrentWeapon;}
 
 	AArmorBase* GetCurrentArmor() { return CurrentArmor; }
 
@@ -63,6 +62,16 @@ public:
 
 	UFUNCTION(Server, Reliable)
 	void Server_Interact(AWorldItemBase* Target);
+
+	UFUNCTION(BlueprintCallable)
+	UInventoryComponent* GetInventoryComponent() {return InventoryComponent;}
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void OnHelmetChanged(FName NewHelmetID);
+	
+		UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+    	void OnChestChanged(FName NewHelmetID);
+    	
 # pragma region Components
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
@@ -80,6 +89,8 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UQuickSlotComponent> QuickSlotComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInventoryComponent> InventoryComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USpringArmComponent> MinimapSpringArm;
@@ -185,10 +196,10 @@ protected:
 	TObjectPtr<UInputAction> FireAction;
 
 	UPROPERTY(EditDefaultsOnly, Category = Weapon)
-	TSubclassOf<ATopDownWeaponBase> DefaultWeaponClass;
+	TSubclassOf<AWeaponBase> DefaultWeaponClass;
 
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentWeapon)
-	ATopDownWeaponBase* CurrentWeapon;
+	AWeaponBase* CurrentWeapon = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = Input)
 	TObjectPtr<UInputAction> ReloadAction;

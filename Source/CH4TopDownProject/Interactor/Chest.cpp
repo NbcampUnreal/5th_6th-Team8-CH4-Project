@@ -43,7 +43,6 @@ void AChest::OnSphereEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor
 	if (!Player)
 		return;
 
-	// 이런식으로 호출하면 됨
 	UInventoryComponent* Inventory = Player->GetComponentByClass<UInventoryComponent>();
 	if (!Inventory)return;
 	Inventory->CloseChestUI();
