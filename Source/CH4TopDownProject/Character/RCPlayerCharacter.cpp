@@ -592,6 +592,9 @@ void ARCPlayerCharacter::OnRep_CurrentWeapon()
 			FAttachmentTransformRules::SnapToTargetNotIncludingScale,
 			TEXT("WeaponSocket")
 		);
+
+		CurrentWeapon->SetActorEnableCollision(false);
+		
 	}
 }
 
@@ -604,6 +607,8 @@ void ARCPlayerCharacter::OnRep_CurrentArmor()
 			FAttachmentTransformRules::SnapToTargetNotIncludingScale,
 			TEXT("ArmorChestSocket")
 		);
+
+		CurrentArmor->SetActorEnableCollision(false);
 	}
 }
 

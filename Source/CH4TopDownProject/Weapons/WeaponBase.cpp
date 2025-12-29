@@ -29,6 +29,17 @@ AWeaponBase::AWeaponBase()
 void AWeaponBase::BeginPlay()
 {
     Super::BeginPlay();
+
+    this->SetActorHiddenInGame(true);
+
+    APlayerController* PC = Cast<APlayerController>(GetInstigatorController());
+    if (PC)
+    {
+        if (PC->IsLocalController())
+        {
+            this->SetActorHiddenInGame(false);
+        }
+    }
 }
 
 void AWeaponBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -140,9 +151,16 @@ void AWeaponBase::Multicast_PlayAttackFX_Implementation(const FVector& Loc, cons
 
 void AWeaponBase::Interact_Implementation(AActor* Interactor)
 {
+    if (!HasAuthority())
+    {
+        return;
+    }
+
     ARCPlayerCharacter* Player = Cast<ARCPlayerCharacter>(Interactor);
     if (Player)
     {
         Player->GetInventoryComponent()->GetItem(this);
+        
+		this->Destroy();
     }
 }
