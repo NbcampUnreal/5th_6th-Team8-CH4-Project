@@ -32,7 +32,7 @@ void UInventoryComponent::BeginPlay()
 	Items.SetNum(GetInventorytSize());
 	WeaponActors.SetNum(2);
 
-	OpenInventoryUI();	
+	//OpenInventoryUI();	
 }
 
 void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -404,12 +404,18 @@ void UInventoryComponent::RemoveItem(int32 Index) {
 	if (!GetOwner()->HasAuthority())
 	{
 		Server_RemoveItem(Index);
+		return;
 	}
 
-	Server_RemoveItem_Implementation(Index);
+	RemoveItem_Iternal(Index);
 }
 
 void UInventoryComponent::Server_RemoveItem_Implementation(int32 Index)
+{
+	RemoveItem_Iternal(Index);
+}
+
+void UInventoryComponent::RemoveItem_Iternal(int32 Index)
 {
 	const FName ItemID = Items[Index].ItemID;
 	const int32 Num = Items[Index].Num;
@@ -427,8 +433,11 @@ void UInventoryComponent::Server_RemoveItem_Implementation(int32 Index)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("ItemID %s not found in ItemCountCache"), *ItemID.ToString());
 	}
-
 	Items[Index] = FInventorySlot();
+
+	//Items.RemoveAt(Index);
+	//Items.Insert(FInventorySlot(), Index);
+	Items = Items;
 }
 
 int32 UInventoryComponent::UseItem_ID(FName ItemID, int32 Num)
