@@ -550,6 +550,9 @@ void ARCPlayerCharacter::SetCurrentWeapon(AActor* weapon)
 {
 	AWeaponBase* NewWeapon = Cast<AWeaponBase>(weapon);
 	if (!NewWeapon) return;
+	if (CurrentWeapon) {
+		CurrentWeapon->SetActorHiddenInGame(true);
+	}
 
 	if (!HasAuthority())
 	{

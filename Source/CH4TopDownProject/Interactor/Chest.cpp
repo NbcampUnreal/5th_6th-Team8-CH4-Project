@@ -66,6 +66,38 @@ void AChest::SetItem(const TMap<FName, int32>& ItemMap)
 	}
 }
 
+void AChest::CloseChestUI(TArray<FInventorySlot>& ItemMap)
+{
+	if (!GetOwner()->HasAuthority())
+	{
+		Server_CloseChestUI(ItemMap);
+		return;
+	}
+
+	Server_CloseChestUI_Implementation(ItemMap);
+}
+
+void AChest::Server_CloseChestUI_Implementation(const TArray<FInventorySlot>& ItemMap)
+{
+	ItemListArray.Empty();
+	for (const FInventorySlot& Slot : ItemMap)
+	{
+		// 새 엔트리 추가
+		FChestItemEntry NewEntry;
+		NewEntry.ItemName = Slot.ItemID;
+		NewEntry.ItemNum = Slot.Num;
+
+		ItemListArray.Add(NewEntry);
+		
+	}
+	int diff = 8 - ItemMap.Num();
+
+	for (int i = 0; i < diff; ++i)
+	{
+		ItemListArray.Add({ "", 0 });
+	}
+}
+
 void AChest::Client_OpenChestUI_Implementation(AActor* Interactor)
 {
 	ARCPlayerCharacter* Player = Cast<ARCPlayerCharacter>(Interactor);
