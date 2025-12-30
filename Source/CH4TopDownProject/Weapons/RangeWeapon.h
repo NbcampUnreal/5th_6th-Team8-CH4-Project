@@ -71,9 +71,13 @@ protected:
 
     int32 PendingReloadFill = 0;
 
+    bool bReloadRequested = false;
+
     bool bPrevReloading = false;
 protected:
     virtual void BeginPlay() override;
+
+	virtual void Tick(float DeltaTime) override;
 
     virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
