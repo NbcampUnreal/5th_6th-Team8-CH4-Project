@@ -245,6 +245,10 @@ private:
 public:
 	//server only, not client
 	void SetCurrentWeapon(AActor* weapon);
+	TSubclassOf<AWeaponBase> GetDefaultWeaponClass() const
+	{
+		return DefaultWeaponClass;
+	}
 # pragma endregion
 
 #pragma region Armor

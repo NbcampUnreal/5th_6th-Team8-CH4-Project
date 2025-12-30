@@ -31,8 +31,14 @@ void UInventoryComponent::BeginPlay()
 	Super::BeginPlay();
 
 	Items.SetNum(GetInventorytSize());
-	WeaponActors.SetNum(2);
-
+	WeaponActors.SetNum(3);
+	FActorSpawnParameters Params;
+	Params.Owner = GetOwner();
+	WeaponActors[2] = GetWorld()->SpawnActor<AActor>(
+		Cast<ARCPlayerCharacter>(GetOwner())->GetDefaultWeaponClass(), Params);
+	WeaponActors[2]->SetReplicates(true);
+	WeaponActors[2]->SetActorHiddenInGame(true);
+		
 	//OpenInventoryUI();	
 }
 
@@ -120,9 +126,10 @@ void UInventoryComponent::CloseInventoryUI()
 }
 
 void UInventoryComponent::CloseChestUI()
-{
+{	
 	if (ContainerWidget)
 	{
+		ContainerWidget->OwnerChest->CloseChestUI(ContainerWidget->Items);
 		ContainerWidget->RemoveFromParent();
 		ContainerWidget = nullptr;
 	}
@@ -772,11 +779,14 @@ void UInventoryComponent::RequestEquipWeapon(int32 Index)
 		ServerEquipWeapon(Index);
 		return;
 	}
-	
+	ServerEquipWeapon_Implementation(Index);
 }
 
 void UInventoryComponent::ServerSetWeapon_Implementation(int32 Index, FInventorySlot NewWeapon)
 {
+	// 기존 무기 제거
+	ClearWeaponSlot(Index);
+
 	if (!WeaponActors.IsValidIndex(Index)) return;
 	if (!WeaponItemDataTable) return;
 
@@ -786,8 +796,7 @@ void UInventoryComponent::ServerSetWeapon_Implementation(int32 Index, FInventory
 
 	if (!Row || !Row->ItemActorClass) return;
 
-	// 기존 무기 제거
-	ClearWeaponSlot(Index);
+	
 
 	FActorSpawnParameters Params;
 	Params.Owner = GetOwner();
@@ -820,25 +829,27 @@ void UInventoryComponent::ServerEquipWeapon_Implementation(int32 Index)
 
 	AActor* Weapon = WeaponActors[CurrentWeaponIndex];
 	if (!Weapon) return;
-	Weapon->SetActorHiddenInGame(false);
+	//Weapon->SetActorHiddenInGame(false);
 	//밀리 무기 추가로 인한 추가
-	Cast<ARCPlayerCharacter>(GetOwner())->GetCurrentWeapon()->SetActorHiddenInGame(true);
+	//Cast<ARCPlayerCharacter>(GetOwner())->GetCurrentWeapon()->SetActorHiddenInGame(true);
 
 	Cast<ARCPlayerCharacter>(GetOwner())->SetCurrentWeapon(Weapon);
 }
 
 void UInventoryComponent::OnRep_CurrentWeaponIndex()
 {
-	for (AActor* Weapon : WeaponActors)
-	{
-		if (Weapon)
-		{
-			Weapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-			Weapon->SetActorHiddenInGame(true);
-		}
-	}
-	WeaponActors[CurrentWeaponIndex]->SetActorHiddenInGame(false);
-
+	//if (GetWorld()->GetNetMode() != NM_DedicatedServer) {
+	//	for (AActor* Weapon : WeaponActors)
+	//	{
+	//		if (Weapon)
+	//		{
+	//			//Weapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+	//			Weapon->SetActorHiddenInGame(true);
+	//		}
+	//	}
+	//	if (WeaponActors[CurrentWeaponIndex])
+	//		WeaponActors[CurrentWeaponIndex]->SetActorHiddenInGame(false);
+	//}
 }
 
 void UInventoryComponent::OnRep_WeaponActors()
@@ -855,7 +866,8 @@ void UInventoryComponent::ClearWeaponSlot(int32 Index)
 
 	if (CurrentWeaponIndex == Index)
 	{
-		CurrentWeaponIndex = INDEX_NONE;
+		CurrentWeaponIndex = 2;
+		ServerEquipWeapon_Implementation(2);
 	}
 
 	Weapon->Destroy();

@@ -30,4 +30,7 @@ void UItemWidget::NativeConstruct()
 	if (TextBlock_0) {
 		TextBlock_0->SetText(ItemRow->ItemName);
 	}
+	if (TextBlock) {
+		TextBlock->SetText(FText::AsNumber(InventorySlot.Num));
+	}
 }
