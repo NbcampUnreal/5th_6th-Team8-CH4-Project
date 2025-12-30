@@ -18,6 +18,8 @@ AWeaponBase::AWeaponBase()
     bReplicates = true;
     SetReplicateMovement(true);
 
+    bCanTakeDamage = false;
+
     //WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
     //RootComponent = WeaponMesh;
     WeaponMesh = StaticMesh;
