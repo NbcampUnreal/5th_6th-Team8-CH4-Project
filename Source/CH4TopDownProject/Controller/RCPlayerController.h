@@ -60,6 +60,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UGameResultLayout> LoserLayoutClass;
 
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	USoundBase* WinnerSound;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	USoundBase* LoserSound;
+
 	FTimerHandle HUDTimerHandle;
 
 public:
