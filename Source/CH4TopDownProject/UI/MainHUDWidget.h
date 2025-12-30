@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
@@ -33,6 +33,10 @@ public:
     UFUNCTION(BlueprintCallable, Category = "HUD")
     void UpdateQuickSlotData(const TArray<FQuickSlotItemData>& NewSlotData);
 
+    UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "HUD")
+    void BP_UpdateQuickSlotData(const TArray<FQuickSlotItemData>& NewSlotData);
+
+
     //UFUNCTION(BlueprintCallable, Category = "HUD")
     //void UpdateAmmoCount(int32 CurrentAmmo, int32 MaxClipAmmo);
 
@@ -55,7 +59,7 @@ public:
     UFUNCTION(BlueprintCallable, Category = "HUD")
     void PlayBloodEffect();
 
-private:
+protected:
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<UProgressBar> HealthBar;
 

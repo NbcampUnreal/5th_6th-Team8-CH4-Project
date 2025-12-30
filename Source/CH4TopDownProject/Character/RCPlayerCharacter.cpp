@@ -61,7 +61,7 @@ ARCPlayerCharacter::ARCPlayerCharacter()
 
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
 	StaminaComponent = CreateDefaultSubobject<UStaminaComponent>(TEXT("StaminaComponent"));
-	QuickSlotComponent = CreateDefaultSubobject<UQuickSlotComponent>(TEXT("QuickSlotComponent"));
+	//QuickSlotComponent = CreateDefaultSubobject<UQuickSlotComponent>(TEXT("QuickSlotComponent"));
 	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("InventoryComponent"));
 
 	MinimapSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("MinimapSpringArm"));
@@ -85,6 +85,8 @@ ARCPlayerCharacter::ARCPlayerCharacter()
 void ARCPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	QuickSlotComponent = GetComponentByClass<UInventoryComponent>()->GetQuickSlotComponent();
 
 	if (HasAuthority())
 	{
@@ -495,7 +497,7 @@ void ARCPlayerCharacter::HandleUseQuickSlotInput(int32 SlotIndex)
 {
 	if (QuickSlotComponent)
 	{
-		QuickSlotComponent->Server_UseQuickSlot(SlotIndex);
+		QuickSlotComponent->UseQuickSlot(SlotIndex);
 	}
 }
 
