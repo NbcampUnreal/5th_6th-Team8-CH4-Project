@@ -149,7 +149,6 @@ void ARCGameModeBase::RestartPlayer(AController* NewPlayer)
 	APlayerController* PlayerController = Cast<APlayerController>(NewPlayer);
 	if (PlayerController)
 	{
-		// 3. Pawn 생성 확인
 		APawn* NewPawn = PlayerController->GetPawn();
 		if (NewPawn != nullptr)
 		{
@@ -183,6 +182,12 @@ void ARCGameModeBase::OnPlayerDeath(ARCPlayerController* Controller)
 
 	if (AlivePlayerControllers.Num() <= 1)
 	{
+		ARCPlayerController* WinnerPC = AlivePlayerControllers[0];
+		if (IsValid(WinnerPC))
+		{
+			WinnerPC->Client_HandleVictory();
+		}
+
 		ARCGameStateBase* RCGameState = GetGameState<ARCGameStateBase>();
 		if (IsValid(RCGameState))
 		{

@@ -34,7 +34,7 @@ void ARCGameStateBase::OnRep_ReplicatedGameModeDelay()
 		NotiMsg = FString::Printf(TEXT("목표: 마지막까지 살아남으세요!"));
 		break;
 	case EMatchState::Ending:
-		NotiMsg = FString::Printf(TEXT("게임 종료까지 %d초"), ReplicatedGameModeDelay);
+		//NotiMsg = FString::Printf(TEXT("게임 종료까지 %d초"), ReplicatedGameModeDelay);
 		break;
 	case EMatchState::Cleaning:
 		break;
