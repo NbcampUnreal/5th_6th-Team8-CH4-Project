@@ -36,7 +36,7 @@ void ARCWaitingLvGameModeBase::OnMainTimerElapsed()
 	case EMatchState::None: { break; }
 	case EMatchState::Waiting:
 	{
-		if (LogInPlayerControllers.Num() < MaxPlayerCount)
+		if (LogInPlayerControllers.Num() >= MinPlayerCount)
 		{
 			UE_LOG(LogTemp, Error, TEXT("session is waiting.."));
 		}

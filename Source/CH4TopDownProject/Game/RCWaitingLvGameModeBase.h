@@ -36,7 +36,7 @@ protected:
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 	virtual void Logout(AController* ExitingPlayer) override;
 
-	const int32 MaxPlayerCount = 2;
+	const int32 MinPlayerCount = 2;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TArray<TObjectPtr<class ARCPlayerController>> LogInPlayerControllers;
