@@ -10,6 +10,8 @@
 class UWidgetComponent;
 class UBoxComponent;
 class USphereComponent;
+class UNiagaraSystem;
+class UNiagaraComponent;
 
 UCLASS()
 class CH4TOPDOWNPROJECT_API AWorldItemBase : public AActor, public IInteractable
@@ -41,7 +43,7 @@ protected:
 	TObjectPtr<UWidgetComponent> InteractCheckWidget;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Effects")
-	UParticleSystem* DestroyParticle;
+	UNiagaraSystem* DestroyFX;
 
 	UPROPERTY(EditAnywhere)
 	bool bCanInteract = true;

@@ -10,6 +10,7 @@
 
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "NiagaraFunctionLibrary.h"
 
 // Sets default values
 AWorldItemBase::AWorldItemBase()
@@ -86,16 +87,15 @@ void AWorldItemBase::Multicast_OnDeathEmitter_Implementation()
 {
 	UParticleSystemComponent* Particle = nullptr;
 
-	if (DestroyParticle)
+	if (DestroyFX)
 	{
-		Particle = UGameplayStatics::SpawnEmitterAtLocation(
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
 			GetWorld(),
-			DestroyParticle,
+			DestroyFX,
 			GetActorLocation(),
-			GetActorRotation(),
-			true,
-			EPSCPoolMethod::AutoRelease
-			);
+			FRotator::ZeroRotator,
+			FVector(1.0f)
+		);
 	}
 }
 
