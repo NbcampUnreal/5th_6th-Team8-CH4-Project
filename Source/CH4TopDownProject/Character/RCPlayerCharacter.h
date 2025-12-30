@@ -282,6 +282,12 @@ protected:
 	UFUNCTION(NetMulticast, Unreliable)
 	void Multicast_PlayDashSFX(const FVector& Loc);
 
+	UFUNCTION(NetMulticast, Unreliable)
+	void Multicast_PlayFootstep(const FVector& Loc);
+
+	UFUNCTION(Server, Unreliable)
+	void Server_PlayFootstep(const FVector& Loc);
+
 private:
 	FTimerHandle FootstepTimerHandle;
 

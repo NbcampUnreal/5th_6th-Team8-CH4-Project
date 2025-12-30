@@ -146,7 +146,7 @@ EItemType ARandomItemSpawnManager::GetRandomNonWeaponType() const
 	TArray<EItemType> Types = {
 		EItemType::Bag,
 		EItemType::Consumable,
-		//EItemType::Equipment_Head,
+		EItemType::Equipment_Head,
 		EItemType::Equipment_Body,
 		EItemType::Ammo,
 	};
