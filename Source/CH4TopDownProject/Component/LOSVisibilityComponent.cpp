@@ -17,6 +17,9 @@ void ULOSVisibilityComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	if (GetWorld()->GetNetMode() == NM_DedicatedServer)
+		return;
+
 	if (AActor* OwnerActor = GetOwner())
 	{
 		OwnerActor->SetActorHiddenInGame(true);
