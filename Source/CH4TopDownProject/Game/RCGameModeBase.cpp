@@ -149,7 +149,6 @@ void ARCGameModeBase::RestartPlayer(AController* NewPlayer)
 	APlayerController* PlayerController = Cast<APlayerController>(NewPlayer);
 	if (PlayerController)
 	{
-		// 3. Pawn 생성 확인
 		APawn* NewPawn = PlayerController->GetPawn();
 		if (NewPawn != nullptr)
 		{
