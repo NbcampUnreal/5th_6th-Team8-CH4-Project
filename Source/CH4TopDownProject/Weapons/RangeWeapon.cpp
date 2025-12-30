@@ -41,6 +41,32 @@ void ARangeWeapon::BeginPlay()
     }
 }
 
+void ARangeWeapon::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime); 
+
+    if (!HasAuthority())
+        return;
+
+    if (!bReloadRequested)
+        return;
+
+    if (bIsReloading)
+        return;
+
+    if (!GetWorld())
+        return;
+
+    const float Now = GetWorld()->GetTimeSeconds();
+    const float Interval = GetAttackInterval();
+
+    if ((Now - LastAttackTime) < Interval)
+        return;
+
+    bReloadRequested = false;
+    StartReload_Internal();
+}
+
 void ARangeWeapon::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
     if (HasAuthority())
@@ -90,30 +116,23 @@ bool ARangeWeapon::Server_AttackOnce()
 
     if (!CanShoot())
     {
-        if (CurrentAmmo <= 0)
-        {
-            const bool bStartedReload = StartReload_Internal();
-            if (!bStartedReload)
-            {
-                bWantsToAttack = false;
-                GetWorldTimerManager().ClearTimer(AttackTimerHandle);
-            }
-        }
         return false;
     }
 
-    CurrentAmmo = FMath::Max(0, CurrentAmmo - 1);
+    bPrevReloading = false;
 
+    CurrentAmmo--;
     SpawnBullet_Server();
 
     if (CurrentAmmo <= 0)
     {
-        StartReload_Internal();
+        bPrevReloading = true;
     }
 
     ForceNetUpdate();
     return true;
 }
+
 
 void ARangeWeapon::SpawnBullet_Server()
 {
@@ -184,13 +203,19 @@ void ARangeWeapon::StartReload()
         Server_StartReload();
         return;
     }
+    if (bIsReloading)
+    {
+        return;
+    }
+    bReloadRequested = true;
 
-    StartReload_Internal();
+    bWantsToAttack = false;
+    AttackAccum = 0.f;
 }
 
 void ARangeWeapon::Server_StartReload_Implementation()
 {
-    StartReload_Internal();
+    StartReload();
 }
 
 bool ARangeWeapon::StartReload_Internal()
@@ -287,6 +312,7 @@ void ARangeWeapon::OnRep_Reloading()
             );
         }
     }
+    bPrevReloading = bIsReloading;
 }
 
 void ARangeWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
