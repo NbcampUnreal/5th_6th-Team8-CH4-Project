@@ -36,6 +36,9 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* TextBlock_0;
 
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* TextBlock;
+
 	/* ===== Data ===== */
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UI", meta = (ExposeOnSpawn = "true"))

@@ -17,7 +17,7 @@ struct FChestItemEntry
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 ItemNum;
 };
-
+struct FInventorySlot;
 /**
  * 
  */
@@ -43,4 +43,9 @@ public:
 
 	UFUNCTION(Client, Reliable)
 	void Client_OpenChestUI(AActor* Interactor);
+
+	UFUNCTION(BlueprintCallable)
+	void CloseChestUI(TArray<FInventorySlot>& ItemMap);
+	UFUNCTION(Server, Reliable)
+	void Server_CloseChestUI(const TArray<FInventorySlot>& ItemMap);
 };
