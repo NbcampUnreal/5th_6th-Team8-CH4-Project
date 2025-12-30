@@ -550,6 +550,7 @@ void ARCPlayerCharacter::SetCurrentWeapon(AActor* weapon)
 {
 	AWeaponBase* NewWeapon = Cast<AWeaponBase>(weapon);
 	if (!NewWeapon) return;
+	
 	if (CurrentWeapon) {
 		CurrentWeapon->SetActorHiddenInGame(true);
 	}
@@ -561,6 +562,8 @@ void ARCPlayerCharacter::SetCurrentWeapon(AActor* weapon)
 	}
 
 	Server_SetCurrentWeapon(NewWeapon);
+
+	
 }
 
 void ARCPlayerCharacter::Server_SetCurrentWeapon_Implementation(AWeaponBase* NewWeapon)
@@ -577,9 +580,7 @@ void ARCPlayerCharacter::Server_SetCurrentWeapon_Implementation(AWeaponBase* New
 		FAttachmentTransformRules::SnapToTargetNotIncludingScale,
 		TEXT("WeaponSocket")
 	);
-
-	CurrentWeapon->SetActorEnableCollision(false);
-	CurrentWeapon->SetActorHiddenInGame(false);
+	
 
 	CurrentWeapon->ForceNetUpdate();
 	ForceNetUpdate();
@@ -630,7 +631,9 @@ void ARCPlayerCharacter::OnRep_CurrentWeapon()
 
 		CurrentWeapon->SetActorEnableCollision(false);
 		
+		CurrentWeapon->SetActorHiddenInGame(!IsLocallyControlled());
 	}
+	
 }
 
 void ARCPlayerCharacter::OnRep_CurrentArmor()
