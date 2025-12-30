@@ -185,7 +185,8 @@ void AWorldItemBase::OnCheckEndOverlap(UPrimitiveComponent* OverlappedComp,
 void AWorldItemBase::SetOutLineEnable(bool Enable)
 {
 	if (!bCanInteract) return;
-
+	if (bCanTakeDamage) return;
+	
 	StaticMesh->SetRenderCustomDepth(Enable);
 	ShowInteractWidget(Enable);
 }

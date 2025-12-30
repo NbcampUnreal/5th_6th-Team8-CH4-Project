@@ -63,6 +63,11 @@ void ARCPlayerController::Client_HandleDeath_Implementation()
 	HandleDeath();
 }
 
+void ARCPlayerController::Client_HandleVictory_Implementation()
+{
+	HandleVictory();
+}
+
 void ARCPlayerController::HandleDeath()
 {
 	if (UGameplayStatics::IsGamePaused(GetWorld()))
@@ -70,7 +75,12 @@ void ARCPlayerController::HandleDeath()
 		return;
 	}
 
-	ShowGameResultLayout(LoserLayoutClass);
+	if (LoserSound)
+	{
+		UGameplayStatics::PlaySound2D(this, LoserSound);
+	}
+
+	ShowGameResultLayout(LoserLayoutClass);	
 }
 
 void ARCPlayerController::HandleVictory()
@@ -80,7 +90,12 @@ void ARCPlayerController::HandleVictory()
 		return;
 	}
 
-	ShowGameResultLayout(WinnerLayoutClass);
+	if (WinnerSound)
+	{
+		UGameplayStatics::PlaySound2D(this, WinnerSound);
+	}
+
+	ShowGameResultLayout(WinnerLayoutClass);	
 }
 
 void ARCPlayerController::Client_PlayBlueZoneHitEffect_Implementation()

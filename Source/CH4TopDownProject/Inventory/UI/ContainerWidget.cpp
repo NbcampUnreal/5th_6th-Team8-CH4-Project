@@ -45,10 +45,10 @@ void UContainerWidget::ChestItemEntryToInventorySlot(TArray<FChestItemEntry> Che
 
 	for (const FChestItemEntry& ChestItem : ChestItems)
 	{
-		if (ChestItem.ItemName == NAME_None || ChestItem.ItemNum <= 0)
+		/*if (ChestItem.ItemName == NAME_None || ChestItem.ItemNum <= 0)
 		{
 			continue;
-		}
+		}*/
 
 		FInventorySlot NewSlot;
 		NewSlot.ItemID = ChestItem.ItemName;

@@ -12,6 +12,8 @@ class UInventoryUI;
 class UContainerWidget;
 class AChest;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInventoryUpdated);
+
 struct FItemData;
 
 USTRUCT(BlueprintType)
@@ -27,7 +29,6 @@ struct FInventorySlot // 아이템슬롯 == 아이템 한칸에 들어갈 정보
 	int32 Num;
 };
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInventoryUpdated);
 
 UCLASS(Blueprintable, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class CH4TOPDOWNPROJECT_API UInventoryComponent : public UActorComponent
@@ -46,15 +47,12 @@ protected:
 	) const override;
 #pragma region UI
 private:
-
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInventoryUpdated);
-
+	
 	UPROPERTY(EditDefaultsOnly, Category = "Inventory|UI")
 	TSubclassOf<UInventoryUI> InventoryWidgetClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Inventory|UI")
 	TSubclassOf<UContainerWidget> ContainerWidgetClass;
-
 	
 public:
 	UPROPERTY(BlueprintAssignable, Category = "Inventory|Event")
@@ -65,6 +63,9 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Inventory|UI")
 	UContainerWidget* ContainerWidget;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Inventory|UI")
+	bool IsInventoryOpen = false;
 public:
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void OpenInventoryUI();
@@ -110,9 +111,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory|Data")
 	UDataTable* AmmoItemDataTable;
 	
-private:
-	AActor* SpawnItemOnGround(TSubclassOf<AActor> SpawnActor);
 	UDataTable* GetDataTableByItemType(EItemType ItemType)const;
+
+private:
+	AActor* SpawnItemOnGround(TSubclassOf<AActor> SpawnActor);	
 	EItemType GetDataTypeByItemID(FName ItemID)const;
 
 public:
@@ -202,6 +204,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
 	int32 GetDeffence();
+
+	void HandleEquipmentHeadChanged();
+	void HandleEquipmentChestChanged();
+	
 #pragma endregion
 
 #pragma region Weapon
@@ -214,7 +220,7 @@ private:
 
 	// 현재 사용 중인 무기 슬롯 인덱스
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentWeaponIndex)
-	int32 CurrentWeaponIndex = INDEX_NONE;
+	int32 CurrentWeaponIndex = 0;
 
 protected:
 	UFUNCTION()
@@ -242,5 +248,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
 	FInventorySlot Get_Weapon (int32 index) const;
 #pragma endregion
+
+	void RemoveItem_Iternal(int32 Index);
 
 };

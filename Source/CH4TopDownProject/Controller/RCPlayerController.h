@@ -31,6 +31,9 @@ public:
 	void Client_HandleDeath();
 
 	UFUNCTION(Client, Reliable)
+	void Client_HandleVictory();
+
+	UFUNCTION(Client, Reliable)
 	void Client_PlayBlueZoneHitEffect();
 
 protected:
@@ -56,6 +59,12 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UGameResultLayout> LoserLayoutClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	USoundBase* WinnerSound;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	USoundBase* LoserSound;
 
 	FTimerHandle HUDTimerHandle;
 

@@ -10,8 +10,6 @@
 class UWidgetComponent;
 class UBoxComponent;
 class USphereComponent;
-class UNiagaraSystem;
-class UNiagaraComponent;
 
 UCLASS()
 class CH4TOPDOWNPROJECT_API AWorldItemBase : public AActor, public IInteractable
@@ -24,26 +22,26 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<USceneComponent> Root;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<UStaticMeshComponent> StaticMesh;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<UBoxComponent> Collision;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<USphereComponent> InteractionCheckCollision;
 
-	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category="Interact")
+	UPROPERTY(VisibleAnywhere,BlueprintReadWrite, Category="Interact")
 	TObjectPtr<UWidgetComponent> InteractWidget;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interact")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Interact")
 	TObjectPtr<UWidgetComponent> InteractCheckWidget;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Effects")
-	UNiagaraSystem* DestroyFX;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Item|Effects")
+	UParticleSystem* DestroyParticle;
 
 	UPROPERTY(EditAnywhere)
 	bool bCanInteract = true;
