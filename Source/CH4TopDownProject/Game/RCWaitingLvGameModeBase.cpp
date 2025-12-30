@@ -72,7 +72,7 @@ void ARCWaitingLvGameModeBase::PostLogin(APlayerController* NewPlayer)
 	{
 		LogInPlayerControllers.Add(NewPlayerController);
 
-		if (LogInPlayerControllers.Num() >= MaxPlayerCount) {
+		if (LogInPlayerControllers.Num() >= MinPlayerCount) {
 			UE_LOG(LogTemp, Error, TEXT("Player is full. This Session will be closed..."));
 
 			URCGameInstance* RCGameInstance = GetWorld()->GetGameInstance<URCGameInstance>();
