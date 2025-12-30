@@ -666,6 +666,21 @@ void ARCPlayerCharacter::PlayFootstepOnce()
 	if (GetCharacterMovement() && GetCharacterMovement()->IsFalling()) return;
 
 	UGameplayStatics::PlaySoundAtLocation(this, FootstepSound, GetActorLocation());
+
+	Server_PlayFootstep(GetActorLocation());
+}
+
+void ARCPlayerCharacter::Server_PlayFootstep_Implementation(const FVector& Loc)
+{
+	Multicast_PlayFootstep(Loc);
+}
+
+void ARCPlayerCharacter::Multicast_PlayFootstep_Implementation(const FVector& Loc)
+{
+	if (!IsLocallyControlled() && FootstepSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, FootstepSound, Loc);
+	}
 }
 
 void ARCPlayerCharacter::StartFootstepLoop()
