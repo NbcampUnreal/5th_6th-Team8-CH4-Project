@@ -1,4 +1,4 @@
-#include "UI/MainHUDWidget.h"
+﻿#include "UI/MainHUDWidget.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
 #include "Components/HorizontalBox.h"
@@ -49,7 +49,8 @@ void UMainHUDWidget::NativeConstruct()
         return;
     }
 
-    PlayerQuickSlotComponent->OnQuickSlotDataChanged.AddDynamic(this, &UMainHUDWidget::UpdateQuickSlotData);
+    PlayerQuickSlotComponent->OnQuickSlotDataChanged.AddDynamic(
+        this, &UMainHUDWidget::UpdateQuickSlotData);
     
     UpdateQuickSlotData(PlayerQuickSlotComponent->GetQuickSlotData());
 
@@ -95,22 +96,10 @@ void UMainHUDWidget::UpdateStamina(float CurrentStamina, float MaxStamina)
 
 void UMainHUDWidget::UpdateQuickSlotData(const TArray<FQuickSlotItemData>& NewSlotData)
 {
-    if (!QuickslotBox)
-    {
-        return;
-    }
-
-    int32 SlotCount = FMath::Min(QuickslotBox->GetChildrenCount(), NewSlotData.Num());
-    
-    for (int32 i = 0; i < SlotCount; ++i)
-    {
-        const FQuickSlotItemData& Data = NewSlotData[i];
-        if (Data.ItemID != NAME_None)
-        {
-            UE_LOG(LogTemp, Display, TEXT("Slot %d: ItemID=%s, StackCount=%d"), i + 1, *Data.ItemID.ToString(), Data.StackCount);
-        }
-    }
+    BP_UpdateQuickSlotData(NewSlotData);
 }
+
+
 
 void UMainHUDWidget::UpdateAlivePlayerCount(int32 AlivePlayerCount)
 {

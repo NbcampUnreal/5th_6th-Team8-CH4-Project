@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
@@ -30,17 +30,24 @@ public:
 	UFUNCTION(BlueprintPure, Category = "QuickSlot")
 	const TArray<FQuickSlotItemData>& GetQuickSlotData() const;
 
-	UFUNCTION(Server, Reliable, BlueprintCallable, Category = "QuickSlot")
+	UFUNCTION(BlueprintCallable)
+	void UseQuickSlot(int32 SlotIndex);
+
+	UFUNCTION( BlueprintCallable, Category = "QuickSlot")
 	void Server_SetQuickSlot(int32 SlotIndex, FName NewItemID, EItemType NewItemType);
 
-	UFUNCTION(Server, Reliable, WithValidation)
+	UFUNCTION()
 	void Server_UseQuickSlot(int32 SlotIndex);
 
 	void UpdateSlotCount(FName ItemID, int32 NewCount);
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	UFUNCTION(BlueprintCallable)
+	void SetQuickSlot(UUserWidget* widget);
+
 private:
+	UUserWidget* SelectItemWidget;
 	UInventoryComponent* GetInventoryComponent() const;
 
 protected:	

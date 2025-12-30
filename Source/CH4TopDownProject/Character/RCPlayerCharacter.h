@@ -69,9 +69,10 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void OnHelmetChanged(FName NewHelmetID);
 	
-		UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
-    	void OnChestChanged(FName NewHelmetID);
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+    void OnChestChanged(FName NewHelmetID);
     	
+	
 # pragma region Components
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)

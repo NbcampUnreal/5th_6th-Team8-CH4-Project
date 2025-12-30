@@ -16,12 +16,14 @@
 #include "Weapon/TopDownWeaponBase.h"
 #include "Net/UnrealNetwork.h"
 #include "Weapons/WeaponBase.h"
+#include "Component/QuickSlotComponent.h"
 
 
 UInventoryComponent::UInventoryComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	SetIsReplicatedByDefault(true);
+	QuickSlotComponent = CreateDefaultSubobject<UQuickSlotComponent>(TEXT("QuickSlotComponent"));
 }
 
 
@@ -133,6 +135,11 @@ void UInventoryComponent::CloseChestUI()
 		ContainerWidget->RemoveFromParent();
 		ContainerWidget = nullptr;
 	}
+}
+
+UQuickSlotComponent* UInventoryComponent::GetQuickSlotComponent() const
+{
+	return QuickSlotComponent.Get();
 }
 
 #pragma region Inventory

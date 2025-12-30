@@ -11,6 +11,7 @@
 class UInventoryUI;
 class UContainerWidget;
 class AChest;
+class UQuickSlotComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInventoryUpdated);
 
@@ -54,6 +55,9 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Inventory|UI")
 	TSubclassOf<UContainerWidget> ContainerWidgetClass;
 	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UQuickSlotComponent> QuickSlotComponent;
+
 public:
 	UPROPERTY(BlueprintAssignable, Category = "Inventory|Event")
 	FOnInventoryUpdated OnInventoryUpdated;
@@ -75,6 +79,9 @@ public:
 	void CloseInventoryUI();
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void CloseChestUI();
+	UFUNCTION(BlueprintPure, Category = "Components")
+	UQuickSlotComponent* GetQuickSlotComponent() const;
+
 #pragma endregion
 
 #pragma region Inventory

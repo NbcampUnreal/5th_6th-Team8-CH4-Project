@@ -50,6 +50,11 @@ protected:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UI", meta = (ExposeOnSpawn = "true"))
 	UInventoryComponent* InventoryComponent;
 public:
+	UFUNCTION(BlueprintCallable, Category = "UI")
+	FInventorySlot GetItemData() const
+	{
+		return InventorySlot;
+	}
 
 	UFUNCTION(BlueprintCallable, Category = "UI")
 	USizeBox* GetCellSizeBox() const
