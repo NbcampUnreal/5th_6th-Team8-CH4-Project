@@ -309,7 +309,8 @@ protected:
 public:
 	UFUNCTION(BlueprintCallable)
 	void SetMainHUDWidget(UMainHUDWidget* InHUDWidget);
-		
+	
+	UFUNCTION(BlueprintCallable)
 	void UpdateAmmoUI();
 
 protected:
