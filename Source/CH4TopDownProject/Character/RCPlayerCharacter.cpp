@@ -588,6 +588,8 @@ void ARCPlayerCharacter::Server_SetCurrentWeapon_Implementation(AWeaponBase* New
 
 	CurrentWeapon->ForceNetUpdate();
 	ForceNetUpdate();
+
+	CurrentWeapon->SetActorEnableCollision(false);
 }
 
 void ARCPlayerCharacter::UpdateAim()
@@ -748,15 +750,25 @@ void ARCPlayerCharacter::UpdateAmmoUI()
 	{
 		return;
 	}
-		
+
 	ARangeWeapon* RangeWeapon = Cast<ARangeWeapon>(CurrentWeapon);
-	if (RangeWeapon)
+	int32 SlotIndex = InventoryComponent->GetCurrentWeaponIndex();
+
+	if (RangeWeapon && (SlotIndex == 0 || SlotIndex == 1))
 	{
-		MainHUDWidgetInstance->UpdateAmmoCount(RangeWeapon->GetCurrentAmmo(), RangeWeapon->GetMaxMagazineSize());
-		MainHUDWidgetInstance->SetAmmoVisibility(ESlateVisibility::Visible);
+		int32 CurrentAmmo = RangeWeapon->GetCurrentAmmo();
+
+		int32 TotalAmmoInInventory = 0;
+		if (InventoryComponent)
+		{
+			FName TargetAmmoID = RangeWeapon->GetAmmoItemID();
+			TotalAmmoInInventory = InventoryComponent->GetTotalItemCountByID(TargetAmmoID);
+		}
+
+		MainHUDWidgetInstance->UpdateSlotAmmo(SlotIndex, CurrentAmmo, TotalAmmoInInventory);
 	}
 	else
-	{
-		MainHUDWidgetInstance->SetAmmoVisibility(ESlateVisibility::Hidden);
+	{		
+		MainHUDWidgetInstance->HideAllAmmoUI();
 	}
 }
