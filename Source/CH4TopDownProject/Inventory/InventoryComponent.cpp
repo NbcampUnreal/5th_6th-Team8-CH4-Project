@@ -127,6 +127,8 @@ void UInventoryComponent::OpenChestUI(AChest* Chest)
 			ContainerWidget->AddToViewport();
 		}
 	}
+
+	PlayerController->bShowMouseCursor = true;
 }
 
 void UInventoryComponent::CloseInventoryUI()
@@ -147,7 +149,11 @@ void UInventoryComponent::CloseInventoryUI()
 
 void UInventoryComponent::CloseChestUI()
 {
-	
+	APlayerController* PlayerController = Cast<APlayerController>(GetOwner()->GetInstigatorController());
+	if (!PlayerController)
+	{
+		return;
+	}		
 
 	if (ContainerWidget)
 	{
@@ -155,7 +161,7 @@ void UInventoryComponent::CloseChestUI()
 		ContainerWidget->RemoveFromParent();
 		ContainerWidget = nullptr;
 	}
-	
+	PlayerController->bShowMouseCursor = false;
 }
 
 UQuickSlotComponent* UInventoryComponent::GetQuickSlotComponent() const
