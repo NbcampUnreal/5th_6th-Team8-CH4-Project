@@ -45,7 +45,7 @@ void AChest::OnSphereEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor
 
 	UInventoryComponent* Inventory = Player->GetComponentByClass<UInventoryComponent>();
 	if (!Inventory)return;
-	Inventory->CloseChestUI();
+	Inventory->CloseInventoryUI();
 }
 
 void AChest::SetItem(const TMap<FName, int32>& ItemMap)

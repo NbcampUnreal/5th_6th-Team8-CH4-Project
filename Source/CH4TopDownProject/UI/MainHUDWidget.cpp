@@ -7,6 +7,7 @@
 #include "Component/QuickSlotComponent.h"
 #include "UI/QuickSlotItemData.h"
 #include "Game/RCGameStateBase.h"
+#include "Inventory/InventoryComponent.h"
 #include "Components/Image.h"
 
 void UMainHUDWidget::NativeConstruct()
@@ -42,7 +43,7 @@ void UMainHUDWidget::NativeConstruct()
     UpdateStamina(PlayerStaminaComponent->GetCurrentStamina(), PlayerStaminaComponent->GetMaxStamina());
 
 
-    PlayerQuickSlotComponent = OwningPawn->FindComponentByClass<UQuickSlotComponent>();
+    PlayerQuickSlotComponent = OwningPawn->GetComponentByClass<UInventoryComponent>()->GetQuickSlotComponent();
     if (!PlayerQuickSlotComponent)
     {
         UE_LOG(LogTemp, Warning, TEXT("Could not found QuickSlotComp"));
@@ -51,8 +52,8 @@ void UMainHUDWidget::NativeConstruct()
 
     PlayerQuickSlotComponent->OnQuickSlotDataChanged.AddDynamic(
         this, &UMainHUDWidget::UpdateQuickSlotData);
-    
-    UpdateQuickSlotData(PlayerQuickSlotComponent->GetQuickSlotData());
+    PlayerQuickSlotComponent->OnQuickSlotDataChanged.Broadcast(PlayerQuickSlotComponent->GetQuickSlotData());
+    //UpdateQuickSlotData(PlayerQuickSlotComponent->GetQuickSlotData());
 
 
     if (ARCGameStateBase* RCGameStateBase = GetWorld()->GetGameState<ARCGameStateBase>())

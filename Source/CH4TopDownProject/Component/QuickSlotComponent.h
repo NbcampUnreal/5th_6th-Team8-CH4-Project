@@ -51,7 +51,7 @@ private:
 	UInventoryComponent* GetInventoryComponent() const;
 
 protected:	
-	UPROPERTY(ReplicatedUsing = OnRep_QuickSlotData, VisibleAnywhere, Category = "QuickSlot")
+	UPROPERTY()
 	TArray<FQuickSlotItemData> QuickSlotData;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "QuickSlot")
