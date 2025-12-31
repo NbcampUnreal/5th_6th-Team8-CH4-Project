@@ -2,21 +2,33 @@
 
 
 #include "Inventory/InventoryComponent.h"
-#include "Inventory/ItemData/ItemData.h"
+
+// Engine / Framework
 #include "Blueprint/UserWidget.h"
-#include "Engine/World.h" 
+#include "Engine/World.h"
 #include "GameFramework/Actor.h"
-#include "Inventory/UI/InventoryUI.h"
-#include "Inventory/UI/ContainerWidget.h"
-#include "Inventory/ItemData/ItemData.h"
-#include "Inventory/ItemData/BaseItemComponent.h"
-#include "Interactor/Chest.h"
+
+// Networking
+#include "Net/UnrealNetwork.h"
+
+// Project - Character / Core
 #include "Character/RCPlayerCharacter.h"
 #include "Component/HealthComponent.h"
-#include "Weapon/TopDownWeaponBase.h"
-#include "Net/UnrealNetwork.h"
-#include "Weapons/WeaponBase.h"
 #include "Component/QuickSlotComponent.h"
+
+// Project - Inventory
+#include "Inventory/ItemData/BaseItemComponent.h"
+#include "Inventory/ItemData/ItemData.h"
+#include "Inventory/UI/ContainerWidget.h"
+#include "Inventory/UI/InventoryUI.h"
+
+// Project - Interaction
+#include "Interactor/Chest.h"
+
+// Project - Weapons
+#include "Weapon/TopDownWeaponBase.h"
+#include "Weapons/WeaponBase.h"
+#include "Weapons/RangeWeapon.h"
 
 
 UInventoryComponent::UInventoryComponent()
@@ -910,6 +922,28 @@ void UInventoryComponent::ClearWeaponSlot(int32 Index)
 	if (!Weapon) return;
 	AddItem(Weapon->GetComponentByClass<UBaseItemComponent>()
 		->GetItemData());
+	
+
+	UBaseItemComponent* ItemComp = Weapon->GetComponentByClass<UBaseItemComponent>();
+	if (!ItemComp) return;
+
+	const FName WeaponItemID = ItemComp->GetItemData().ItemID;
+
+	const FWeaponItemData* WeaponData =
+		WeaponItemDataTable->FindRow<FWeaponItemData>(WeaponItemID, TEXT(""));
+	if (!WeaponData) return;
+
+	ARangeWeapon* RangeWeapon = Cast<ARangeWeapon>(Weapon);
+	if (!RangeWeapon) return;
+
+	const int32 AmmoCount = RangeWeapon->GetCurrentAmmo();
+
+	AddItem(FInventorySlot(
+		WeaponData->UseAmmoID,
+		EItemType::Ammo,
+		AmmoCount
+	));
+
 	if (CurrentWeaponIndex == Index)
 	{
 		CurrentWeaponIndex = 2;
