@@ -87,6 +87,10 @@ protected:
 public:
     virtual void StartReload() override;
 
+    int32 GetCurrentAmmo() const { return CurrentAmmo; }
+
+    int32 GetMaxMagazineSize() const { return RangeStats.MagazineSize; }
+
 private:
     UFUNCTION(Server, Reliable)
     void Server_StartReload();
