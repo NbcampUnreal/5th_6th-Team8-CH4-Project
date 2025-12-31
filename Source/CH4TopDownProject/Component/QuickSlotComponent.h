@@ -39,7 +39,7 @@ public:
 	UFUNCTION()
 	void Server_UseQuickSlot(int32 SlotIndex);
 
-	void UpdateSlotCount(FName ItemID, int32 NewCount);
+	void UpdateSlotCount(const TMap<FName, int32>& ItemCountCache);
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 

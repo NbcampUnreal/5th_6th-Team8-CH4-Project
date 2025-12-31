@@ -167,9 +167,13 @@ UQuickSlotComponent* UInventoryComponent::GetQuickSlotComponent() const
 
 void UInventoryComponent::OnRep_Items()
 {
+	ItemCountCache.Empty();
 	for (FInventorySlot Item : Items) {
 		ItemCountCache.FindOrAdd(Item.ItemID) += Item.Num;
 	}
+
+	QuickSlotComponent->UpdateSlotCount(ItemCountCache);
+	
 	OnInventoryUpdated.Broadcast();
 }
 
@@ -311,14 +315,23 @@ bool UInventoryComponent::GetItem(AActor* ItemActor)
 	return false;
 }
 
-void UInventoryComponent::AddItem(FInventorySlot Item)
+void UInventoryComponent::AddItem(FInventorySlot newItem)
 {
 	if (!GetOwner()->HasAuthority())
 	{
-		Server_AddItem(Item);
+		Server_AddItem(newItem);
+
+		ItemCountCache.Empty();
+		for (FInventorySlot Item : Items) {
+			ItemCountCache.FindOrAdd(Item.ItemID) += Item.Num;
+		}
 		return;
 	}
-	Server_AddItem_Implementation(Item);
+	Server_AddItem_Implementation(newItem);
+	ItemCountCache.Empty();
+	for (FInventorySlot Item : Items) {
+		ItemCountCache.FindOrAdd(Item.ItemID) += Item.Num;
+	}
 }
 
 void UInventoryComponent::Server_AddItem_Implementation(FInventorySlot Item)
@@ -384,6 +397,7 @@ void UInventoryComponent::DropItem(FInventorySlot Item)
 	if (!GetOwner()->HasAuthority())
 	{
 		Server_DropItem(Item);
+
 		return;
 	}	
 	DropItem_Internal(Item);
@@ -443,10 +457,18 @@ void UInventoryComponent::RemoveItem(int32 Index) {
 	if (!GetOwner()->HasAuthority())
 	{
 		Server_RemoveItem(Index);
+		ItemCountCache.Empty();
+		for (FInventorySlot Item : Items) {
+			ItemCountCache.FindOrAdd(Item.ItemID) += Item.Num;
+		}
 		return;
 	}
 
 	RemoveItem_Iternal(Index);
+	ItemCountCache.Empty();
+	for (FInventorySlot Item : Items) {
+		ItemCountCache.FindOrAdd(Item.ItemID) += Item.Num;
+	}
 }
 
 void UInventoryComponent::Server_RemoveItem_Implementation(int32 Index)
@@ -474,9 +496,9 @@ void UInventoryComponent::RemoveItem_Iternal(int32 Index)
 	}
 	Items[Index] = FInventorySlot();
 
-	//Items.RemoveAt(Index);
-	//Items.Insert(FInventorySlot(), Index);
-	Items = Items;
+	Items.RemoveAt(Index);
+	Items.Insert(FInventorySlot(), Index);
+	//Items = Items;
 }
 
 int32 UInventoryComponent::UseItem_ID(FName ItemID, int32 Num)
@@ -484,10 +506,18 @@ int32 UInventoryComponent::UseItem_ID(FName ItemID, int32 Num)
 	 if (!GetOwner()->HasAuthority())
 	 {
 		 Server_UseItem_ID(ItemID, Num);
+		 ItemCountCache.Empty();
+		 for (FInventorySlot Item : Items) {
+			 ItemCountCache.FindOrAdd(Item.ItemID) += Item.Num;
+		 }
 		 return 0; // 클라는 즉시 결과를 모른다
 	 }
 
 	 UseItem_ID_Internal(ItemID, Num);
+	 ItemCountCache.Empty();
+	 for (FInventorySlot Item : Items) {
+		 ItemCountCache.FindOrAdd(Item.ItemID) += Item.Num;
+	 }
 	 return 0;
 }
 
@@ -538,7 +568,9 @@ void UInventoryComponent::UseItem_ID_Internal(FName ItemID, int32 Num)
 		}
 	}
 
-	Items = Items;
+	//Items = Items;
+	Items.Add(FInventorySlot());
+	Items.Pop();
 	return;
 }
 

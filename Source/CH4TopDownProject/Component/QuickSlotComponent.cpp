@@ -115,23 +115,29 @@ void UQuickSlotComponent::Server_UseQuickSlot(int32 SlotIndex)
         Inventory->UseItem_ID(Slot.ItemID, 1);
     }
 
+
 }
 
-void UQuickSlotComponent::UpdateSlotCount(FName ItemID, int32 NewCount)
+void UQuickSlotComponent::UpdateSlotCount(const TMap<FName, int32>& ItemCountCache)
 {
     bool bUpdated = false;
-    for (FQuickSlotItemData& Slot : QuickSlotData)
-    {
-        if (Slot.ItemID == ItemID)
+    for (int i = 2; i < QuickSlotData.Num(); i++) {
+        FQuickSlotItemData& Slot = QuickSlotData[i];
+        if (const int32* Count = ItemCountCache.Find(Slot.ItemID))
         {
-            Slot.StackCount = NewCount;
-            if (NewCount <= 0 && Slot.ItemType == EItemType::Consumable)
+            if (*Count > 0)
             {
-                // Icon?
+                Slot.StackCount = *Count;
+                bUpdated = true;
             }
-
-            bUpdated = true;
+            
+      
         }
+        else {
+            Slot.ItemID = "";
+            Slot.StackCount = 0;
+        }
+        bUpdated = true;
     }
 
     if (bUpdated)
