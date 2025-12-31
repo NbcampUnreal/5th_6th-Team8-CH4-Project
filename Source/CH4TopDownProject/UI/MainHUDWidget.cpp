@@ -100,19 +100,6 @@ void UMainHUDWidget::UpdateQuickSlotData(const TArray<FQuickSlotItemData>& NewSl
     BP_UpdateQuickSlotData(NewSlotData);
 }
 
-void UMainHUDWidget::UpdateAmmoCount(int32 CurrentAmmo, int32 MaxAmmo)
-{
-    if (CurrentAmmoText)
-    {
-        CurrentAmmoText->SetText(FText::AsNumber(CurrentAmmo));
-    }
-
-    if (MaxAmmoText)
-    {
-        MaxAmmoText->SetText(FText::AsNumber(MaxAmmo));
-    }
-}
-
 void UMainHUDWidget::UpdateAlivePlayerCount(int32 AlivePlayerCount)
 {
     if (AlivePlayerCountText)
@@ -189,15 +176,33 @@ void UMainHUDWidget::PlayBloodEffect()
     }
 }
 
-void UMainHUDWidget::SetAmmoVisibility(ESlateVisibility InVisability)
+void UMainHUDWidget::UpdateSlotAmmo(int32 SlotIndex, int32 CurrentAmmo, int32 TotalAmmo)
 {
-    if (CurrentAmmoText)
-    {
-        CurrentAmmoText->SetVisibility(InVisability);
-    }
+    HideAllAmmoUI();
 
-    if (MaxAmmoText)
+    if (SlotIndex == 0)
+    {        
+        Slot1_CurrentAmmo->SetText(FText::AsNumber(CurrentAmmo));
+        Slot1_MaxAmmo->SetText(FText::AsNumber(TotalAmmo));
+        Slot1_Group->SetVisibility(ESlateVisibility::Visible);
+    }
+    else if (SlotIndex == 1)
+    {        
+        Slot2_CurrentAmmo->SetText(FText::AsNumber(CurrentAmmo));
+        Slot2_MaxAmmo->SetText(FText::AsNumber(TotalAmmo));
+        Slot2_Group->SetVisibility(ESlateVisibility::Visible);
+    }
+}
+
+void UMainHUDWidget::HideAllAmmoUI()
+{
+    if (Slot1_Group)
     {
-        MaxAmmoText->SetVisibility(InVisability);
+        Slot1_Group->SetVisibility(ESlateVisibility::Hidden);
+    }
+    
+    if (Slot2_Group)
+    {
+        Slot2_Group->SetVisibility(ESlateVisibility::Hidden);
     }
 }

@@ -750,7 +750,9 @@ void ARCPlayerCharacter::UpdateAmmoUI()
 	}
 
 	ARangeWeapon* RangeWeapon = Cast<ARangeWeapon>(CurrentWeapon);
-	if (RangeWeapon)
+	int32 SlotIndex = InventoryComponent->GetCurrentWeaponIndex();
+
+	if (RangeWeapon && (SlotIndex == 0 || SlotIndex == 1))
 	{
 		int32 CurrentAmmo = RangeWeapon->GetCurrentAmmo();
 
@@ -761,11 +763,10 @@ void ARCPlayerCharacter::UpdateAmmoUI()
 			TotalAmmoInInventory = InventoryComponent->GetTotalItemCountByID(TargetAmmoID);
 		}
 
-		MainHUDWidgetInstance->UpdateAmmoCount(CurrentAmmo, TotalAmmoInInventory);
-		MainHUDWidgetInstance->SetAmmoVisibility(ESlateVisibility::Visible);
+		MainHUDWidgetInstance->UpdateSlotAmmo(SlotIndex, CurrentAmmo, TotalAmmoInInventory);
 	}
 	else
-	{
-		MainHUDWidgetInstance->SetAmmoVisibility(ESlateVisibility::Hidden);
+	{		
+		MainHUDWidgetInstance->HideAllAmmoUI();
 	}
 }
