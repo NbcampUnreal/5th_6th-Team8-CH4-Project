@@ -525,6 +525,8 @@ void UInventoryComponent::UseItem_ID_Internal(FName ItemID, int32 Num)
 			HealthComp->Heal(ItemRow->Heal);
 		}
 	}
+
+	Items = Items;
 	return;
 }
 
@@ -537,6 +539,19 @@ int32 UInventoryComponent::CheckItem_ID(FName ItemID)
 		return *Count;
 	}
 	return 0;
+}
+
+int32 UInventoryComponent::GetTotalItemCountByID(FName ItemID) const
+{
+	int32 TotalCount = 0;
+	for (const FInventorySlot& Slot : Items)
+	{
+		if (Slot.ItemID == ItemID)
+		{
+			TotalCount += Slot.Num;
+		}
+	}
+	return TotalCount;
 }
 
 int32 UInventoryComponent::GetInventorytSize()
@@ -668,7 +683,9 @@ void UInventoryComponent::ServerSetEquipmentBagID_Implementation(FInventorySlot 
 {
 	if (!GetOwner() || !GetOwner()->HasAuthority())
 		return;
-
+	if (EquipmentBagID.ItemID == "") {
+		AddItem(EquipmentBagID);
+	}
 	int32 CurInventorySize = GetInventorytSize();
 	EquipmentBagID = NewID;
 	int32 NextInventorySize = GetInventorytSize();
@@ -700,7 +717,9 @@ void UInventoryComponent::ServerSetEquipmentChestID_Implementation(FInventorySlo
 {
 	if (!GetOwner() || !GetOwner()->HasAuthority())
 		return;
-
+	if (EquipmentChestID.ItemID == "") {
+		AddItem(EquipmentChestID);
+	}
 	EquipmentChestID = NewID;
 	HandleEquipmentChestChanged();
 }
@@ -709,6 +728,9 @@ void UInventoryComponent::ServerSetEquipmentHeadID_Implementation(FInventorySlot
 {
 	if (!GetOwner() || !GetOwner()->HasAuthority())
 		return;
+	if (EquipmentHeadID.ItemID == "") {
+		AddItem(EquipmentHeadID);
+	}
 	EquipmentHeadID = NewID;
 
 	HandleEquipmentHeadChanged();
@@ -786,9 +808,11 @@ void UInventoryComponent::RequestSetWeapon(
 	if (!GetOwner()->HasAuthority())
 	{
 		ServerSetWeapon(Index, NewWeapon);
+		QuickSlotComponent->Server_SetQuickSlot(Index, NewWeapon.ItemID, NewWeapon.ItemType);
 		return;
 	}
 	ServerSetWeapon_Implementation(Index, NewWeapon);
+	QuickSlotComponent->Server_SetQuickSlot(Index, NewWeapon.ItemID, NewWeapon.ItemType);
 }
 
 void UInventoryComponent::RequestEquipWeapon(int32 Index)
@@ -813,7 +837,9 @@ void UInventoryComponent::ServerSetWeapon_Implementation(int32 Index, FInventory
 		WeaponItemDataTable->FindRow<FWeaponItemData>(
 			NewWeapon.ItemID, TEXT(""));
 
-	if (!Row || !Row->ItemActorClass) return;
+	if (!Row || !Row->ItemActorClass) { 
+		return; 
+	}
 
 	
 
@@ -848,7 +874,7 @@ void UInventoryComponent::ServerEquipWeapon_Implementation(int32 Index)
 
 	AActor* Weapon = WeaponActors[CurrentWeaponIndex];
 	if (!Weapon) return;
-	//Weapon->SetActorHiddenInGame(false);
+	Weapon->SetActorHiddenInGame(false);
 	//밀리 무기 추가로 인한 추가
 	//Cast<ARCPlayerCharacter>(GetOwner())->GetCurrentWeapon()->SetActorHiddenInGame(true);
 
@@ -882,7 +908,8 @@ void UInventoryComponent::ClearWeaponSlot(int32 Index)
 
 	AActor* Weapon = WeaponActors[Index];
 	if (!Weapon) return;
-
+	AddItem(Weapon->GetComponentByClass<UBaseItemComponent>()
+		->GetItemData());
 	if (CurrentWeaponIndex == Index)
 	{
 		CurrentWeaponIndex = 2;
