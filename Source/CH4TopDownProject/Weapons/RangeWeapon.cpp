@@ -36,7 +36,7 @@ void ARangeWeapon::BeginPlay()
 
     if (HasAuthority())
     {
-        CurrentAmmo = RangeStats.MagazineSize;
+        CurrentAmmo = 0;
         bIsReloading = false;
         PendingReloadFill = 0;
     }
