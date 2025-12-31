@@ -588,6 +588,8 @@ void ARCPlayerCharacter::Server_SetCurrentWeapon_Implementation(AWeaponBase* New
 
 	CurrentWeapon->ForceNetUpdate();
 	ForceNetUpdate();
+
+	CurrentWeapon->SetActorEnableCollision(false);
 }
 
 void ARCPlayerCharacter::UpdateAim()
