@@ -777,3 +777,15 @@ void ARCPlayerCharacter::UpdateAmmoUI()
 		MainHUDWidgetInstance->HideAllAmmoUI();
 	}
 }
+
+void ARCPlayerCharacter::ShowReloadUI(float Duration)
+{
+	if (!IsLocallyControlled() || !MainHUDWidgetInstance) return;
+	MainHUDWidgetInstance->ShowReloadProgress(Duration);
+}
+
+void ARCPlayerCharacter::ShowCrosshairUI()
+{
+	if (!IsLocallyControlled() || !MainHUDWidgetInstance) return;
+	MainHUDWidgetInstance->ShowCrosshair();
+}

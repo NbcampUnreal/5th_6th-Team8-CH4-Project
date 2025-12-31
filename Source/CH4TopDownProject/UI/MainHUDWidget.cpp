@@ -206,3 +206,13 @@ void UMainHUDWidget::HideAllAmmoUI()
         Slot2_Group->SetVisibility(ESlateVisibility::Hidden);
     }
 }
+
+void UMainHUDWidget::ShowReloadProgress(float Duration)
+{
+    BP_ShowReloadProgress(Duration);
+}
+
+void UMainHUDWidget::ShowCrosshair()
+{
+    BP_ShowCrosshair();
+}

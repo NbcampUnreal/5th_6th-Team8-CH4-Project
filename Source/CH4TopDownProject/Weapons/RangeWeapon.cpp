@@ -12,6 +12,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Character/RCPlayerCharacter.h"
 
+#include "UI/MainHUDWidget.h"
 ARangeWeapon::ARangeWeapon()
 {
     WeaponType = EWeaponTypes::Range;
@@ -39,6 +40,23 @@ void ARangeWeapon::BeginPlay()
         CurrentAmmo = 0;
         bIsReloading = false;
         PendingReloadFill = 0;
+    }
+
+    if (ARCPlayerCharacter* OwnerCharacter = Cast<ARCPlayerCharacter>(GetOwner()))
+    {
+        if (OwnerCharacter->IsLocallyControlled())
+        {
+            CachedHUDWidget = OwnerCharacter->GetMainHUDWidget();
+            /*if (bIsReloading)
+            {
+                //HUD->ShowReloadProgress(RangeStats.ReloadDuration);
+            }
+            else
+            {
+                HUD->ShowCrosshair();
+            }*/
+
+        }
     }
 }
 
@@ -205,11 +223,41 @@ FVector ARangeWeapon::ComputeBulletDirection_Server(const FVector& SpawnLoc) con
     return Dir;
 }
 
+void ARangeWeapon::UpdateReloadProgress()
+{
+    currentReloadTime += 0.01f;
+    
+    if(currentReloadTime >= RangeStats.ReloadDuration)
+    {
+        currentReloadTime = RangeStats.ReloadDuration;
+        GetWorldTimerManager().ClearTimer(ReloadTimerHandle);
+		currentReloadTime = 0.f;
+	}
+
+    if (CachedHUDWidget)
+    {
+        CachedHUDWidget->ShowReloadProgress(currentReloadTime / RangeStats.ReloadDuration);
+    }
+}
+
 void ARangeWeapon::StartReload()
 {
     if (!HasAuthority())
     {
         Server_StartReload();
+
+        if (CachedHUDWidget)
+        {
+            currentReloadTime = 0.f;
+
+            GetWorldTimerManager().SetTimer(
+                ReloadTimerHandle,
+                this,
+                &ARangeWeapon::UpdateReloadProgress,
+                0.01f,
+                true
+            );
+        }
         return;
     }
     if (bIsReloading)
@@ -334,6 +382,23 @@ void ARangeWeapon::OnRep_Reloading()
             );
         }
     }
+
+    if (ARCPlayerCharacter* OwnerCharacter = Cast<ARCPlayerCharacter>(GetOwner()))
+    {
+        if (OwnerCharacter->IsLocallyControlled())
+        {
+            UMainHUDWidget* HUD = OwnerCharacter->GetMainHUDWidget();
+            if (bIsReloading)
+            {
+                HUD->ShowReloadProgress(RangeStats.ReloadDuration);
+            }
+            else
+            {
+                HUD->ShowCrosshair();
+            }
+        }
+    }
+
     bPrevReloading = bIsReloading;
 }
 

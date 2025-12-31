@@ -55,7 +55,7 @@ public:
     UFUNCTION(Server, Unreliable)
     void Server_UpdateAim(const FVector_NetQuantize& NewTargetWorldPos);
 
-    virtual void StartReload() {}
+    virtual void StartReload();
 
 protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")

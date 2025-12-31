@@ -61,6 +61,15 @@ public:
     UFUNCTION(BlueprintCallable, Category = "HUD")
     void HideAllAmmoUI();
 
+    UFUNCTION(BlueprintCallable, Category = "HUD")
+    void ShowReloadProgress(float Duration);
+    UFUNCTION(BlueprintImplementableEvent, Category = "HUD")
+    void BP_ShowReloadProgress(float Duration);
+
+    UFUNCTION(BlueprintCallable, Category = "HUD")
+    void ShowCrosshair();
+    UFUNCTION(BlueprintImplementableEvent, Category = "HUD")
+    void BP_ShowCrosshair();
 protected:
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<UProgressBar> HealthBar;

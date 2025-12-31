@@ -9,6 +9,7 @@
 class USceneComponent;
 class ABulletBase;
 class UInventoryComponent;
+class UMainHUDWidget;
 
 USTRUCT(BlueprintType)
 struct FRangeWeaponStats
@@ -84,7 +85,10 @@ protected:
     virtual bool Server_AttackOnce() override;
     virtual float GetAttackInterval() const override;
 
+    void ShowReloadUI(float Duration);
+    void ShowCrosshairUI();
 
+	void UpdateReloadProgress();
 public:
     virtual void StartReload() override;
 
@@ -95,6 +99,7 @@ public:
 
     int32 GetMaxMagazineSize() const { return RangeStats.MagazineSize; }
 
+	float currentReloadTime = 0.f;
 private:
     UFUNCTION(Server, Reliable)
     void Server_StartReload();
@@ -118,4 +123,12 @@ private:
     void OnRep_Reloading();
 
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+public:
+    UFUNCTION(BlueprintPure)
+    float GetReloadProgress() const {
+        return currentReloadTime / RangeStats.ReloadDuration;
+    }
+
+	UMainHUDWidget* CachedHUDWidget = nullptr;
 };

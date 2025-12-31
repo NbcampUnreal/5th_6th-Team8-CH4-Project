@@ -313,8 +313,16 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void UpdateAmmoUI();
 
+	UFUNCTION(BlueprintCallable)
+	UMainHUDWidget* GetMainHUDWidget() const { return MainHUDWidgetInstance; }
 protected:
 	UPROPERTY()
 	TObjectPtr<UMainHUDWidget> MainHUDWidgetInstance;
+
+	UFUNCTION(BlueprintCallable)
+	void ShowReloadUI(float Duration);
+	
+	UFUNCTION(BlueprintCallable)
+	void ShowCrosshairUI();
 };
 

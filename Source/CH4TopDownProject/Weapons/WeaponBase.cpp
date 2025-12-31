@@ -210,3 +210,8 @@ void AWeaponBase::Interact_Implementation(AActor* Interactor)
 		this->Destroy();
     }
 }
+
+void AWeaponBase::StartReload()
+{
+    // To be overridden in derived classes
+}
