@@ -84,8 +84,16 @@ protected:
     virtual bool Server_AttackOnce() override;
     virtual float GetAttackInterval() const override;
 
+
 public:
     virtual void StartReload() override;
+
+    UFUNCTION(BlueprintCallable)
+    FName GetAmmoItemID() const { return AmmoItemID; }
+
+    int32 GetCurrentAmmo() const { return CurrentAmmo; }
+
+    int32 GetMaxMagazineSize() const { return RangeStats.MagazineSize; }
 
 private:
     UFUNCTION(Server, Reliable)

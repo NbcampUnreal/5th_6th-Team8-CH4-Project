@@ -1,15 +1,13 @@
 
 #include "RCPlayerController.h"
-
 #include "Net/UnrealNetwork.h"
 #include "Kismet/GameplayStatics.h"
 #include "UI/MainHUDWidget.h"
 #include "Component/HealthComponent.h"
 #include "UI/GameResultLayout.h"
 #include "GameFramework/GameStateBase.h"
-#include <Game/RCGameModeBase.h>
-
-//#include "Game/RCGameModeBase.h"
+#include "Game/RCGameModeBase.h"
+#include "Character/RCPlayerCharacter.h"
 
 void ARCPlayerController::BeginPlay()
 {
@@ -31,6 +29,11 @@ void ARCPlayerController::BeginPlay()
 		if (IsValid(MainHUDWidgetInstance))
 		{
 			MainHUDWidgetInstance->AddToViewport(1);
+
+			if (ARCPlayerCharacter* MyCharacter = Cast<ARCPlayerCharacter>(GetPawn()))
+			{
+				MyCharacter->SetMainHUDWidget(MainHUDWidgetInstance);
+			}
 		}
 	}
 

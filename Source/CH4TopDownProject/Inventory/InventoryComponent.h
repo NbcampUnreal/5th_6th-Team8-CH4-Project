@@ -143,6 +143,7 @@ public:
 	void RemoveItem(int32 Index);
 	UFUNCTION(Server, Reliable)
 	void Server_RemoveItem(int32 Index);
+	void RemoveItem_Iternal(int32 Index);
 	//사용한 아이템 갯수를 리턴
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	int32 UseItem_ID(FName ItemID, int32 Num);
@@ -151,6 +152,9 @@ public:
 	void UseItem_ID_Internal(FName ItemID, int32 Num);
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	int32 CheckItem_ID(FName ItemID);
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	int32 GetTotalItemCountByID(FName ItemID) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	const TArray<FInventorySlot>& GetItems() const { return Items; }
@@ -254,8 +258,10 @@ public:
 	AActor* Get_CurrentWeapon();
 	UFUNCTION(BlueprintCallable, Category = "Equipment")
 	FInventorySlot Get_Weapon (int32 index) const;
+	UFUNCTION(BlueprintCallable, Category = "Equipment")
+	int32 GetCurrentWeaponIndex() const { return CurrentWeaponIndex; }
 #pragma endregion
 
-	void RemoveItem_Iternal(int32 Index);
+	
 
 };

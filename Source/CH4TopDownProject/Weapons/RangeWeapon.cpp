@@ -10,6 +10,7 @@
 #include "GameFramework/Pawn.h"
 #include "Inventory/InventoryComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Character/RCPlayerCharacter.h"
 
 ARangeWeapon::ARangeWeapon()
 {
@@ -35,7 +36,7 @@ void ARangeWeapon::BeginPlay()
 
     if (HasAuthority())
     {
-        CurrentAmmo = RangeStats.MagazineSize;
+        CurrentAmmo = 0;
         bIsReloading = false;
         PendingReloadFill = 0;
     }
@@ -179,6 +180,14 @@ void ARangeWeapon::SpawnBullet_Server()
         InstCtrl,
         RangeStats.MaxRange
     );
+
+    if (ARCPlayerCharacter* OwnerCharacter = Cast<ARCPlayerCharacter>(GetOwner()))
+    {
+        if (OwnerCharacter->IsLocallyControlled())
+        {
+            OwnerCharacter->UpdateAmmoUI();
+        }
+    }
 }
 
 FVector ARangeWeapon::ComputeBulletDirection_Server(const FVector& SpawnLoc) const
@@ -286,6 +295,14 @@ void ARangeWeapon::FinishReload_Server()
     PendingReloadFill = 0;
     bIsReloading = false;
     ForceNetUpdate();
+
+    if (ARCPlayerCharacter* OwnerCharacter = Cast<ARCPlayerCharacter>(GetOwner()))
+    {
+        if (OwnerCharacter->IsLocallyControlled())
+        {
+            OwnerCharacter->UpdateAmmoUI();
+        }
+    }
 }
 
 void ARangeWeapon::OnRep_Ammo()
@@ -295,6 +312,11 @@ void ARangeWeapon::OnRep_Ammo()
         CurrentAmmo,
         RangeStats.MagazineSize
     );
+
+    if (ARCPlayerCharacter* OwnerCharacter = Cast<ARCPlayerCharacter>(GetOwner()))
+    {
+        OwnerCharacter->UpdateAmmoUI();
+    }
 }
 
 void ARangeWeapon::OnRep_Reloading()

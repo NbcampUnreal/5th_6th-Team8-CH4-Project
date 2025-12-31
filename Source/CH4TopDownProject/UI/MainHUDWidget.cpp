@@ -7,6 +7,7 @@
 #include "Component/QuickSlotComponent.h"
 #include "UI/QuickSlotItemData.h"
 #include "Game/RCGameStateBase.h"
+#include "Inventory/InventoryComponent.h"
 #include "Components/Image.h"
 
 void UMainHUDWidget::NativeConstruct()
@@ -42,7 +43,7 @@ void UMainHUDWidget::NativeConstruct()
     UpdateStamina(PlayerStaminaComponent->GetCurrentStamina(), PlayerStaminaComponent->GetMaxStamina());
 
 
-    PlayerQuickSlotComponent = OwningPawn->FindComponentByClass<UQuickSlotComponent>();
+    PlayerQuickSlotComponent = OwningPawn->GetComponentByClass<UInventoryComponent>()->GetQuickSlotComponent();
     if (!PlayerQuickSlotComponent)
     {
         UE_LOG(LogTemp, Warning, TEXT("Could not found QuickSlotComp"));
@@ -51,8 +52,8 @@ void UMainHUDWidget::NativeConstruct()
 
     PlayerQuickSlotComponent->OnQuickSlotDataChanged.AddDynamic(
         this, &UMainHUDWidget::UpdateQuickSlotData);
-    
-    UpdateQuickSlotData(PlayerQuickSlotComponent->GetQuickSlotData());
+    PlayerQuickSlotComponent->OnQuickSlotDataChanged.Broadcast(PlayerQuickSlotComponent->GetQuickSlotData());
+    //UpdateQuickSlotData(PlayerQuickSlotComponent->GetQuickSlotData());
 
 
     if (ARCGameStateBase* RCGameStateBase = GetWorld()->GetGameState<ARCGameStateBase>())
@@ -98,8 +99,6 @@ void UMainHUDWidget::UpdateQuickSlotData(const TArray<FQuickSlotItemData>& NewSl
 {
     BP_UpdateQuickSlotData(NewSlotData);
 }
-
-
 
 void UMainHUDWidget::UpdateAlivePlayerCount(int32 AlivePlayerCount)
 {
@@ -177,15 +176,33 @@ void UMainHUDWidget::PlayBloodEffect()
     }
 }
 
-//void UMainHUDWidget::UpdateAmmoCount(int32 CurrentAmmo, int32 MaxAmmo)
-//{
-//    if (CurrentAmmoText)
-//    {        
-//        CurrentAmmoText->SetText(FText::AsNumber(CurrentAmmo));
-//    }
-//
-//    if (MaxAmmoText)
-//    {        
-//        MaxAmmoText->SetText(FText::Format(NSLOCTEXT("HUD", "MaxAmmoFormat", "/ {0}"), FText::AsNumber(MaxAmmo)));
-//    }
-//}
+void UMainHUDWidget::UpdateSlotAmmo(int32 SlotIndex, int32 CurrentAmmo, int32 TotalAmmo)
+{
+    HideAllAmmoUI();
+
+    if (SlotIndex == 0)
+    {        
+        Slot1_CurrentAmmo->SetText(FText::AsNumber(CurrentAmmo));
+        Slot1_MaxAmmo->SetText(FText::AsNumber(TotalAmmo));
+        Slot1_Group->SetVisibility(ESlateVisibility::Visible);
+    }
+    else if (SlotIndex == 1)
+    {        
+        Slot2_CurrentAmmo->SetText(FText::AsNumber(CurrentAmmo));
+        Slot2_MaxAmmo->SetText(FText::AsNumber(TotalAmmo));
+        Slot2_Group->SetVisibility(ESlateVisibility::Visible);
+    }
+}
+
+void UMainHUDWidget::HideAllAmmoUI()
+{
+    if (Slot1_Group)
+    {
+        Slot1_Group->SetVisibility(ESlateVisibility::Hidden);
+    }
+    
+    if (Slot2_Group)
+    {
+        Slot2_Group->SetVisibility(ESlateVisibility::Hidden);
+    }
+}

@@ -30,15 +30,11 @@ public:
     UFUNCTION(BlueprintCallable, Category = "HUD")
     void UpdateStamina(float CurrentStamina, float MaxStamina);
 
-    UFUNCTION(BlueprintCallable, Category = "HUD")
+    UFUNCTION()
     void UpdateQuickSlotData(const TArray<FQuickSlotItemData>& NewSlotData);
 
     UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "HUD")
     void BP_UpdateQuickSlotData(const TArray<FQuickSlotItemData>& NewSlotData);
-
-
-    //UFUNCTION(BlueprintCallable, Category = "HUD")
-    //void UpdateAmmoCount(int32 CurrentAmmo, int32 MaxClipAmmo);
 
     UFUNCTION(BlueprintCallable, Category = "HUD")
     void UpdateAlivePlayerCount(int32 AlivePlayerCount);
@@ -59,6 +55,12 @@ public:
     UFUNCTION(BlueprintCallable, Category = "HUD")
     void PlayBloodEffect();
 
+    UFUNCTION(BlueprintCallable, Category = "HUD")
+    void UpdateSlotAmmo(int32 SlotIndex, int32 CurrentAmmo, int32 TotalAmmo);
+
+    UFUNCTION(BlueprintCallable, Category = "HUD")
+    void HideAllAmmoUI();
+
 protected:
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<UProgressBar> HealthBar;
@@ -71,12 +73,6 @@ protected:
 
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<UProgressBar> StaminaBar;
-
-    //UPROPERTY(meta = (BindWidget))
-    //TObjectPtr<UTextBlock> CurrentAmmoText;
-    //
-    //UPROPERTY(meta = (BindWidget))
-    //TObjectPtr<UTextBlock> MaxAmmoText;
 
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<UMinimapWidget> MinimapWidget;
@@ -92,6 +88,24 @@ protected:
     
     UPROPERTY(meta = (Bindwidget))
     TObjectPtr<UTextBlock> AlivePlayerCountText;
+
+    UPROPERTY(meta = (BindWidget))
+    TObjectPtr<UTextBlock> Slot1_CurrentAmmo;
+
+    UPROPERTY(meta = (BindWidget))
+    TObjectPtr<UTextBlock> Slot1_MaxAmmo;
+        
+    UPROPERTY(meta = (BindWidget))
+    TObjectPtr<UTextBlock> Slot2_CurrentAmmo;
+
+    UPROPERTY(meta = (BindWidget))
+    TObjectPtr<UTextBlock> Slot2_MaxAmmo;
+        
+    UPROPERTY(meta = (BindWidget))
+    TObjectPtr<UHorizontalBox> Slot1_Group;
+
+    UPROPERTY(meta = (BindWidget))
+    TObjectPtr<UHorizontalBox> Slot2_Group;
 
     UPROPERTY()
     TObjectPtr<UHealthComponent> PlayerHealthComponent;
