@@ -109,15 +109,15 @@ void AChest::Client_OpenChestUI_Implementation(AActor* Interactor)
 	if (!Inventory)return;
 	Inventory->OpenChestUI(this);
 
-	if (ItemListArray.Num() == 0)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Cyan,
-		                                 TEXT("EMPTY"));
-	}
-
-	for (const FChestItemEntry& Entry : ItemListArray)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Cyan,
-		                                 FString::Printf(TEXT("%s : %d"), *Entry.ItemName.ToString(), Entry.ItemNum));
-	}
+	// if (ItemListArray.Num() == 0)
+	// {
+	// 	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Cyan,
+	// 	                                 TEXT("EMPTY"));
+	// }
+	//
+	// for (const FChestItemEntry& Entry : ItemListArray)
+	// {
+	// 	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Cyan,
+	// 	                                 FString::Printf(TEXT("%s : %d"), *Entry.ItemName.ToString(), Entry.ItemNum));
+	// }
 }
