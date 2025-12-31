@@ -153,6 +153,9 @@ public:
 	int32 CheckItem_ID(FName ItemID);
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	int32 GetTotalItemCountByID(FName ItemID) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	const TArray<FInventorySlot>& GetItems() const { return Items; }
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")

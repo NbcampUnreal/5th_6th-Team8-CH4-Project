@@ -177,36 +177,37 @@ void ARCPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 	if (UseSlot1Action)
 	{
-		EIC->BindAction(UseSlot1Action, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleUseSlot1Input);
+		EIC->BindAction(UseSlot1Action, ETriggerEvent::Started, this, &ARCPlayerCharacter::HandleUseSlot1Input);
 	}
 	if (UseSlot2Action)
 	{
-		EIC->BindAction(UseSlot2Action, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleUseSlot2Input);
+		EIC->BindAction(UseSlot2Action, ETriggerEvent::Started, this, &ARCPlayerCharacter::HandleUseSlot2Input);
 	}
 	if (UseSlot3Action)
 	{
-		EIC->BindAction(UseSlot3Action, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleUseSlot3Input);
+		EIC->BindAction(UseSlot3Action, ETriggerEvent::Started, this, &ARCPlayerCharacter::HandleUseSlot3Input);
 	}
 	if (UseSlot4Action)
 	{
-		EIC->BindAction(UseSlot4Action, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleUseSlot4Input);
+		EIC->BindAction(UseSlot4Action, ETriggerEvent::Started, this, &ARCPlayerCharacter::HandleUseSlot4Input);
 	}
 	if (UseSlot5Action)
 	{
-		EIC->BindAction(UseSlot5Action, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleUseSlot5Input);
+		EIC->BindAction(UseSlot5Action, ETriggerEvent::Started, this, &ARCPlayerCharacter::HandleUseSlot5Input);
 	}
 	if (UseSlot6Action)
 	{
-		EIC->BindAction(UseSlot6Action, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleUseSlot6Input);
+		EIC->BindAction(UseSlot6Action, ETriggerEvent::Started, this, &ARCPlayerCharacter::HandleUseSlot6Input);
 	}
 	if (UseSlot7Action)
 	{
-		EIC->BindAction(UseSlot7Action, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleUseSlot7Input);
+		EIC->BindAction(UseSlot7Action, ETriggerEvent::Started, this, &ARCPlayerCharacter::HandleUseSlot7Input);
 	}
 	if (UseSlot8Action)
 	{
-		EIC->BindAction(UseSlot8Action, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleUseSlot8Input);
+		EIC->BindAction(UseSlot8Action, ETriggerEvent::Started, this, &ARCPlayerCharacter::HandleUseSlot8Input);
 	}
+
 	EIC->BindAction(ReloadAction, ETriggerEvent::Triggered, this, &ARCPlayerCharacter::HandleReloadInput);
 }
 
