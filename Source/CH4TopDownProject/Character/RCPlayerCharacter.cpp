@@ -157,6 +157,11 @@ void ARCPlayerCharacter::BeginPlay()
 			HealthComponent->OnDamageReceived.AddDynamic(this, &ARCPlayerCharacter::Multicast_ShowDamageText);
 		}
 	}
+
+	if (InventoryComponent)
+	{
+		InventoryComponent->OnInventoryUpdated.AddDynamic(this, &ARCPlayerCharacter::UpdateAmmoUI);
+	}
 }
 
 void ARCPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
