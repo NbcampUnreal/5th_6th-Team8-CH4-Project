@@ -21,7 +21,7 @@ void ARCPlayerController::BeginPlay()
 	FInputModeGameOnly Mode;
 	Mode.SetConsumeCaptureMouseDown(false);
 	SetInputMode(Mode);
-	bShowMouseCursor = true;
+	bShowMouseCursor = false;
 
 	if (IsValid(MainHUDWidgetClass))
 	{
