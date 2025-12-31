@@ -24,6 +24,7 @@ class ADamageTextActor;
 class UCameraComponent;
 
 class UInventoryComponent;
+class UMainHUDWidget;
 
 UCLASS()
 class CH4TOPDOWNPROJECT_API ARCPlayerCharacter : public ACharacter
@@ -304,5 +305,15 @@ protected:
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void Multicast_ShowDamageText(float Damage, FVector Location);
+
+public:
+	UFUNCTION(BlueprintCallable)
+	void SetMainHUDWidget(UMainHUDWidget* InHUDWidget);
+		
+	void UpdateAmmoUI();
+
+protected:
+	UPROPERTY()
+	TObjectPtr<UMainHUDWidget> MainHUDWidgetInstance;
 };
 

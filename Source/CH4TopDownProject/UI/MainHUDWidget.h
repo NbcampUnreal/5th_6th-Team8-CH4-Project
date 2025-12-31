@@ -37,8 +37,8 @@ public:
     void BP_UpdateQuickSlotData(const TArray<FQuickSlotItemData>& NewSlotData);
 
 
-    //UFUNCTION(BlueprintCallable, Category = "HUD")
-    //void UpdateAmmoCount(int32 CurrentAmmo, int32 MaxClipAmmo);
+    UFUNCTION(BlueprintCallable, Category = "HUD")
+    void UpdateAmmoCount(int32 CurrentAmmo, int32 MaxAmmo);
 
     UFUNCTION(BlueprintCallable, Category = "HUD")
     void UpdateAlivePlayerCount(int32 AlivePlayerCount);
@@ -59,6 +59,9 @@ public:
     UFUNCTION(BlueprintCallable, Category = "HUD")
     void PlayBloodEffect();
 
+    UFUNCTION(BlueprintCallable, Category = "HUD")
+    void SetAmmoVisibility(ESlateVisibility InVisability);
+
 protected:
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<UProgressBar> HealthBar;
@@ -72,11 +75,11 @@ protected:
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<UProgressBar> StaminaBar;
 
-    //UPROPERTY(meta = (BindWidget))
-    //TObjectPtr<UTextBlock> CurrentAmmoText;
-    //
-    //UPROPERTY(meta = (BindWidget))
-    //TObjectPtr<UTextBlock> MaxAmmoText;
+    UPROPERTY(meta = (BindWidget))
+    TObjectPtr<UTextBlock> CurrentAmmoText;
+    
+    UPROPERTY(meta = (BindWidget))
+    TObjectPtr<UTextBlock> MaxAmmoText;
 
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<UMinimapWidget> MinimapWidget;

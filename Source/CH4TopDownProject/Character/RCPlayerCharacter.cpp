@@ -29,6 +29,7 @@
 #include "Inventory/InventoryComponent.h"
 #include "UI/OverheadHealthWidget.h"
 #include "UI/DamageTextActor.h"
+#include "UI/MainHUDWidget.h"
 
 ARCPlayerCharacter::ARCPlayerCharacter()
 {
@@ -636,6 +637,7 @@ void ARCPlayerCharacter::OnRep_CurrentWeapon()
 		CurrentWeapon->SetActorHiddenInGame(!IsLocallyControlled());
 	}
 	
+	UpdateAmmoUI();
 }
 
 void ARCPlayerCharacter::OnRep_CurrentArmor()
@@ -729,5 +731,31 @@ void ARCPlayerCharacter::Multicast_ShowDamageText_Implementation(float Damage, F
 		{
 			DamageActor->InitializeDamage(Damage);
 		}
+	}
+}
+
+void ARCPlayerCharacter::SetMainHUDWidget(UMainHUDWidget* InHUDWidget)
+{
+	MainHUDWidgetInstance = InHUDWidget;
+
+	UpdateAmmoUI();
+}
+
+void ARCPlayerCharacter::UpdateAmmoUI()
+{
+	if (!IsLocallyControlled() || !MainHUDWidgetInstance)
+	{
+		return;
+	}
+		
+	ARangeWeapon* RangeWeapon = Cast<ARangeWeapon>(CurrentWeapon);
+	if (RangeWeapon)
+	{
+		MainHUDWidgetInstance->UpdateAmmoCount(RangeWeapon->GetCurrentAmmo(), RangeWeapon->GetMaxMagazineSize());
+		MainHUDWidgetInstance->SetAmmoVisibility(ESlateVisibility::Visible);
+	}
+	else
+	{
+		MainHUDWidgetInstance->SetAmmoVisibility(ESlateVisibility::Hidden);
 	}
 }

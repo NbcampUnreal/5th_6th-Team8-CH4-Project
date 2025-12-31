@@ -100,7 +100,18 @@ void UMainHUDWidget::UpdateQuickSlotData(const TArray<FQuickSlotItemData>& NewSl
     BP_UpdateQuickSlotData(NewSlotData);
 }
 
+void UMainHUDWidget::UpdateAmmoCount(int32 CurrentAmmo, int32 MaxAmmo)
+{
+    if (CurrentAmmoText)
+    {
+        CurrentAmmoText->SetText(FText::AsNumber(CurrentAmmo));
+    }
 
+    if (MaxAmmoText)
+    {
+        MaxAmmoText->SetText(FText::AsNumber(MaxAmmo));
+    }
+}
 
 void UMainHUDWidget::UpdateAlivePlayerCount(int32 AlivePlayerCount)
 {
@@ -178,15 +189,15 @@ void UMainHUDWidget::PlayBloodEffect()
     }
 }
 
-//void UMainHUDWidget::UpdateAmmoCount(int32 CurrentAmmo, int32 MaxAmmo)
-//{
-//    if (CurrentAmmoText)
-//    {        
-//        CurrentAmmoText->SetText(FText::AsNumber(CurrentAmmo));
-//    }
-//
-//    if (MaxAmmoText)
-//    {        
-//        MaxAmmoText->SetText(FText::Format(NSLOCTEXT("HUD", "MaxAmmoFormat", "/ {0}"), FText::AsNumber(MaxAmmo)));
-//    }
-//}
+void UMainHUDWidget::SetAmmoVisibility(ESlateVisibility InVisability)
+{
+    if (CurrentAmmoText)
+    {
+        CurrentAmmoText->SetVisibility(InVisability);
+    }
+
+    if (MaxAmmoText)
+    {
+        MaxAmmoText->SetVisibility(InVisability);
+    }
+}
