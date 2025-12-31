@@ -113,7 +113,7 @@ void AWorldItemBase::OnSphereOverlap(UPrimitiveComponent* OverlappedComp,
 		ARCPlayerCharacter* Player = Cast<ARCPlayerCharacter>(OtherActor);
 		Player->SetInteractTarget(this);
 
-		GEngine->AddOnScreenDebugMessage(
+		/*GEngine->AddOnScreenDebugMessage(
 			-1,
 			2.f,
 			FColor::Green,
@@ -121,7 +121,7 @@ void AWorldItemBase::OnSphereOverlap(UPrimitiveComponent* OverlappedComp,
 				TEXT("[WorldItemBase] Begin Overlap : %s"),
 				*OtherActor->GetName()
 			)
-		);
+		);*/
 	}
 }
 
@@ -136,7 +136,7 @@ void AWorldItemBase::OnSphereEnd(UPrimitiveComponent* OverlappedComp,
 	{
 		ARCPlayerCharacter* Player = Cast<ARCPlayerCharacter>(OtherActor);
 				Player->ClearInteractTarget(this);
-		GEngine->AddOnScreenDebugMessage(
+		/*GEngine->AddOnScreenDebugMessage(
 			-1,
 			2.f,
 			FColor::Green,
@@ -144,7 +144,7 @@ void AWorldItemBase::OnSphereEnd(UPrimitiveComponent* OverlappedComp,
 				TEXT("[WorldItemBase] End Overlap : %s"),
 				*OtherActor->GetName()
 			)
-		);
+		);*/
 	}
 }
 
