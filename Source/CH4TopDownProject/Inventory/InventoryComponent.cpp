@@ -84,6 +84,7 @@ void UInventoryComponent::OpenInventoryUI()
 		}
 	}
 	IsInventoryOpen = true;
+	PlayerController->bShowMouseCursor = true;
 }
 
 void UInventoryComponent::OpenChestUI(AChest* Chest)
@@ -118,6 +119,10 @@ void UInventoryComponent::OpenChestUI(AChest* Chest)
 
 void UInventoryComponent::CloseInventoryUI()
 {
+	APlayerController* PlayerController =
+		Cast<APlayerController>(GetOwner()->GetInstigatorController());
+	if (!PlayerController)
+		return;
 	if (InventoryWidget)
 	{
 		InventoryWidget->RemoveFromParent();
@@ -125,16 +130,20 @@ void UInventoryComponent::CloseInventoryUI()
 	}
 	IsInventoryOpen = false;
 	CloseChestUI();
+	PlayerController->bShowMouseCursor = false;
 }
 
 void UInventoryComponent::CloseChestUI()
-{	
+{
+	
+
 	if (ContainerWidget)
 	{
 		ContainerWidget->OwnerChest->CloseChestUI(ContainerWidget->Items);
 		ContainerWidget->RemoveFromParent();
 		ContainerWidget = nullptr;
 	}
+	
 }
 
 UQuickSlotComponent* UInventoryComponent::GetQuickSlotComponent() const
@@ -146,6 +155,9 @@ UQuickSlotComponent* UInventoryComponent::GetQuickSlotComponent() const
 
 void UInventoryComponent::OnRep_Items()
 {
+	for (FInventorySlot Item : Items) {
+		ItemCountCache.FindOrAdd(Item.ItemID) += Item.Num;
+	}
 	OnInventoryUpdated.Broadcast();
 }
 

@@ -16,11 +16,7 @@ UQuickSlotComponent::UQuickSlotComponent()
 void UQuickSlotComponent::BeginPlay()
 {
     Super::BeginPlay();
-
-    if (GetOwner()->HasAuthority())
-    {
-        QuickSlotData.SetNum(NumQuickSlots);
-    }
+    QuickSlotData.SetNum(NumQuickSlots);
 }
 
 const TArray<FQuickSlotItemData>& UQuickSlotComponent::GetQuickSlotData() const
@@ -52,16 +48,7 @@ void UQuickSlotComponent::Server_SetQuickSlot(int32 SlotIndex, FName NewItemID, 
     }
     UInventoryComponent* Inventory = GetInventoryComponent();
     if (!Inventory)return;
-    FQuickSlotItemData& Slot = QuickSlotData[SlotIndex];
-    Slot.ItemID = NewItemID;
-    Slot.ItemType = NewItemType;
-
-    OnQuickSlotDataChanged.Broadcast(QuickSlotData);
-
-    if (Inventory)
-    {
-        Slot.StackCount = Inventory->CheckItem_ID(NewItemID);
-    }
+    
     // 1, 2 -> Weapon
     if (SlotIndex <= 1)
     {
@@ -80,7 +67,21 @@ void UQuickSlotComponent::Server_SetQuickSlot(int32 SlotIndex, FName NewItemID, 
         }
     }
 
-    OnRep_QuickSlotData();
+    FQuickSlotItemData& Slot = QuickSlotData[SlotIndex];
+    Slot.ItemID = NewItemID;
+    Slot.ItemType = NewItemType;
+    QuickSlotData = QuickSlotData;
+
+    UE_LOG(LogTemp, Warning, TEXT("Broadcast Role: %s"),
+        *UEnum::GetValueAsString(GetOwnerRole()));
+
+    if (Inventory)
+    {
+        Slot.StackCount = Inventory->CheckItem_ID(NewItemID);
+    }
+
+    OnQuickSlotDataChanged.Broadcast(GetQuickSlotData());
+    //OnRep_QuickSlotData();
 }
 
 void UQuickSlotComponent::Server_UseQuickSlot(int32 SlotIndex)
@@ -142,8 +143,6 @@ void UQuickSlotComponent::UpdateSlotCount(FName ItemID, int32 NewCount)
 void UQuickSlotComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-    DOREPLIFETIME(UQuickSlotComponent, QuickSlotData);
 }
 
 void UQuickSlotComponent::SetQuickSlot(UUserWidget* widget)

@@ -30,7 +30,7 @@ public:
     UFUNCTION(BlueprintCallable, Category = "HUD")
     void UpdateStamina(float CurrentStamina, float MaxStamina);
 
-    UFUNCTION(BlueprintCallable, Category = "HUD")
+    UFUNCTION()
     void UpdateQuickSlotData(const TArray<FQuickSlotItemData>& NewSlotData);
 
     UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "HUD")
